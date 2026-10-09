@@ -1,0 +1,65 @@
+{
+  "_comment": "Non-secret defaults. Values you change in the dashboard are stored in SQLite and override these. Secrets live in ~/.agentstation/secrets.env and ~/.openclaw/.env, never here.",
+  "host": "127.0.0.1",
+  "port": 8787,
+  "demoPort": 8788,
+  "timezone": "UTC",
+  "openclaw": {
+    "baseUrl": "http://127.0.0.1:18789",
+    "envFile": "~/.openclaw/.env",
+    "healthPollMs": 5000
+  },
+  "agents": {
+    "commander": {
+      "openclawAgentId": "station-commander",
+      "room": "Command Center",
+      "timeoutSec": 240
+    },
+    "researcher": {
+      "openclawAgentId": "station-researcher",
+      "room": "Research Lab",
+      "timeoutSec": 420
+    },
+    "writer": {
+      "openclawAgentId": "station-writer",
+      "room": "Content Studio",
+      "timeoutSec": 420
+    },
+    "reviewer": {
+      "openclawAgentId": "station-reviewer",
+      "room": "Review Station",
+      "timeoutSec": 300
+    }
+  },
+  "queue": {
+    "maxWorkers": 2,
+    "maxAttempts": 2,
+    "maxRevisions": 1,
+    "pollMs": 1000
+  },
+  "limits": {
+    "_comment": "Token caps are enforced from usage OpenClaw reports. 2,000,000 tokens/day is roughly $5/day at Claude Sonnet 5.5 API rates for this workload (measured: ~145k reported tokens and ~$0.35 API-equivalent per team task, 2026-10-09). The Claude subscription is not billed per token; this is a reference conversion only.",
+    "dailyTokenCap": 2000000,
+    "perTaskTokenCap": 400000,
+    "dailyUsdLimit": 5
+  },
+  "sources": {
+    "approvedDomains": [
+      "en.wikipedia.org",
+      "export.arxiv.org",
+      "arxiv.org",
+      "pypi.org",
+      "github.com",
+      "raw.githubusercontent.com"
+    ],
+    "maxSourcesPerTask": 8,
+    "maxBytesPerSource": 1500000,
+    "maxCharsPerSourceToAgent": 12000,
+    "fetchTimeoutSec": 20,
+    "userAgent": "AgentStation/0.1 (local research assistant; operator-run)"
+  },
+  "actions": {
+    "_comment": "External actions need human approval AND a destination listed here. Empty list = no external action can run.",
+    "webhookAllowlist": []
+  }
+}

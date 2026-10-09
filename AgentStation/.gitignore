@@ -1,0 +1,27 @@
+# Runtime state (SQLite, demo data, backups) stays out of source control.
+data/
+backups/
+*.sqlite
+*.sqlite-*
+
+# Reports and drafts are your data, not source.
+outputs/*
+!outputs/.gitkeep
+staging/*
+!staging/.gitkeep
+
+# Notes the station appends while running.
+memory/daily/*
+!memory/daily/README.md
+memory/projects/*
+!memory/projects/README.md
+
+# Secrets never live in this tree, but block the usual names anyway.
+.env
+.env.*
+*.pem
+secrets.env
+
+node_modules/
+dashboard/dist/
+.obsidian/workspace*.json
