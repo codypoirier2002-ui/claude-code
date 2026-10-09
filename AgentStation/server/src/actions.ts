@@ -58,6 +58,21 @@ export function voidOpenActions(db: DB, taskId: number, reason: string): void {
   db.prepare(`UPDATE approvals SET status='void', decided_at=? WHERE task_id=? AND kind='external_action' AND status='pending'`).run(nowIso(), taskId);
 }
 
+// Retrying a failed task brings back the actions its failure voided (not the
+// ones the operator rejected), each as a fresh pending approval.
+export function reviveActionsAfterRetry(db: DB, taskId: number): number {
+  const voided = db.prepare(`SELECT * FROM actions WHERE task_id=? AND status='rejected' AND json_extract(result_json,'$.reason')='task failed'`).all(taskId) as unknown as ActionRow[];
+  for (const a of voided) {
+    db.prepare(`UPDATE actions SET status='proposed', result_json=NULL, updated_at=? WHERE id=?`).run(nowIso(), a.id);
+    const reason = JSON.parse(a.payload_json).reason ?? '';
+    db.prepare(`INSERT INTO approvals (task_id, kind, status, payload_json, created_at) VALUES (?, 'external_action', 'pending', ?, ?)`).run(
+      taskId, JSON.stringify({ actionId: a.id, kind: a.kind, target: a.target, reason }), nowIso(),
+    );
+    logEvent(db, { taskId, agent: 'commander', type: 'action_proposed', message: `External action held for approval again after retry: ${a.kind} → ${a.target}. Nothing is sent unless you approve it.` });
+  }
+  return voided.length;
+}
+
 export function recoverActions(db: DB): void {
   const stuck = db.prepare(`SELECT * FROM actions WHERE status='executing'`).all() as unknown as ActionRow[];
   for (const a of stuck) {

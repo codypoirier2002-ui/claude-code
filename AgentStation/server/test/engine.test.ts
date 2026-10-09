@@ -254,3 +254,43 @@ test('finalize refuses a draft that changed after approval', async () => {
   assert.match((db.prepare('SELECT error FROM tasks WHERE id=?').get(task.id) as any).error, /changed after it was approved/);
   assert.equal(existsSync(path.join(cfg.outputsDir)) && readdirSync(cfg.outputsDir).length, 0);
 });
+
+test('graceful shutdown requeues the running step without spending an attempt', async () => {
+  const cfg = tempStation();
+  const runner = new ScriptedRunner();
+  runner.behaviour = (stage, signal) => (stage === 'RESEARCH' ? hang(signal) : null);
+  const first = makeEngine(cfg, runner);
+  const { task } = first.engine.createTask({ description: 'Stop the station cleanly mid-research' });
+  await until(first.engine, () => (first.db.prepare(`SELECT status FROM steps WHERE stage='research'`).get() as any)?.status === 'running');
+  await first.engine.stop();
+  const row = first.db.prepare(`SELECT status, attempt FROM steps WHERE stage='research'`).get() as any;
+  assert.deepEqual([row.status, row.attempt], ['queued', 0]);
+  assert.equal(status(first.db, task.id), 'queued', 'task is not failed by a clean shutdown');
+  runner.behaviour = null;
+  const second = makeEngine(cfg, runner, first.db);
+  second.engine.recover();
+  await until(second.engine, () => status(second.db, task.id) === 'awaiting_approval');
+});
+
+test('retrying a failed task re-proposes actions its failure voided, not ones the operator rejected', async () => {
+  const cfg = tempStation();
+  const runner = new ScriptedRunner();
+  const plan = JSON.parse(REPLIES.PLAN);
+  plan.external_actions = [
+    { kind: 'webhook_post', target: 'https://hooks.example/a', reason: 'send' },
+    { kind: 'webhook_post', target: 'https://hooks.example/b', reason: 'also send' },
+  ];
+  runner.replies.PLAN = JSON.stringify(plan);
+  let failDraft = true;
+  runner.behaviour = (stage) => (stage === 'DRAFT' && failDraft ? Promise.reject(new GatewayError('bad config', { transient: false })) : null);
+  const { engine, db } = makeEngine(cfg, runner);
+  const { task } = engine.createTask({ description: 'Fail once, then retry' });
+  await until(engine, () => db.prepare(`SELECT count(*) AS n FROM approvals WHERE kind='external_action' AND status='pending'`).get()!.n === 2);
+  const b = db.prepare(`SELECT a.id FROM approvals a WHERE kind='external_action' AND json_extract(payload_json,'$.target')='https://hooks.example/b'`).get() as any;
+  engine.decideApproval(b.id, { decision: 'reject' });
+  await until(engine, () => status(db, task.id) === 'failed');
+  failDraft = false;
+  engine.retryTask(task.id);
+  const pending = db.prepare(`SELECT json_extract(payload_json,'$.target') AS t FROM approvals WHERE kind='external_action' AND status='pending'`).all() as any[];
+  assert.deepEqual(pending.map((p) => p.t), ['https://hooks.example/a']);
+});

@@ -17,7 +17,7 @@ import {
   planPrompt, parsePlan, researchPrompt, parseResearch, draftPrompt, parseDraft, checkDraft, reviewPrompt, parseReview,
   finalReport, OutputError, type Plan, type Research, type Review, type TaskRequest, type SourceForPrompt,
 } from './workflow.ts';
-import { proposeActions, executeReadyActions, recoverActions, voidOpenActions } from './actions.ts';
+import { proposeActions, executeReadyActions, recoverActions, voidOpenActions, reviveActionsAfterRetry } from './actions.ts';
 
 export type TeamMode = 'solo' | 'team';
 
@@ -59,6 +59,7 @@ export class Engine {
   private timer: NodeJS.Timeout | null = null;
   private lastBlock: string | null = null;
   private ticking = false;
+  private stopping = false;
   private readonly fetchSources: typeof fetchAll;
 
   constructor(deps: { db: DB; cfg: StationConfig; runner: AgentRunner; health: () => Health; fetchSources?: typeof fetchAll }) {
@@ -78,6 +79,7 @@ export class Engine {
   }
 
   async stop(): Promise<void> {
+    this.stopping = true;
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
     for (const c of this.inFlight.values()) c.abort(new Error('station shutting down'));
@@ -234,6 +236,7 @@ export class Engine {
     tx(this.db, () => {
       this.db.prepare(`UPDATE tasks SET status='queued', error=NULL, error_detail=NULL, updated_at=? WHERE id=?`).run(nowIso(), taskId);
       this.addStep(taskId, last.stage, JSON.parse(last.input_json));
+      reviveActionsAfterRetry(this.db, taskId);
     });
     logEvent(this.db, { taskId, type: 'task_retried', message: `${taskLabel(taskId)} retried from the ${last.stage} stage by operator.` });
     return this.getTask(taskId)!;
@@ -408,6 +411,14 @@ export class Engine {
       const outcome = await this.runStage(step, signal);
       this.complete(step, outcome);
     } catch (err) {
+      if (this.stopping) {
+        // A clean shutdown is not the step's fault: put it back without
+        // spending an attempt. It runs again when the station restarts.
+        this.db.prepare(`UPDATE steps SET status='queued', attempt=max(attempt-1,0), lease_owner=NULL, error=? WHERE id=? AND status='running'`).run('interrupted by station shutdown; requeued', stepId);
+        logEvent(this.db, { taskId: step.task_id, agent: step.agent, type: 'step_requeued', message: `${step.stage} was interrupted by a station shutdown and will run again on restart.` });
+        this.refreshTaskStatus(step.task_id);
+        return;
+      }
       const e = err as Error;
       let message = e.message;
       let transient = err instanceof StepFailure ? err.transient : err instanceof GatewayError ? err.transient : err instanceof OutputError;
@@ -522,7 +533,10 @@ export class Engine {
         };
         const { sources, errors } = await this.fetchSources(queries, policy, this.cfg.sources.maxSourcesPerTask, signal);
         if (!sources.length) {
-          const detail = errors.map((e) => `${e.query.source}:${e.query.query} → ${e.error}`).join('; ');
+          // Identical failures (e.g. one blocked host) are reported once with a count.
+          const grouped = new Map<string, string[]>();
+          for (const e of errors) grouped.set(e.error, [...(grouped.get(e.error) ?? []), `${e.query.source}:"${e.query.query}"`]);
+          const detail = [...grouped].map(([err, qs]) => `${err} (${qs.length} quer${qs.length === 1 ? 'y' : 'ies'}: ${qs.slice(0, 3).join(', ')}${qs.length > 3 ? ', …' : ''})`).join('; ');
           throw new StepFailure(`No approved source could be fetched. ${detail}`, errors.length > 0 && errors.every((e) => e.transient));
         }
         return {
