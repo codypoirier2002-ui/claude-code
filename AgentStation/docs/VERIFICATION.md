@@ -73,12 +73,14 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 
 ## Automated tests
 
-`cd server && npm test`: 21 tests, all passing.
+`cd server && npm test`: 23 tests, all passing.
 
 - full workflow (plan → fetch → research → draft → review → approval → complete), output file, memory writes
 - duplicate protection (same idempotency key, double approval, single finalize)
 - external action gate: no send without approval, exactly one send after, no resend after restart, `needs_review` after a crash mid-send
 - destination not on the allowlist is refused even when approved
+- the webhook allowlist matches whole path segments (`/notify` does not allow `/notify-other`) and refuses userinfo and encoded slashes
+- changing the admin token ends every session made with the old one
 - timeout with bounded retry, then a useful error; non-transient errors are not retried
 - cancellation aborts the in-flight agent call and discards late results
 - crash recovery (step requeued, completed stages not rerun); clean shutdown requeues without spending an attempt
@@ -96,7 +98,11 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 API checks against the running server: no session → 401; foreign `Host`
 header → 421 (DNS-rebinding guard); missing CSRF → 403; foreign `Origin` →
 403; sixth wrong login in a minute → 429; strict CSP and anti-framing headers
-present; neither secret appears in any API response.
+present; neither secret appears in any API response. Added 2026-10-10: a login
+with a foreign `Origin` → 403 and a non-JSON login → 415, neither counting
+towards the lockout (six cross-site attempts, then the real login → 200); an
+open `/api/stream` ends 4 s after its session logs out; restarting with a
+different admin token → old cookie 401.
 
 ## The seven required demonstrations
 
@@ -127,6 +133,11 @@ tests: a stale "on hold" banner after a restart; a Writer section such as
 start after a reboot because its old pid now belonged to another process;
 `npm run dev` refusing every dashboard change (the dev proxy forwarded the
 dev server's Origin); `restore.sh` continuing after a failed safety copy.
+A security review pass then found, and these were fixed: a web page the
+operator visited could lock them out of login by spending the failed-login
+budget; the webhook allowlist matched by raw string prefix; changing the admin
+token did not end existing sessions; a live stream kept sending state after
+logout.
 
 ## Usage on the test day
 

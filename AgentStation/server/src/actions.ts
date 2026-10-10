@@ -95,17 +95,23 @@ export function resolveAction(db: DB, actionId: number, resolution: 'mark_done' 
   logEvent(db, { taskId: a.task_id, type: 'action_resolved', message: `Operator ${resolution === 'mark_done' ? 'marked action #' + actionId + ' as done' : 'chose to retry action #' + actionId}.` });
 }
 
-function allowedTarget(target: string, allowlist: string[]): boolean {
+// A target matches an allowlist entry when it has the same origin and its path
+// is the entry's path or lies below it on a "/" boundary, so "/notify" does not
+// allow "/notify-other". Userinfo and encoded slashes are refused outright.
+// The dashboard's copy (dashboard/src/panels/Approvals.tsx) must match.
+export function allowedTarget(target: string, allowlist: string[]): boolean {
   let url: URL;
   try {
     url = new URL(target);
   } catch {
     return false;
   }
-  return allowlist.some((prefix) => {
+  if (url.username || url.password || /%2f|%5c/i.test(url.pathname)) return false;
+  return allowlist.some((entry) => {
     try {
-      const p = new URL(prefix);
-      return url.origin === p.origin && url.pathname.startsWith(p.pathname);
+      const p = new URL(entry);
+      const below = p.pathname.endsWith('/') ? p.pathname : `${p.pathname}/`;
+      return url.origin === p.origin && (url.pathname === p.pathname || url.pathname.startsWith(below));
     } catch {
       return false;
     }

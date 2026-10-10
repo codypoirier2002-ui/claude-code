@@ -6,6 +6,7 @@ import path from 'node:path';
 import { tempStation, ScriptedRunner, makeEngine, until, hang, usage, REPLIES } from './helpers.ts';
 import { setSetting } from '../src/db.ts';
 import { GatewayError } from '../src/openclaw.ts';
+import { allowedTarget } from '../src/actions.ts';
 
 const status = (db: any, id: number) => (db.prepare('SELECT status FROM tasks WHERE id=?').get(id) as { status: string }).status;
 const pendingApproval = (db: any, taskId: number, kind = 'final_report') =>
@@ -106,6 +107,25 @@ test('external action to a destination not on the allowlist is refused even when
   engine.decideApproval(pendingApproval(db, task.id)!.id, { decision: 'approve' });
   await until(engine, () => (db.prepare('SELECT status FROM actions').get() as any).status === 'failed');
   assert.match((db.prepare('SELECT result_json FROM actions').get() as any).result_json, /not on actions.webhookAllowlist/);
+});
+
+test('webhook allowlist matches whole path segments and refuses userinfo and encoded slashes', () => {
+  const allow = ['https://hooks.example.com/notify', 'https://all.example.com/'];
+  for (const ok of ['https://hooks.example.com/notify', 'https://hooks.example.com/notify/team?x=1', 'https://all.example.com/any/path']) {
+    assert.equal(allowedTarget(ok, allow), true, ok);
+  }
+  for (const bad of [
+    'https://hooks.example.com/notify-attacker',
+    'https://hooks.example.com/notifyx',
+    'https://hooks.example.com/notify%2F..%2Fadmin',
+    'https://hooks.example.com/notify/..%5cadmin',
+    'https://user:pw@hooks.example.com/notify',
+    'http://hooks.example.com/notify',
+    'https://hooks.example.com:8443/notify',
+    'not a url',
+  ]) {
+    assert.equal(allowedTarget(bad, allow), false, bad);
+  }
 });
 
 test('timeout: bounded retry, then a useful failure', async () => {

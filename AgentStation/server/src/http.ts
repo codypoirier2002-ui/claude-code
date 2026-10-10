@@ -73,6 +73,12 @@ export function createServer(o: { db: DB; cfg: StationConfig; engine: Engine; he
     if (p === '/api/health' && method === 'GET') return send(res, 200, { ok: true, mode: cfg.mode });
 
     if (p === '/api/login' && method === 'POST') {
+      // Refuse cross-site attempts before they can count as failures and lock
+      // the operator out: a foreign Origin is refused outright, and requiring
+      // JSON makes browsers preflight it from other sites. Local processes can
+      // still trip the limit; on loopback every client has the same address.
+      if (!originAllowed(req, cfg.port)) throw new HttpError(403, 'Cross-origin request refused.');
+      if (!/^application\/json\b/i.test(req.headers['content-type'] ?? '')) throw new HttpError(415, 'Send the token as JSON.');
       if (auth.loginRateLimited()) throw new HttpError(429, 'Too many failed logins. Wait a minute.');
       const body = await readJson(req);
       const result = typeof body.token === 'string' ? auth.login(body.token) : null;
@@ -107,14 +113,24 @@ export function createServer(o: { db: DB; cfg: StationConfig; engine: Engine; he
           push();
         }, wait);
       };
-      bus.on('changed', onChange);
-      // Heartbeat lets the browser detect a dead connection and show "Disconnected".
-      const beat = setInterval(() => res.write(`event: ping\ndata: ${JSON.stringify({ t: Date.now(), gateway: health.current() })}\n\n`), 5000);
-      req.on('close', () => {
+      const stop = () => {
         bus.off('changed', onChange);
         clearInterval(beat);
         if (queued) clearTimeout(queued);
-      });
+      };
+      bus.on('changed', onChange);
+      // Heartbeat lets the browser detect a dead connection and show "Disconnected".
+      // It also ends the stream once the session is logged out, expired, or
+      // cleared by an admin token change; the dashboard then asks for a login.
+      const beat = setInterval(() => {
+        if (!auth.session(req)) {
+          stop();
+          res.end();
+          return;
+        }
+        res.write(`event: ping\ndata: ${JSON.stringify({ t: Date.now(), gateway: health.current() })}\n\n`);
+      }, 5000);
+      req.on('close', stop);
       return;
     }
 

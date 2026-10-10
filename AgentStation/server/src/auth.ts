@@ -4,7 +4,7 @@
 // gateway credential ever reaches the browser.
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
-import { nowIso, type DB } from './db.ts';
+import { nowIso, getSetting, setSetting, type DB } from './db.ts';
 
 const SESSION_HOURS = 12;
 const COOKIE = 'station_session';
@@ -18,6 +18,13 @@ export class Auth {
   constructor(db: DB, adminToken: string) {
     this.db = db;
     this.adminHash = sha(adminToken);
+    // A new admin token (rotated after a leak, say) ends every session made
+    // with the old one. Only a hash of the token's hash is stored.
+    const fingerprint = createHash('sha256').update('agentstation-session:').update(this.adminHash).digest('hex');
+    if (getSetting<string | null>(db, 'admin_token_fp', null) !== fingerprint) {
+      db.prepare('DELETE FROM sessions').run();
+      setSetting(db, 'admin_token_fp', fingerprint);
+    }
   }
 
   // Five failed attempts per minute, then 429 until the window passes.

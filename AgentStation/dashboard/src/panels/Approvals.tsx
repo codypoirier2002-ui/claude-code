@@ -3,13 +3,17 @@ import type { Approval, StationState } from '../types.ts';
 import { api } from '../api.ts';
 import { Chip, Panel, fmtAgo } from './ui.tsx';
 
+// Same rule as allowedTarget in server/src/actions.ts: same origin, and the
+// path equals the entry's or lies below it on a "/" boundary.
 function allowlisted(target: string, allow: string[]) {
   try {
     const u = new URL(target);
+    if (u.username || u.password || /%2f|%5c/i.test(u.pathname)) return false;
     return allow.some((p) => {
       try {
         const q = new URL(p);
-        return u.origin === q.origin && u.pathname.startsWith(q.pathname);
+        const below = q.pathname.endsWith('/') ? q.pathname : `${q.pathname}/`;
+        return u.origin === q.origin && (u.pathname === q.pathname || u.pathname.startsWith(below));
       } catch {
         return false;
       }

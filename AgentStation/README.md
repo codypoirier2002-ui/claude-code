@@ -215,7 +215,8 @@ scripts/backup.sh --station-only  # skip the OpenClaw archive
   OpenClaw credentials, so store it encrypted.
 - **Not included:** the two secrets files. Keep them in a password manager, or
   regenerate them (`scripts/init-secrets.sh`; delete the token line in
-  `~/.openclaw/.env` and re-run `setup-openclaw.sh`).
+  `~/.openclaw/.env` and re-run `setup-openclaw.sh`). A new admin token ends
+  every dashboard session at the next station start.
 
 To restore:
 
