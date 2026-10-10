@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { tempStation, ScriptedRunner, makeEngine, until, hang, usage, REPLIES } from './helpers.ts';
 import { setSetting } from '../src/db.ts';
@@ -325,4 +325,57 @@ test('retrying a failed task re-proposes actions its failure voided, not ones th
   engine.retryTask(task.id);
   const pending = db.prepare(`SELECT json_extract(payload_json,'$.target') AS t FROM approvals WHERE kind='external_action' AND status='pending'`).all() as any[];
   assert.deepEqual(pending.map((p) => p.t), ['https://hooks.example/a']);
+});
+
+test('a task failed by a broken dependency can be retried once the dependency succeeds', async () => {
+  const cfg = tempStation();
+  const runner = new ScriptedRunner();
+  let failPlan = true;
+  runner.behaviour = (stage) => (stage === 'PLAN' && failPlan ? Promise.reject(new GatewayError('gateway said no', { transient: false })) : null);
+  const { engine, db } = makeEngine(cfg, runner);
+  const a = engine.createTask({ description: 'First task that fails at first' }).task.id;
+  const b = engine.createTask({ description: 'Second task depends on the first', dependsOn: [a] }).task.id;
+  await until(engine, () => status(db, b) === 'failed');
+  assert.throws(() => engine.retryTask(b), /Dependency T-0001 is failed/);
+  failPlan = false;
+  engine.retryTask(a);
+  await until(engine, () => status(db, a) === 'awaiting_approval');
+  engine.decideApproval(pendingApproval(db, a)!.id, { decision: 'approve' });
+  await until(engine, () => status(db, a) === 'completed');
+  engine.retryTask(b);
+  await until(engine, () => status(db, b) === 'awaiting_approval');
+});
+
+test('runnable steps are not starved by many waiting steps ahead of them in the queue', async () => {
+  const cfg = tempStation();
+  const runner = new ScriptedRunner();
+  const { engine, db } = makeEngine(cfg, runner);
+  const x = engine.createTask({ description: 'Gate task the others wait for' }).task.id;
+  for (let i = 0; i < 25; i++) engine.createTask({ description: `Waiting task number ${i}`, dependsOn: [x] });
+  const a = engine.createTask({ description: 'Independent task at the back' }).task.id;
+  await until(engine, () => status(db, x) === 'awaiting_approval' && status(db, a) === 'awaiting_approval', 10000);
+  engine.decideApproval(pendingApproval(db, a)!.id, { decision: 'approve' });
+  await until(engine, () => status(db, a) === 'completed', 5000);
+});
+
+test('a memory write error after publishing is logged; the approved task still completes', async () => {
+  const cfg = tempStation();
+  const runner = new ScriptedRunner();
+  const { engine, db } = makeEngine(cfg, runner);
+  const { task } = engine.createTask({ description: 'Publish despite a broken memory folder' });
+  await until(engine, () => status(db, task.id) === 'awaiting_approval');
+  const daily = path.join(cfg.memoryDir, 'daily');
+  rmSync(daily, { recursive: true, force: true });
+  writeFileSync(daily, 'not a directory');
+  engine.decideApproval(pendingApproval(db, task.id)!.id, { decision: 'approve' });
+  await until(engine, () => status(db, task.id) !== 'awaiting_approval' && status(db, task.id) !== 'queued' && status(db, task.id) !== 'running');
+  assert.equal(status(db, task.id), 'completed');
+  assert.equal(db.prepare(`SELECT count(*) AS n FROM events WHERE type='memory_error'`).get()!.n, 1);
+});
+
+test('more than 8 URLs are refused instead of silently dropped', () => {
+  const cfg = tempStation();
+  const { engine } = makeEngine(cfg, new ScriptedRunner());
+  const urls = Array.from({ length: 9 }, (_, i) => `https://en.wikipedia.org/wiki/Page_${i}`);
+  assert.throws(() => engine.createTask({ description: 'Too many links to read', urls }), /At most 8 URLs per task \(got 9\)/);
 });

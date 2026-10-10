@@ -76,8 +76,11 @@ const SOURCE_HELP: Record<SourceType, string> = {
 // ---------- JSON helpers ----------
 
 export function extractJsonObject(text: string): any {
-  const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(text);
-  const candidate = fenced ? fenced[1] : text;
+  // A fence counts only when it wraps the whole reply, so a ``` inside a JSON
+  // string value (a quoted README code block) cannot cut the object short.
+  const t = text.trim();
+  const fenced = /^```(?:json)?[ \t]*\n([\s\S]*)\n```$/.exec(t);
+  const candidate = fenced ? fenced[1] : t;
   const start = candidate.indexOf('{');
   const end = candidate.lastIndexOf('}');
   if (start < 0 || end <= start) throw new OutputError('reply contained no JSON object');
@@ -136,15 +139,19 @@ Reply with exactly one JSON object and nothing else:
 Use 1 to 6 source_queries. List an external action only if the operator asked for one.`;
 }
 
-export function parsePlan(text: string, allowedTypes: SourceType[]): Plan {
+export function parsePlan(text: string, allowedTypes: SourceType[], operatorUrls = 0): Plan {
   const o = extractJsonObject(text);
   const status = o.status === 'needs_clarification' ? 'needs_clarification' : o.status === 'ready' ? 'ready' : null;
   if (!status) throw new OutputError('plan.status must be "ready" or "needs_clarification"');
   const types = allowedTypes.length ? allowedTypes : SOURCE_TYPES;
   const queries: SourceQuery[] = (Array.isArray(o.source_queries) ? o.source_queries : [])
-    .map((q: any) => ({ source: str(q?.source, 20) as SourceType, query: str(q?.query, 300) }))
+    .map((q: any) => ({ source: str(q?.source, 20).toLowerCase() as SourceType, query: str(q?.query, 300) }))
     .filter((q: SourceQuery) => q.query && types.includes(q.source))
     .slice(0, 6);
+  // Rejected as bad output (retried) rather than failing later at fetch.
+  if (status === 'ready' && !queries.length && !operatorUrls) {
+    throw new OutputError(`plan has no source_queries using the allowed source types (${types.join(', ')})`);
+  }
   const plan: Plan = {
     status,
     clarifying_questions: strList(o.clarifying_questions, 3),
@@ -210,6 +217,7 @@ checks every quote against the stored source and discards any that do not match.
 
 export function normalizeForMatch(s: string): string {
   return s
+    .replace(/<<<|>>>/g, '‹‹‹') // sourceBlock shows the agent these as ‹‹‹
     .toLowerCase()
     .replace(/[‘’‛]/g, "'")
     .replace(/[“”‟]/g, '"')
@@ -219,10 +227,19 @@ export function normalizeForMatch(s: string): string {
     .trim();
 }
 
+// A quote verifies a finding only if it is specific: a whole line of the source
+// (metadata such as "License: MIT"), at least 4 words and 20 characters, or at
+// least 30 characters (code lines have few spaces). Stock fragments like
+// "In addition," appear everywhere and prove nothing.
+function quoteIsSpecific(needle: string, lines: Set<string>): boolean {
+  if (needle.length >= 8 && lines.has(needle)) return true;
+  return needle.length >= 30 || (needle.length >= 20 && needle.split(' ').length >= 4);
+}
+
 export function parseResearch(text: string, sources: SourceForPrompt[]): Research {
   const o = extractJsonObject(text);
   if (!Array.isArray(o.findings)) throw new OutputError('research.findings must be an array');
-  const byRef = new Map(sources.map((s) => [s.ref, normalizeForMatch(s.content)]));
+  const byRef = new Map(sources.map((s) => [s.ref, { text: normalizeForMatch(s.content), lines: new Set(s.content.split('\n').map(normalizeForMatch)) }]));
   const findings: Finding[] = o.findings.slice(0, 20).map((f: any, i: number) => {
     const source = str(f?.source, 10).toUpperCase();
     const quote = str(f?.quote, 400);
@@ -233,7 +250,7 @@ export function parseResearch(text: string, sources: SourceForPrompt[]): Researc
       claim: str(f?.claim, 600),
       source,
       quote,
-      verified: Boolean(haystack && needle.length >= 12 && haystack.includes(needle)),
+      verified: Boolean(haystack && haystack.text.includes(needle) && quoteIsSpecific(needle, haystack.lines)),
     };
   });
   if (!findings.some((f) => f.verified)) {
@@ -300,11 +317,27 @@ Cite every factual sentence as [S#]. Do not add a sources or references section.
 
 export function parseDraft(text: string): string {
   const m = /<<<REPORT\s*\n([\s\S]*?)\n?REPORT>>>/.exec(text);
-  const body = (m ? m[1] : '').trim();
-  if (body.length < 200) throw new OutputError('draft missing or shorter than 200 characters between <<<REPORT and REPORT>>>');
-  // The station writes the sources section; drop any the model added. Only a
-  // heading that is exactly one of these words: "## Sources of disagreement" stays.
-  return body.replace(/\n#{1,3}[ \t]*(sources|references|bibliography)[ \t]*:?[ \t]*(\n[\s\S]*)?$/i, '').trim();
+  const body = stripSourcesSections((m ? m[1] : '').trim());
+  if (body.length < 200) throw new OutputError('draft missing or shorter than 200 characters between <<<REPORT and REPORT>>> (not counting any sources section)');
+  return body;
+}
+
+// The station writes the sources section, so drop any the model added: a
+// heading that is exactly Sources, References, or Bibliography, up to the next
+// heading of the same or a higher level. "## Sources of disagreement" stays.
+function stripSourcesSections(body: string): string {
+  const out: string[] = [];
+  let skipLevel = 0;
+  for (const line of body.split('\n')) {
+    const h = /^(#{1,6})[ \t]+(.*?)[ \t]*$/.exec(line);
+    if (h && skipLevel && h[1].length <= skipLevel) skipLevel = 0;
+    if (h && !skipLevel && h[1].length <= 3 && /^(sources|references|bibliography):?$/i.test(h[2])) {
+      skipLevel = h[1].length;
+      continue;
+    }
+    if (!skipLevel) out.push(line);
+  }
+  return out.join('\n').trim();
 }
 
 export interface DraftChecks {
@@ -315,22 +348,27 @@ export interface DraftChecks {
 }
 
 export function checkDraft(draft: string, knownRefs: string[]): DraftChecks {
+  // Every S# inside any bracket counts, so [S7, p. 4], [S1–S9] or [S9 and S1]
+  // cannot cite a source that does not exist without being flagged.
   const cited = new Set<string>();
-  for (const m of draft.matchAll(/\[(S\d+(?:\s*[,;]\s*S\d+)*)\]/g)) {
-    for (const r of m[1].split(/[,;]/)) cited.add(r.trim());
+  for (const m of draft.matchAll(/\[([^\]\n]*\bS\d+[^\]\n]*)\]/g)) {
+    for (const r of m[1].matchAll(/\bS\d+/g)) cited.add(r[0]);
   }
   const known = new Set(knownRefs);
   let inOpenQuestions = false;
   let uncited = 0;
   for (const para of draft.split(/\n\s*\n/)) {
-    const p = para.trim();
+    let p = para.trim();
     if (/^#{1,6}\s/.test(p)) {
-      inOpenQuestions = /open questions|gaps|limitations/i.test(p);
-      const rest = p.split('\n').slice(1).join('\n').trim();
-      if (!rest) continue;
+      // Only an H2+ heading that names open questions, gaps, or limitations
+      // exempts its section; words in the body text or the title do not.
+      const [head, ...rest] = p.split('\n');
+      inOpenQuestions = /^#{2,6}\s/.test(head) && /open questions|gaps|limitations/i.test(head);
+      p = rest.join('\n').trim();
+      if (!p) continue;
     }
     if (inOpenQuestions || p.length < 60) continue;
-    if (!/\[S\d+/.test(p)) uncited++;
+    if (!/\[[^\]\n]*\bS\d+/.test(p)) uncited++;
   }
   return {
     citedRefs: [...cited].sort(),

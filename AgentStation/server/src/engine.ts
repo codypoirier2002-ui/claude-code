@@ -46,6 +46,10 @@ class StepFailure extends Error {
 }
 
 const STATION_STEP_TIMEOUT_MS = 120_000;
+// The fetch stage stops starting new queries this long before its step times
+// out, and keeps what it already fetched.
+const FETCH_BUDGET_MS = STATION_STEP_TIMEOUT_MS - 15_000;
+export const MAX_URLS = 8;
 const RETRY_BACKOFF_MS = [0, 15_000, 60_000];
 const MAX_OPERATOR_REVISIONS = 2;
 
@@ -139,7 +143,8 @@ export class Engine {
     const description = input.description.trim();
     if (description.length < 10) throw new Error('Describe the task in at least 10 characters.');
     if (description.length > 4000) throw new Error('Task description is limited to 4,000 characters.');
-    const urls = (input.urls ?? []).map((u) => u.trim()).filter(Boolean).slice(0, 8);
+    const urls = (input.urls ?? []).map((u) => u.trim()).filter(Boolean);
+    if (urls.length > MAX_URLS) throw new Error(`At most ${MAX_URLS} URLs per task (got ${urls.length}).`);
     const sourceTypes = (input.sourceTypes ?? []).filter((t) => SOURCE_TYPES.includes(t));
     const dependsOn = [...new Set((input.dependsOn ?? []).filter((n) => Number.isInteger(n) && n > 0))];
     for (const d of dependsOn) {
@@ -204,10 +209,15 @@ export class Engine {
     this.db.prepare(`UPDATE approvals SET status='void', decided_at=? WHERE task_id=? AND status='pending'`).run(nowIso(), taskId);
     voidOpenActions(this.db, taskId, 'task failed');
     logEvent(this.db, { taskId, agent: t.assigned_agent, type: 'task_failed', message: `${taskLabel(taskId)} failed: ${error}` });
+    this.noteEnd(t, 'failed', error);
+  }
+
+  // A memory write must never block or undo a state change: log and move on.
+  private noteEnd(t: TaskRow, outcome: 'failed' | 'cancelled', detail: string): void {
     try {
-      recordEnd(this.cfg, taskLabel(taskId), t.title, 'failed', error);
+      recordEnd(this.cfg, taskLabel(t.id), t.title, outcome, detail);
     } catch (err) {
-      logEvent(this.db, { taskId, type: 'memory_error', message: `could not write daily note: ${(err as Error).message}` });
+      logEvent(this.db, { taskId: t.id, type: 'memory_error', message: `could not write daily note: ${(err as Error).message}` });
     }
   }
 
@@ -225,7 +235,7 @@ export class Engine {
       this.inFlight.get(s.id)?.abort(new Error(reason));
     }
     logEvent(this.db, { taskId, agent: t.assigned_agent, type: 'task_cancelled', message: `${taskLabel(taskId)} cancelled: ${reason}` });
-    recordEnd(this.cfg, taskLabel(taskId), t.title, 'cancelled', reason);
+    this.noteEnd(t, 'cancelled', reason);
     return this.getTask(taskId)!;
   }
 
@@ -233,7 +243,13 @@ export class Engine {
   retryTask(taskId: number): TaskRow {
     const t = this.getTask(taskId);
     if (!t || t.status !== 'failed') throw new Error(`${taskLabel(taskId)} is not in a failed state.`);
-    const last = this.db.prepare(`SELECT * FROM steps WHERE task_id=? AND status='failed' ORDER BY id DESC LIMIT 1`).get(taskId) as unknown as StepRow | undefined;
+    for (const d of JSON.parse(t.depends_on_json) as number[]) {
+      const dt = this.getTask(d);
+      if (dt && (dt.status === 'failed' || dt.status === 'cancelled')) throw new Error(`Dependency ${taskLabel(d)} is ${dt.status}. Retry or replace it first.`);
+    }
+    // A task failed by a broken dependency has no failed step: its queued step was cancelled.
+    const last = (this.db.prepare(`SELECT * FROM steps WHERE task_id=? AND status='failed' ORDER BY id DESC LIMIT 1`).get(taskId) ??
+      this.db.prepare(`SELECT * FROM steps WHERE task_id=? AND status='cancelled' ORDER BY id DESC LIMIT 1`).get(taskId)) as unknown as StepRow | undefined;
     if (!last) throw new Error('No failed step to retry.');
     tx(this.db, () => {
       this.db.prepare(`UPDATE tasks SET status='queued', error=NULL, error_detail=NULL, updated_at=? WHERE id=?`).run(nowIso(), taskId);
@@ -307,7 +323,7 @@ export class Engine {
     this.db.prepare(`UPDATE approvals SET status='void', decided_at=? WHERE task_id=? AND status='pending'`).run(nowIso(), t.id);
     voidOpenActions(this.db, t.id, reason);
     logEvent(this.db, { taskId: t.id, agent: 'commander', type: 'task_cancelled', message: `${taskLabel(t.id)} ended: ${reason}` });
-    recordEnd(this.cfg, taskLabel(t.id), t.title, 'cancelled', reason);
+    this.noteEnd(t, 'cancelled', reason);
   }
 
   // ---------- the queue ----------
@@ -330,18 +346,19 @@ export class Engine {
         if (block) logEvent(this.db, { type: usage.blocked ? 'limit_blocked' : 'gateway_blocked', message: `New agent work is on hold. ${block}` });
         else logEvent(this.db, { type: 'queue_unblocked', message: 'Agent work can start again.' });
       }
+      // No LIMIT: held or waiting steps must not crowd out runnable ones further down.
       const candidates = this.db
         .prepare(
           `SELECT s.* FROM steps s JOIN tasks t ON t.id = s.task_id
            WHERE s.status='queued' AND t.status IN ('queued','running') AND t.cancel_requested=0
              AND (s.not_before IS NULL OR s.not_before <= ?)
-           ORDER BY s.task_id, s.id LIMIT 20`,
+             AND (? = 0 OR s.executor != 'openclaw')
+           ORDER BY s.task_id, s.id`,
         )
-        .all(nowIso()) as unknown as StepRow[];
+        .all(nowIso(), block ? 1 : 0) as unknown as StepRow[];
       let started = 0;
       for (const s of candidates) {
         if (started >= free) break;
-        if (s.executor === 'openclaw' && block) continue;
         if (!this.dependenciesMet(s)) continue;
         if (s.executor === 'openclaw') {
           const t = this.getTask(s.task_id)!;
@@ -506,7 +523,7 @@ export class Engine {
       case 'plan': {
         const prompt = planPrompt({ taskLabel: label, today: stationDay(this.cfg), memory: memoryBlockFor('commander', memory!), request: input.request ?? req, approvedDomains: this.approvedDomains() });
         const text = await this.callAgent(step, prompt, memory, signal);
-        const plan = parsePlan(text, req.sourceTypes);
+        const plan = parsePlan(text, req.sourceTypes, req.urls.length);
         return {
           output: plan,
           raw: text,
@@ -533,7 +550,7 @@ export class Engine {
           timeoutMs: this.cfg.sources.fetchTimeoutSec * 1000,
           userAgent: this.cfg.sources.userAgent,
         };
-        const { sources, errors } = await this.fetchSources(queries, policy, this.cfg.sources.maxSourcesPerTask, signal);
+        const { sources, errors } = await this.fetchSources(queries, policy, this.cfg.sources.maxSourcesPerTask, signal, FETCH_BUDGET_MS);
         if (!sources.length) {
           // Identical failures (e.g. one blocked host) are reported once with a count.
           const grouped = new Map<string, string[]>();
@@ -677,11 +694,19 @@ export class Engine {
       next: () => {
         this.db.prepare(`UPDATE tasks SET status='completed', output_path=?, completed_at=?, updated_at=? WHERE id=?`).run(rel, nowIso(), nowIso(), task.id);
         const t = this.getTask(task.id)!;
-        recordCompletion(this.cfg, {
-          taskLabel: label, title: t.title, project: t.project, outputRelPath: rel, sourceCount: sources.length,
-          tokens: t.tokens_total, summary: payload.summary ?? '', decisions: payload.keepDecisions ?? [],
-        });
-        logEvent(this.db, { taskId: task.id, agent: 'commander', type: 'task_completed', message: `${label} completed. Report: ${rel}. Memory updated (daily note${t.project ? ', project note' : ''}${(payload.keepDecisions ?? []).length ? ', decisions' : ''}).` });
+        // The report is already published: a memory write error is logged, not
+        // allowed to roll back the completion or void approved actions.
+        let memoryNote = `Memory updated (daily note${t.project ? ', project note' : ''}${(payload.keepDecisions ?? []).length ? ', decisions' : ''}).`;
+        try {
+          recordCompletion(this.cfg, {
+            taskLabel: label, title: t.title, project: t.project, outputRelPath: rel, sourceCount: sources.length,
+            tokens: t.tokens_total, summary: payload.summary ?? '', decisions: payload.keepDecisions ?? [],
+          });
+        } catch (err) {
+          memoryNote = 'Memory NOT updated; see the memory_error event.';
+          logEvent(this.db, { taskId: task.id, type: 'memory_error', message: `could not write memory for ${label}: ${(err as Error).message}` });
+        }
+        logEvent(this.db, { taskId: task.id, agent: 'commander', type: 'task_completed', message: `${label} completed. Report: ${rel}. ${memoryNote}` });
       },
     };
   }

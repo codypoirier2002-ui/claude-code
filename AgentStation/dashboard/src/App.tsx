@@ -23,6 +23,9 @@ export function App() {
   const [selected, setSelected] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const { state, link } = useStationStream(session.authed);
+  // /api/session already says whether this is Demo Mode, so the label is right
+  // before the first snapshot arrives (or if the stream never connects).
+  const mode = state?.mode ?? session.mode;
 
   const checkSession = useCallback(() => {
     api
@@ -68,11 +71,11 @@ export function App() {
   const version = `${selectedTask?.updatedAt ?? ''}|${state?.approvals.length ?? 0}|${state?.events[0]?.id ?? 0}`;
 
   return (
-    <div className={`app ${state?.mode === 'demo' ? 'is-demo' : ''}`}>
-      {state?.mode === 'demo' && (
+    <div className={`app ${mode === 'demo' ? 'is-demo' : ''}`}>
+      {mode === 'demo' && (
         <div className="demo-banner" role="note">DEMO MODE: simulated agents, sources, and reports. Nothing shown here is real work or real usage.</div>
       )}
-      <TopBar state={state} link={link} onError={onError} onLogout={() => api.logout().finally(checkSession)} />
+      <TopBar state={state} link={link} mode={mode} onError={onError} onLogout={() => api.logout().catch((e: Error) => onError(e.message)).finally(checkSession)} />
       {linkDown && state && (
         <div className="disconnected-banner" role="alert">
           <strong>Disconnected</strong> from the station server. Showing the last known tasks; agents are not shown as working. Reconnecting…

@@ -59,7 +59,12 @@ export class DemoRunner implements AgentRunner {
           status: 'ready', clarifying_questions: [], title: '[DEMO] Compare two solar panel types',
           objective: 'Simulated plan: compare monocrystalline and polycrystalline panels.', audience: 'Demo viewers',
           success_criteria: ['Covers cost', 'Covers efficiency'], required_inputs: [],
-          source_queries: [{ source: 'url', query: 'https://demo.invalid/source-1' }], outline: ['Summary', 'Findings', 'Open questions'],
+          // One query per source type, so the plan stays valid whichever types the operator allowed.
+          source_queries: [
+            { source: 'url', query: 'https://demo.invalid/source-1' }, { source: 'wikipedia', query: 'Solar panel' },
+            { source: 'arxiv', query: 'photovoltaic efficiency' }, { source: 'pypi', query: 'pvlib' }, { source: 'github', query: 'pvlib/pvlib-python' },
+          ],
+          outline: ['Summary', 'Findings', 'Open questions'],
           external_actions: [], notes: 'Demo Mode: no real agent produced this.',
         }));
       case 'RESEARCH':

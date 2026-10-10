@@ -34,6 +34,8 @@ if [ "${1:-}" != "--station-only" ]; then
   if command -v openclaw >/dev/null; then
     openclaw backup create --output "$DEST" --verify
   else
-    echo "openclaw not on PATH; skipped the OpenClaw archive" >&2
+    # Fail loudly (cron, timers): the station archive above was still written.
+    echo "openclaw not on PATH; the OpenClaw archive was NOT made. Fix PATH (or run via bash -lc), or pass --station-only." >&2
+    exit 1
   fi
 fi

@@ -85,7 +85,8 @@ export function buildState(db: DB, cfg: StationConfig, engine: Engine, health: H
   const approvals = (db.prepare(`SELECT * FROM approvals WHERE status='pending' ORDER BY id`).all() as any[]).map((a) => ({
     id: a.id, taskId: a.task_id, taskLabel: taskLabel(a.task_id), kind: a.kind, payload: JSON.parse(a.payload_json), createdAt: a.created_at,
   }));
-  const actions = (db.prepare(`SELECT * FROM actions ORDER BY id DESC LIMIT 30`).all() as any[]).map((a) => ({
+  // Recent actions, plus every action still waiting for the operator however old.
+  const actions = (db.prepare(`SELECT * FROM actions WHERE id IN (SELECT id FROM actions ORDER BY id DESC LIMIT 30) OR status = 'needs_review' ORDER BY id DESC`).all() as any[]).map((a) => ({
     id: a.id, taskId: a.task_id, taskLabel: taskLabel(a.task_id), kind: a.kind, target: a.target, status: a.status,
     result: a.result_json ? JSON.parse(a.result_json) : null, updatedAt: a.updated_at,
   }));

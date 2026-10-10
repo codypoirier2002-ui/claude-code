@@ -12,6 +12,8 @@ chmod 600 "$file"
 if grep -q '^STATION_ADMIN_TOKEN=' "$file"; then
   echo "admin token already set in $file (unchanged)"
 else
+  # Start on a new line even if the file was saved without a final newline.
+  [ -s "$file" ] && [ -n "$(tail -c1 "$file")" ] && echo >> "$file"
   echo "STATION_ADMIN_TOKEN=$(openssl rand -hex 24)" >> "$file"
   echo "created admin token in $file"
 fi

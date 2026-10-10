@@ -13,7 +13,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+async function request<T>(method: string, path: string, body?: unknown, retried = false): Promise<T> {
   const res = await fetch(path, {
     method,
     credentials: 'same-origin',
@@ -21,6 +21,13 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
+  // A login in another tab replaces the session cookie, and with it the CSRF
+  // token: fetch the current token once and repeat the request.
+  if (res.status === 403 && method !== 'GET' && !retried && /CSRF/.test(data.error ?? '')) {
+    const s = await request<{ csrf: string | null }>('GET', '/api/session');
+    csrf = s.csrf;
+    if (csrf) return request<T>(method, path, body, true);
+  }
   if (!res.ok) throw new ApiError(res.status, data.error ?? `HTTP ${res.status}`);
   return data as T;
 }
@@ -57,6 +64,10 @@ export function useStationStream(enabled: boolean): { state: StationState | null
 
   useEffect(() => {
     if (!enabled) return;
+    // Start clean: after logout and login, the old snapshot must not show as live.
+    setState(null);
+    setLink('connecting');
+    last.current = 0;
     let es: EventSource | null = null;
     let closed = false;
     let retry: ReturnType<typeof setTimeout> | null = null;

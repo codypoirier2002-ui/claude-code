@@ -3,13 +3,14 @@ import type { Link } from '../api.ts';
 import { api } from '../api.ts';
 import { fmtNum, Meter } from './ui.tsx';
 
-export function TopBar({ state, link, onError, onLogout }: { state: StationState | null; link: Link; onError: (m: string) => void; onLogout: () => void }) {
+export function TopBar({ state, link, mode, onError, onLogout }: { state: StationState | null; link: Link; mode: 'real' | 'demo'; onError: (m: string) => void; onLogout: () => void }) {
   const gw = state?.gateway;
   const linkUp = link === 'connected';
   const backend = !linkUp ? 'down' : !gw?.connected ? 'down' : !gw.ready ? 'warn' : 'up';
   const queue = state?.queue;
   const usage = state?.usage;
-  const queueLabel = !queue ? '–' : queue.paused ? 'Paused' : queue.block ? 'On hold' : queue.runningSteps ? `Working (${queue.runningSteps}/${queue.maxWorkers})` : 'Ready';
+  // While disconnected the last snapshot is not live: never claim the queue is working.
+  const queueLabel = !queue || !linkUp ? '–' : queue.paused ? 'Paused' : queue.block ? 'On hold' : queue.runningSteps ? `Working (${queue.runningSteps}/${queue.maxWorkers})` : 'Ready';
 
   async function togglePause() {
     try {
@@ -22,13 +23,13 @@ export function TopBar({ state, link, onError, onLogout }: { state: StationState
   return (
     <header className="topbar">
       <div className="brand">AGENT<span>STATION</span></div>
-      <div className={`mode-badge mode-${state?.mode ?? 'real'}`}>{state?.mode === 'demo' ? 'DEMO MODE' : 'LIVE'}</div>
+      <div className={`mode-badge mode-${mode}`}>{mode === 'demo' ? 'DEMO MODE' : 'LIVE'}</div>
       <div className={`status-pill ${backend}`} role="status" aria-live="polite">
         <span className="dot" />
         {link === 'connecting' && !state ? 'Connecting…' : backend === 'down' ? 'Disconnected' : backend === 'warn' ? 'Gateway not ready' : 'Connected'}
       </div>
       <div className="topbar-queue">
-        <span className="label">Queue</span> <strong className={queue?.paused || queue?.block ? 'warn-text' : ''}>{queueLabel}</strong>
+        <span className="label">Queue</span> <strong className={linkUp && (queue?.paused || queue?.block) ? 'warn-text' : ''}>{queueLabel}</strong>
         <button className="btn small" onClick={togglePause} disabled={!linkUp || !queue}>
           {queue?.paused ? 'Resume' : 'Pause'}
         </button>

@@ -57,8 +57,13 @@ export function usageSummary(db: DB, cfg: StationConfig): UsageSummary {
        FROM usage WHERE day = ?`,
     )
     .get(day) as Record<string, number | null>;
-  const chars = db.prepare(`SELECT coalesce(sum(length(s.raw_output)),0) AS n FROM steps s JOIN usage u ON u.step_id = s.id WHERE u.day = ?`).get(day) as { n: number };
-  const missing = db.prepare(`SELECT count(*) AS n FROM steps WHERE executor = 'openclaw' AND status = 'completed' AND usage_json IS NULL AND substr(finished_at,1,10) = ?`).get(day) as { n: number };
+  // Each step once, however many attempts (usage rows) it took.
+  const chars = db.prepare(`SELECT coalesce(sum(length(raw_output)),0) AS n FROM steps WHERE id IN (SELECT step_id FROM usage WHERE day = ?)`).get(day) as { n: number };
+  // finished_at is UTC; bucket by the station's day, like the usage table.
+  const nearby = db
+    .prepare(`SELECT finished_at FROM steps WHERE executor = 'openclaw' AND status = 'completed' AND usage_json IS NULL AND finished_at >= date(?, '-1 day') AND finished_at < date(?, '+2 day')`)
+    .all(day, day) as { finished_at: string }[];
+  const missing = { n: nearby.filter((r) => stationDay(cfg, new Date(r.finished_at)) === day).length };
   const limits = currentLimits(db, cfg);
   const tokens = Number(row.tokens);
   const costAvailable = Number(row.calls) > 0 && Number(row.nocost) === 0;

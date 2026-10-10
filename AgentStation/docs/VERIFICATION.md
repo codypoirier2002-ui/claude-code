@@ -73,7 +73,7 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 
 ## Automated tests
 
-`cd server && npm test`: 23 tests, all passing.
+`cd server && npm test`: 34 tests, all passing.
 
 - full workflow (plan → fetch → research → draft → review → approval → complete), output file, memory writes
 - duplicate protection (same idempotency key, double approval, single finalize)
@@ -81,6 +81,16 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 - destination not on the allowlist is refused even when approved
 - the webhook allowlist matches whole path segments (`/notify` does not allow `/notify-other`) and refuses userinfo and encoded slashes
 - changing the admin token ends every session made with the old one
+- a task failed by a broken dependency can be retried once the dependency succeeds
+- runnable steps are not starved by many waiting steps ahead of them
+- a memory write error after publishing is logged; the approved task still completes
+- more than 8 URLs are refused, not silently dropped
+- draft parsing keeps sections after a model-added References section
+- citation checks: only a heading exempts a section; every S# in any bracket is checked
+- a ``` inside a JSON string does not break parsing
+- stock phrases do not verify a finding; whole metadata lines and REPL lines do
+- plan source types match case-insensitively; a ready plan with no usable query is retried
+- project slugs are never empty and never shared; long notes keep their newest entries; appends start on a new line
 - timeout with bounded retry, then a useful error; non-transient errors are not retried
 - cancellation aborts the in-flight agent call and discards late results
 - crash recovery (step requeued, completed stages not rerun); clean shutdown requeues without spending an attempt
@@ -138,6 +148,30 @@ operator visited could lock them out of login by spending the failed-login
 budget; the webhook allowlist matched by raw string prefix; changing the admin
 token did not end existing sessions; a live stream kept sending state after
 logout.
+
+A full review pass followed (2026-10-10): five reviewers (engine, parsing and
+memory, dashboard, API contract, ops) reported 30 distinct findings, and each
+was checked against the code before it was fixed. The fixes:
+- **Engine:** retry for dependency-failed tasks; no 20-step candidate window;
+  memory write errors no longer fail an approved task or block cancel/reject;
+  fetch keeps partial results under a time budget; usage counts each step once
+  and buckets by the station's day.
+- **Parsing and memory:** sources-section stripping, citation checks, quote
+  specificity, `>>>` in quotes, fenced JSON, plan source types, project slugs,
+  newest-first clipping of long notes, newline-safe appends.
+- **Dashboard:** the queue label no longer says "Working" while disconnected; a
+  stale snapshot isn't shown as live after logout/login; Demo Mode is labelled
+  before the first snapshot; a stale "Start after" choice isn't submitted; an
+  empty dollar field isn't saved as $0; the CSRF token refreshes after a login
+  in another tab; needs-review actions stay visible.
+- **Ops:** the station must be restarted after a gateway-token change (docs and
+  script message); a full backup without `openclaw` exits non-zero; token
+  appends survive a missing final newline; restore checks the whole archive
+  before deleting anything; the shipped `decisions.md` no longer carries a
+  decision from a test run.
+
+All 11 new tests fail on the previous code. The dashboard changes were also
+checked live in Chromium.
 
 ## Usage on the test day
 

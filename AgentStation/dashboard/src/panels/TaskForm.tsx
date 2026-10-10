@@ -30,7 +30,7 @@ export function TaskForm({ tasks, onCreated, onError, disabled }: { tasks: Task[
         project: project || null,
         urls: urls.split('\n').map((u) => u.trim()).filter(Boolean),
         sourceTypes: sources,
-        dependsOn: dependsOn ? [Number(dependsOn)] : [],
+        dependsOn: dep ? [Number(dep)] : [],
         idempotencyKey: key,
       });
       setDescription('');
@@ -46,6 +46,9 @@ export function TaskForm({ tasks, onCreated, onError, disabled }: { tasks: Task[
   }
 
   const open = tasks.filter((t) => !['completed', 'failed', 'cancelled'].includes(t.status));
+  // If the chosen task finished or failed meanwhile it is no longer listed:
+  // submit what the select shows, not a hidden stale choice.
+  const dep = open.some((t) => String(t.id) === dependsOn) ? dependsOn : '';
   return (
     <Panel title="New task" id="new-task">
       <form className="task-form" onSubmit={submit}>
@@ -67,14 +70,14 @@ export function TaskForm({ tasks, onCreated, onError, disabled }: { tasks: Task[
           </label>
           <label className="stack">
             <span>Start after (optional)</span>
-            <select value={dependsOn} onChange={(e) => setDependsOn(e.target.value)}>
+            <select value={dep} onChange={(e) => setDependsOn(e.target.value)}>
               <option value="">No dependency</option>
               {open.map((t) => <option key={t.id} value={t.id}>{t.label}: {t.title.slice(0, 40)}</option>)}
             </select>
           </label>
         </div>
         <label className="stack">
-          <span>URLs to read (one per line, approved domains only)</span>
+          <span>URLs to read (one per line, up to 8, approved domains only)</span>
           <textarea rows={2} value={urls} onChange={(e) => setUrls(e.target.value)} placeholder="https://en.wikipedia.org/wiki/…" />
         </label>
         <button className="btn primary" type="submit" disabled={busy || disabled || description.trim().length < 10 || sources.length === 0}>

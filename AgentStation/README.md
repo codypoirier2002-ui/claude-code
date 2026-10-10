@@ -215,8 +215,10 @@ scripts/backup.sh --station-only  # skip the OpenClaw archive
   OpenClaw credentials, so store it encrypted.
 - **Not included:** the two secrets files. Keep them in a password manager, or
   regenerate them (`scripts/init-secrets.sh`; delete the token line in
-  `~/.openclaw/.env` and re-run `setup-openclaw.sh`). A new admin token ends
-  every dashboard session at the next station start.
+  `~/.openclaw/.env` and re-run `setup-openclaw.sh`). Both tokens are read at
+  start, so after a change restart the gateway and then the station
+  (`openclaw gateway restart`, `systemctl --user restart agentstation`). A new
+  admin token ends every dashboard session.
 
 To restore:
 
@@ -319,7 +321,7 @@ no token totals are invented.
 | `agentstation: no OPENCLAW_GATEWAY_TOKEN` | re-run `scripts/setup-openclaw.sh`, then `openclaw gateway restart` |
 | Tasks stay queued | top bar: paused? hold banner (token cap, gateway not ready)? dependency not finished? |
 | Fetch fails with HTTP 403 | the host is blocked by your network or by the site; see the error in the task |
-| `OpenClaw … 401` | the token in `~/.openclaw/.env` changed but the gateway was not restarted |
+| `OpenClaw … 401` | the token in `~/.openclaw/.env` changed: restart the gateway, then the station (`systemctl --user restart agentstation`); both read it only at start |
 | An agent should not be able to do X | `npm run probe:tools`, `openclaw exec-policy show --agent station-commander` |
 
 ## Next: one business integration at a time

@@ -1,6 +1,6 @@
 // The memory protocol. Reads happen at task start (and per stage, by role);
 // writes happen only when a task finishes. See memory/README.md.
-import { readFileSync, existsSync, appendFileSync, mkdirSync, copyFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, appendFileSync, mkdirSync, copyFileSync, writeFileSync, statSync, openSync, readSync, closeSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { StationConfig, AgentRole } from './config.ts';
@@ -18,7 +18,18 @@ const LIMITS = { goals: 4000, rules: 4000, decisions: 6000, project: 6000 };
 const DECISIONS_TO_READ = 15;
 
 export function slugify(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+  return name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+
+// File name for a project note. Plain names keep their readable slug; a name
+// that loses characters (non-Latin script, "C++" vs "C#") gets a short hash so
+// it never maps to an empty name or to another project's note.
+export function projectSlug(name: string): string {
+  const slug = slugify(name);
+  const plain = /^[a-z0-9 _-]+$/i.test(name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim());
+  if (slug && plain) return slug;
+  const hash = createHash('sha256').update(name.trim().toLowerCase()).digest('hex').slice(0, 8);
+  return `${(slug || 'project').slice(0, 51)}-${hash}`;
 }
 
 function stripFrontmatter(text: string): string {
@@ -27,6 +38,11 @@ function stripFrontmatter(text: string): string {
 
 function clip(text: string, max: number): string {
   return text.length <= max ? text : text.slice(0, max) + '\n[... cut off at ' + max + ' characters]';
+}
+
+// For notes that grow at the end (project history, decisions): keep the newest part.
+function clipTail(text: string, max: number): string {
+  return text.length <= max ? text : '[... earlier entries omitted]\n' + text.slice(-max);
 }
 
 function readIf(file: string): string {
@@ -60,12 +76,12 @@ export function loadMemory(cfg: StationConfig, project: string | null): MemorySn
   const dir = cfg.memoryDir;
   const goals = clip(stripFrontmatter(readIf(path.join(dir, 'goals.md'))), LIMITS.goals);
   const rules = clip(stripFrontmatter(readIf(path.join(dir, 'rules.md'))), LIMITS.rules);
-  const decisions = clip(newestDecisions(readIf(path.join(dir, 'decisions.md')), DECISIONS_TO_READ), LIMITS.decisions);
-  const projectSlug = project ? slugify(project) : null;
-  const projectText = projectSlug ? readIf(path.join(dir, 'projects', `${projectSlug}.md`)) : '';
-  const projectNote = projectSlug ? clip(stripFrontmatter(projectText), LIMITS.project) || '(no notes yet for this project)' : null;
+  const decisions = clipTail(newestDecisions(readIf(path.join(dir, 'decisions.md')), DECISIONS_TO_READ), LIMITS.decisions);
+  const slug = project ? projectSlug(project) : null;
+  const projectText = slug ? readIf(path.join(dir, 'projects', `${slug}.md`)) : '';
+  const projectNote = slug ? clipTail(stripFrontmatter(projectText), LIMITS.project) || '(no notes yet for this project)' : null;
   const sha256 = createHash('sha256').update(JSON.stringify([goals, rules, decisions, projectNote])).digest('hex');
-  return { goals, rules, decisions, project: projectNote, projectSlug, sha256 };
+  return { goals, rules, decisions, project: projectNote, projectSlug: slug, sha256 };
 }
 
 // Which memory each role sees. This is the "read relevant memory at task
@@ -109,10 +125,24 @@ export function oneLine(text: string, max: number): string {
   return text.replace(/\*\*|__/g, '').replace(/\s+/g, ' ').replace(/^[#>\-*\s]+/, '').trim().slice(0, max);
 }
 
+// Memory files are also edited by hand; one saved without a final newline must
+// not get the next entry glued onto its last line.
+function appendLines(file: string, text: string) {
+  let sep = '';
+  if (existsSync(file) && statSync(file).size > 0) {
+    const fd = openSync(file, 'r');
+    const last = Buffer.alloc(1);
+    readSync(fd, last, 0, 1, statSync(file).size - 1);
+    closeSync(fd);
+    if (last.toString() !== '\n') sep = '\n';
+  }
+  appendFileSync(file, sep + text);
+}
+
 function appendWithHeader(file: string, header: string, text: string) {
   mkdirSync(path.dirname(file), { recursive: true });
   if (!existsSync(file)) writeFileSync(file, header);
-  appendFileSync(file, text);
+  appendLines(file, text);
 }
 
 export interface CompletionRecord {
@@ -138,7 +168,7 @@ export function recordCompletion(cfg: StationConfig, r: CompletionRecord): void 
       `${oneLine(r.summary, 600)}\n`,
   );
   if (r.project) {
-    const slug = slugify(r.project);
+    const slug = projectSlug(r.project);
     const projFile = path.join(cfg.memoryDir, 'projects', `${slug}.md`);
     const link = path.relative(path.dirname(projFile), path.join(cfg.rootDir, r.outputRelPath));
     appendWithHeader(
@@ -149,7 +179,7 @@ export function recordCompletion(cfg: StationConfig, r: CompletionRecord): void 
   }
   const kept = r.decisions.map((d) => oneLine(d, 300)).filter(Boolean).slice(0, 5);
   if (kept.length) {
-    appendFileSync(
+    appendLines(
       path.join(cfg.memoryDir, 'decisions.md'),
       kept.map((d) => `- ${date} — ${d} (${r.taskLabel}, approved by operator)\n`).join(''),
     );

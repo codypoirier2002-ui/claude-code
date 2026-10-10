@@ -282,21 +282,32 @@ export interface FetchAllResult {
   errors: { query: SourceQuery; error: string; transient: boolean }[];
 }
 
-export async function fetchAll(queries: SourceQuery[], policy: FetchPolicy, max: number, signal?: AbortSignal): Promise<FetchAllResult> {
+// Queries run one after another. With budgetMs, no query starts after the
+// budget is spent and a running one is cut off at it; the sources fetched so
+// far are kept and the rest are reported as skipped, rather than the whole
+// stage timing out and losing everything.
+export async function fetchAll(queries: SourceQuery[], policy: FetchPolicy, max: number, signal?: AbortSignal, budgetMs?: number): Promise<FetchAllResult> {
   const sources: FetchedSource[] = [];
   const errors: FetchAllResult['errors'] = [];
   const seen = new Set<string>();
+  const budget = budgetMs ? AbortSignal.timeout(budgetMs) : null;
+  const skipped = `skipped: the fetch time budget (${Math.round((budgetMs ?? 0) / 1000)}s) was used up`;
   for (const q of queries) {
     if (sources.length >= max) break;
+    if (budget?.aborted) {
+      errors.push({ query: q, error: skipped, transient: true });
+      continue;
+    }
+    const querySignal = budget ? (signal ? AbortSignal.any([signal, budget]) : budget) : signal;
     try {
-      for (const s of await fetchQuery(q, policy, signal)) {
+      for (const s of await fetchQuery(q, policy, querySignal)) {
         if (sources.length >= max || seen.has(s.url)) continue;
         seen.add(s.url);
         sources.push(s);
       }
     } catch (err) {
       if (signal?.aborted) throw err;
-      errors.push({ query: q, error: (err as Error).message, transient: err instanceof SourceError ? err.transient : true });
+      errors.push({ query: q, error: budget?.aborted ? skipped : (err as Error).message, transient: err instanceof SourceError ? err.transient : true });
     }
   }
   return { sources, errors };

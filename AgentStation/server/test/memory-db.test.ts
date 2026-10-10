@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, cpSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, cpSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { openDb } from '../src/db.ts';
 import { loadConfig } from '../src/config.ts';
-import { loadMemory, memoryBlockFor, recordCompletion, newestDecisions } from '../src/memory.ts';
+import { loadMemory, memoryBlockFor, recordCompletion, newestDecisions, projectSlug } from '../src/memory.ts';
 
 function tempStation() {
   const root = mkdtempSync(path.join(tmpdir(), 'station-'));
@@ -63,4 +63,30 @@ test('newestDecisions keeps only the last N entries with continuations', () => {
   const text = '# D\n\n- a\n  more a\n- b\n- c\n';
   assert.equal(newestDecisions(text, 2), '- b\n- c');
   assert.equal(newestDecisions(text, 5), '- a\n  more a\n- b\n- c');
+});
+
+test('project slugs: plain names unchanged; non-Latin and lossy names get distinct, non-empty slugs', () => {
+  assert.equal(projectSlug('Python Tooling'), 'python-tooling');
+  assert.equal(projectSlug('Café Ops'), 'cafe-ops');
+  const ru = projectSlug('Проект Альфа');
+  assert.match(ru, /^project-[0-9a-f]{8}$/);
+  assert.notEqual(ru, projectSlug('Проект Бета'));
+  assert.notEqual(projectSlug('C++'), projectSlug('C#'));
+});
+
+test('memory: long project notes keep the newest entries; appends start on a new line', () => {
+  const cfg = tempStation();
+  const rec = (n: number) => recordCompletion(cfg, {
+    taskLabel: `T-${String(n).padStart(4, '0')}`, title: `Entry ${n}`, project: 'Long Project', outputRelPath: `outputs/r${n}.md`,
+    sourceCount: 1, tokens: 1, summary: 'x'.repeat(700), decisions: [],
+  });
+  for (let n = 1; n <= 12; n++) rec(n);
+  const project = loadMemory(cfg, 'Long Project').project ?? '';
+  assert.match(project, /Entry 12/, 'newest entry visible');
+  assert.doesNotMatch(project, /Entry 1 \(/, 'oldest entry dropped first');
+
+  const decisions = path.join(cfg.memoryDir, 'decisions.md');
+  writeFileSync(decisions, '# Decisions\n\n- 2026-10-01 — Prefer httpx (operator)'); // saved without a final newline
+  recordCompletion(cfg, { taskLabel: 'T-0099', title: 't', project: null, outputRelPath: 'outputs/x.md', sourceCount: 1, tokens: 1, summary: 's', decisions: ['Use Wikipedia for background'] });
+  assert.equal(newestDecisions(readFileSync(decisions, 'utf8'), 5).split('\n').length, 2);
 });

@@ -39,7 +39,12 @@ echo "current state saved to $SAFE"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 tar -C "$WORK" -xzf "$ARCHIVE"
-[ -f "$WORK/station.sqlite" ] || { echo "archive has no station.sqlite" >&2; exit 1; }
+# Check the whole archive before deleting anything.
+[ -f "$WORK/station.sqlite" ] || { echo "archive has no station.sqlite; nothing was changed" >&2; exit 1; }
+for d in memory outputs staging config; do
+  [ -d "$WORK/$d" ] || { echo "archive has no $d/; nothing was changed" >&2; exit 1; }
+done
+trap 'echo "restore FAILED part-way. The state from before the restore is in $SAFE; copy it back (station.sqlite* to data/, the folders to $ROOT) before starting the station." >&2; rm -rf "$WORK"' ERR
 rm -f "$ROOT"/data/station.sqlite "$ROOT"/data/station.sqlite-wal "$ROOT"/data/station.sqlite-shm
 mkdir -p "$ROOT/data"
 cp "$WORK/station.sqlite" "$ROOT/data/station.sqlite"

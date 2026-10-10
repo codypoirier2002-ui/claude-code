@@ -198,7 +198,8 @@ export function createServer(o: { db: DB; cfg: StationConfig; engine: Engine; he
         const next: Limits = {
           dailyTokenCap: b.limits.dailyTokenCap !== undefined ? intIn(b.limits.dailyTokenCap, 10_000, 100_000_000, 'Daily token cap') : cur.dailyTokenCap,
           perTaskTokenCap: b.limits.perTaskTokenCap !== undefined ? intIn(b.limits.perTaskTokenCap, 10_000, 100_000_000, 'Per-task token cap') : cur.perTaskTokenCap,
-          dailyUsdLimit: b.limits.dailyUsdLimit !== undefined ? Number(b.limits.dailyUsdLimit) : cur.dailyUsdLimit,
+          // Number('') is 0: an empty field must not quietly become a $0 limit.
+          dailyUsdLimit: b.limits.dailyUsdLimit !== undefined ? (typeof b.limits.dailyUsdLimit === 'number' ? b.limits.dailyUsdLimit : NaN) : cur.dailyUsdLimit,
         };
         if (!Number.isFinite(next.dailyUsdLimit) || next.dailyUsdLimit < 0 || next.dailyUsdLimit > 10_000) throw new HttpError(400, 'Daily dollar limit must be between 0 and 10000.');
         setSetting(db, 'limits', next);

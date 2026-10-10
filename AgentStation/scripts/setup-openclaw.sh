@@ -39,6 +39,8 @@ NEED_RESTART=0
 ( umask 077; touch "$ENVF" )
 chmod 600 "$ENVF"
 if ! grep -q '^OPENCLAW_GATEWAY_TOKEN=' "$ENVF"; then
+  # Start on a new line even if the file was saved without a final newline.
+  [ -s "$ENVF" ] && [ -n "$(tail -c1 "$ENVF")" ] && echo >> "$ENVF"
   echo "OPENCLAW_GATEWAY_TOKEN=$(openssl rand -hex 32)" >> "$ENVF"
   NEED_RESTART=1
   echo "   generated a new gateway token (not printed)"
@@ -76,7 +78,8 @@ done
 
 echo
 if [ "$NEED_RESTART" = 1 ]; then
-  echo "IMPORTANT: restart the gateway so it uses the new token:  openclaw gateway restart"
+  echo "IMPORTANT: restart the gateway, then the station, so both use the new token:"
+  echo "  openclaw gateway restart && systemctl --user restart agentstation   # if the station is installed"
 fi
 echo "Done. Verify with:"
 echo "  openclaw exec-policy show --agent station-commander"

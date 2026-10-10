@@ -54,6 +54,8 @@ export function Controls({ state, onError, disabled }: { state: StationState; on
         className="limits"
         onSubmit={(e) => {
           e.preventDefault();
+          // Number('') is 0: an empty dollar field must not become a $0 limit.
+          if (!/^\d+(\.\d+)?$/.test(usd.trim())) return onError('Enter the daily dollar limit as a number, for example 5.');
           void save({ limits: { dailyTokenCap: Number(daily), perTaskTokenCap: Number(perTask), dailyUsdLimit: Number(usd) } }, 'Limits');
         }}
       >

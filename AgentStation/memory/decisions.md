@@ -19,4 +19,3 @@ Format: `- YYYY-MM-DD — decision (source)`
   limit is enforced as a token cap. (setup)
 - 2026-10-09 — Agents get no tools. The station fetches approved sources,
   writes files, and runs external actions only after approval. (setup)
-- 2026-10-09 — When package metadata (Requires-Python, licence, latest release) was not fetched, report it as not found in the fetched sources; do not fill it from README prose or memory. (T-0002, approved by operator)
