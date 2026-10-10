@@ -302,8 +302,9 @@ export function parseDraft(text: string): string {
   const m = /<<<REPORT\s*\n([\s\S]*?)\n?REPORT>>>/.exec(text);
   const body = (m ? m[1] : '').trim();
   if (body.length < 200) throw new OutputError('draft missing or shorter than 200 characters between <<<REPORT and REPORT>>>');
-  // The station writes the sources section; drop any the model added.
-  return body.replace(/\n#{1,3}\s*(sources|references|bibliography)\b[\s\S]*$/i, '').trim();
+  // The station writes the sources section; drop any the model added. Only a
+  // heading that is exactly one of these words: "## Sources of disagreement" stays.
+  return body.replace(/\n#{1,3}[ \t]*(sources|references|bibliography)[ \t]*:?[ \t]*(\n[\s\S]*)?$/i, '').trim();
 }
 
 export interface DraftChecks {

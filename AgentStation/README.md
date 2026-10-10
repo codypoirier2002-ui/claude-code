@@ -31,7 +31,7 @@ revision) → **your approval** → Complete.
 from approved domains only, writes files, writes memory, and runs external
 actions only after you approve them. The four agents have no working tools:
 OpenClaw refuses their shell, file, and web calls, and `npm run probe:tools`
-proves it.
+checks it by effect on every agent.
 
 **The queue is explicit code, not a prompt.** It lives in SQLite with two
 workers, per-stage timeouts, bounded retries, cancellation, idempotency keys,
@@ -244,8 +244,8 @@ no token totals are invented.
 - OpenClaw installed and hardened with documented commands only; four
   isolated agents built from OpenClaw role templates with station-specific
   instructions
-- Tool lockdown verified live: native Bash, Read, Write, and WebFetch are
-  refused (`probe:tools`)
+- Tool lockdown checked live by effect (`probe:tools`): no Bash or Write
+  canary file, no Read content returned, no WebFetch connection
 - Memory read at task start and written at completion through fixed code
   paths, with a SHA-256 of the memory each stage saw
 - SQLite task state:

@@ -12,6 +12,7 @@ import { Auth } from './auth.ts';
 import { createServer } from './http.ts';
 import { ensureMemoryDir } from './memory.ts';
 import { logEvent } from './events.ts';
+import { isStationProcess } from './lock.ts';
 
 const cfg = loadConfig();
 const secrets = loadSecrets(cfg);
@@ -26,12 +27,7 @@ const lockFile = path.join(cfg.dataDir, 'station.lock');
 mkdirSync(cfg.dataDir, { recursive: true, mode: 0o700 });
 if (existsSync(lockFile)) {
   const pid = Number(readFileSync(lockFile, 'utf8'));
-  let alive = false;
-  try {
-    process.kill(pid, 0);
-    alive = true;
-  } catch {}
-  if (alive && pid !== process.pid) die(`another station (pid ${pid}) is already using ${cfg.dataDir}`);
+  if (pid !== process.pid && isStationProcess(pid)) die(`another station (pid ${pid}) is already using ${cfg.dataDir}`);
 }
 writeFileSync(lockFile, String(process.pid), { mode: 0o600 });
 

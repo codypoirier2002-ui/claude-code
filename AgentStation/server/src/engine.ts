@@ -68,6 +68,8 @@ export class Engine {
     this.runner = deps.runner;
     this.health = deps.health;
     this.fetchSources = deps.fetchSources ?? fetchAll;
+    // Start from the stored hold so the first tick clears one that ended while the station was down.
+    this.lastBlock = getSetting<string | null>(this.db, 'queue_block', null);
   }
 
   // ---------- lifecycle ----------

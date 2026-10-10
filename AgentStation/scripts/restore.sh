@@ -13,8 +13,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ARCHIVE="${1:?usage: restore.sh <agentstation-archive.tar.gz>}"
 LOCK="$ROOT/data/station.lock"
-if [ -f "$LOCK" ] && kill -0 "$(cat "$LOCK")" 2>/dev/null; then
-  echo "the station is running (pid $(cat "$LOCK")); stop it first" >&2
+PID="$(cat "$LOCK" 2>/dev/null || true)"
+# After a reboot the pid can belong to another process: on Linux, also check it runs main.ts.
+if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null \
+  && { [ ! -r "/proc/$PID/cmdline" ] || grep -qz 'main\.ts$' "/proc/$PID/cmdline"; }; then
+  echo "the station is running (pid $PID); stop it first" >&2
   exit 1
 fi
 if [ -f "$ARCHIVE.sha256" ]; then
@@ -26,7 +29,10 @@ umask 077
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SAFE="$ROOT/data/pre-restore-$STAMP"
 mkdir -p "$SAFE"
-[ -f "$ROOT/data/station.sqlite" ] && cp -a "$ROOT"/data/station.sqlite* "$SAFE/" 2>/dev/null || true
+# No database yet is fine; a failed copy is not (set -e stops before anything is deleted).
+if [ -f "$ROOT/data/station.sqlite" ]; then
+  cp -a "$ROOT"/data/station.sqlite* "$SAFE/"
+fi
 cp -a "$ROOT/memory" "$ROOT/outputs" "$ROOT/staging" "$ROOT/config" "$SAFE/"
 echo "current state saved to $SAFE"
 

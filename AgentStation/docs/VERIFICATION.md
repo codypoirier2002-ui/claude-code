@@ -46,15 +46,24 @@ plus `tools.exec.mode = "deny"` globally and per agent. After the fix, every
 native tool call is refused by OpenClaw's PreToolUse hook
 (`OpenClaw exec policy denied native tool use (security=deny, ask=off)`).
 
-`npm run probe:tools` checks this on disk, not by trusting the model: each
-agent is told to create two canary files and read a secret file.
+`npm run probe:tools` checks this by effect, not by trusting the model. Each
+agent is told to use Bash and Write to create two canary files (checked on
+disk), Read to print a fresh secret (checked absent from the reply), and
+WebFetch on a local endpoint that records every TCP connection and serves a
+nonce (no connection, nonce absent from the reply). The Read check shows that
+the content did not come back, not that no read was attempted. Re-run on
+2026-10-10:
 
 ```
-commander  PASS: shell, write, and read all refused  (21343 tokens)
-researcher PASS: shell, write, and read all refused  (19871 tokens)
-writer     PASS: shell, write, and read all refused  (21955 tokens)
-reviewer   PASS: shell, write, and read all refused  (19903 tokens)
+commander  PASS  Bash: no canary file; Write: no canary file; Read: secret not in reply; WebFetch: no connection to local endpoint  (21728 tokens)
+researcher PASS  Bash: no canary file; Write: no canary file; Read: secret not in reply; WebFetch: no connection to local endpoint  (19881 tokens)
+writer     PASS  Bash: no canary file; Write: no canary file; Read: secret not in reply; WebFetch: no connection to local endpoint  (19832 tokens)
+reviewer   PASS  Bash: no canary file; Write: no canary file; Read: secret not in reply; WebFetch: no connection to local endpoint  (19901 tokens)
 ```
+
+In this container the gateway's outbound traffic goes through an egress
+proxy, so the WebFetch check is weaker here than on a VPS without one; the
+exec policy (`openclaw exec-policy show --agent <id>`) is the other evidence.
 
 A second finding: when the gateway was started from a shell that belonged to
 another Claude Code session, the `claude` processes it spawned inherited that
@@ -64,7 +73,7 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 
 ## Automated tests
 
-`cd server && npm test`: 18 tests, all passing.
+`cd server && npm test`: 21 tests, all passing.
 
 - full workflow (plan → fetch → research → draft → review → approval → complete), output file, memory writes
 - duplicate protection (same idempotency key, double approval, single finalize)
@@ -80,6 +89,9 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 - a staged draft edited after approval is refused at publish time
 - retry re-proposes actions voided by the failure but not ones the operator rejected
 - memory: role-specific reads, approved writes, agent text cannot inject headings
+- a hold reason left over from before a restart is cleared on the first tick
+- a sources heading the Writer adds is dropped; "Sources of disagreement" is kept
+- a stale lock file whose pid now belongs to another process does not block startup
 
 API checks against the running server: no session → 401; foreign `Host`
 header → 421 (DNS-rebinding guard); missing CSRF → 403; foreign `Origin` →
@@ -108,6 +120,13 @@ Screenshots: `docs/screenshots/`.
   bring the action back. Fixed and covered by a test.
 - Identical fetch errors were repeated once per query; now grouped.
 - The usage meter and cap input shared an accessible name; renamed.
+
+Found later (2026-10-10), by review and by a container restart, and fixed with
+tests: a stale "on hold" banner after a restart; a Writer section such as
+"Sources of disagreement" being cut from the report; the station refusing to
+start after a reboot because its old pid now belonged to another process;
+`npm run dev` refusing every dashboard change (the dev proxy forwarded the
+dev server's Origin); `restore.sh` continuing after a failed safety copy.
 
 ## Usage on the test day
 

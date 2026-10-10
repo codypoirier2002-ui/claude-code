@@ -198,6 +198,18 @@ test('daily token cap blocks new agent work with a clear reason', async () => {
   await until(engine, () => status(db, task.id) === 'awaiting_approval');
 });
 
+test('a hold that ended while the station was down is cleared on the first tick', async () => {
+  const cfg = tempStation();
+  const first = makeEngine(cfg, new ScriptedRunner());
+  setSetting(first.db, 'queue_block', 'OpenClaw gateway not ready: connection refused');
+  first.db.close();
+  const second = makeEngine(cfg, new ScriptedRunner());
+  await second.engine.tick();
+  const row = second.db.prepare(`SELECT value_json FROM settings WHERE key='queue_block'`).get() as any;
+  assert.equal(JSON.parse(row.value_json), null);
+  assert.equal(second.db.prepare(`SELECT count(*) AS n FROM events WHERE type='queue_unblocked'`).get()!.n, 1);
+});
+
 test('at most two agent calls run at once', async () => {
   const cfg = tempStation();
   const runner = new ScriptedRunner();
