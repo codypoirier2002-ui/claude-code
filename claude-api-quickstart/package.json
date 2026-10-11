@@ -1,0 +1,21 @@
+{
+  "name": "claude-api-quickstart",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Smallest working request to the Claude Messages API.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node quickstart.ts",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.0",
+    "typescript": "^7.0.2"
+  }
+}
