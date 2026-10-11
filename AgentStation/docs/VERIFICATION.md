@@ -73,7 +73,7 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 
 ## Automated tests
 
-`cd server && npm test`: 43 tests, all passing.
+`cd server && npm test`: 49 tests, all passing.
 
 - full workflow (plan → fetch → research → draft → review → approval → complete), output file, memory writes
 - duplicate protection (same idempotency key, double approval, single finalize)
@@ -110,6 +110,9 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 - Slack: 404 `no_service` and refused connections fail with nothing sent; a timeout goes to review, is not retried on its own, and a retry resends the same text; a webhook changed after approval blocks the post
 - Slack: a post the Commander proposes gets its text only when the report is approved, and cannot be approved before that; approval is refused while Slack is not set up
 - a generic webhook answering 503 goes to review instead of failing; marking a post done clears its old error
+- listing copy: the fact sheet is S1, nothing is fetched without queries, a quote not in the fact sheet never reaches the Writer, and the saved file's ready-to-paste copy has no citation markers or operator notes
+- listing copy over a marketplace limit, with an uncited line, or with tags where the marketplace has none, goes back to the Writer with the station's reasons
+- listing requests with an unknown marketplace, a missing product, or too few facts are refused before queuing; the draft round-trips through its rendered form; operator notes inside the copy are flagged
 
 API checks against the running server: no session → 401; foreign `Host`
 header → 421 (DNS-rebinding guard); missing CSRF → 403; foreign `Origin` →
@@ -208,6 +211,52 @@ three skeptics and all fixed with tests:
 - the "sent within a few seconds" copy ignored a paused queue;
 - an old error stayed on a post marked done;
 - this file was out of date.
+
+## Listing copy task type (2026-10-11)
+
+A real run with the OpenClaw agents (T-0009, Etsy listing for a handmade mug,
+about 85k reported tokens for plan, research, draft, and review):
+- All four agent steps succeeded on the first attempt.
+- The Researcher's six quotes all verified against the operator fact sheet.
+- Citations and Etsy limits passed (title 79/140, 13 tags, longest 19/20).
+- The Reviewer passed it.
+
+The run found two problems, both fixed and tested:
+- The Writer put a "DRAFT NOTE FOR THE OPERATOR… delete before publishing"
+  paragraph inside the description, where it would have reached the
+  paste-ready copy. Notes now have their own field, kept out of the copy, and
+  the station flags note-like text in the copy.
+- The Reviewer worried the `[S1]` markers would be published. Its
+  instructions now say the station strips them.
+
+After a restart on the fixed code, an operator "Request changes" sent the task
+back to the Writer. The revision moved the note to "Notes for you" and dropped
+an unsupported sentence about photos. Approving it in Chromium saved
+`outputs/2026-10-11-t-0009-listing-handmade-speckled-mug.md`. "Copy listing
+text" copied the paste-ready copy with no `[S#]` markers and no notes.
+
+Demo Mode also ran a listing end to end in Chromium, and the station's
+"3 to 5 bullet points" check showed on the approval card.
+
+An independent code review then found five more problems, reproduced four of
+them, and all five are fixed with tests:
+- a `## ` line in the description could end or replace a section of the
+  paste-ready copy after the checks had passed. Headings are now flattened,
+  and the draft must read back exactly before it is accepted;
+- a tag containing commas became several tags after the count check;
+- product text like "[Galaxy S24]" was treated as a citation;
+- research conflicts were hidden from the listing Writer. They are now shown,
+  with S1 taking precedence;
+- unticking every source type let the Commander query all types. It now
+  means "only the URLs I paste".
+
+Marketplace limits enforced, with their sources:
+- eBay title 80: eBay Trading API docs.
+- Amazon title 200: Seller Central product detail page rules.
+- Etsy title 140, and 13 tags of up to 20 characters: consistent third-party
+  seller guides. Etsy's own pages were not reachable, and the dashboard says
+  so.
+- Amazon bullet limits could not be confirmed and are not enforced.
 
 ## Usage on the test day
 

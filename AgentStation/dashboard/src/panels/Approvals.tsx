@@ -43,7 +43,7 @@ function ReportApproval({ a, onOpen, onError, disabled }: { a: Approval; onOpen:
   return (
     <article className="approval">
       <header>
-        <strong>{a.taskLabel}: report ready</strong>
+        <strong>{a.taskLabel}: {p.taskKind === 'listing' ? 'listing copy ready (nothing is published)' : 'report ready'}</strong>
         <Chip status={verdictStatus}>Review: {p.reviewVerdict}</Chip>
         <span className="muted">{fmtAgo(a.createdAt)}</span>
       </header>

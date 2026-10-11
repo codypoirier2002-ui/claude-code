@@ -117,8 +117,18 @@ export interface StationState {
   approvals: Approval[];
   actions: Action[];
   events: StationEvent[];
-  settings: { approvedDomains: string[]; timezone: string; webhookAllowlist: string[] };
+  settings: { approvedDomains: string[]; timezone: string; webhookAllowlist: string[]; marketplaces: Marketplace[] };
   integrations: { slack: SlackStatus };
+}
+
+// Marketplace length limits the station checks listing copy against.
+export interface Marketplace {
+  id: string;
+  name: string;
+  titleMax: number | null;
+  tagsMax: number;
+  tagMax: number | null;
+  basis: string;
 }
 
 // Whether a Slack webhook is set. The browser never receives the URL.
@@ -164,7 +174,15 @@ export interface Source {
 
 export interface TaskDetail {
   task: Task;
-  request: { description: string; project: string | null; urls: string[]; sourceTypes: SourceType[]; clarifications?: { question: string; answer: string }[] };
+  request: {
+    description: string;
+    project: string | null;
+    urls: string[];
+    sourceTypes: SourceType[];
+    clarifications?: { question: string; answer: string }[];
+    kind?: 'report' | 'listing';
+    listing?: { product: string; facts: string; marketplace: string; tone: string };
+  };
   steps: Step[];
   sources: Source[];
   approvals: (Omit<Approval, 'taskId' | 'taskLabel'> & { status: string; note: string | null; decidedAt: string | null })[];

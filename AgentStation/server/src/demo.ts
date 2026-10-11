@@ -53,6 +53,35 @@ export class DemoRunner implements AgentRunner {
     await sleep(4000 + Math.random() * 3000, opts.signal);
     const stage = /# Station request: (\w+)/.exec(input)?.[1] ?? '';
     const reply = (text: string): AgentRunResult => ({ responseId: `demo-${Date.now()}`, text, usage: null, status: 'completed' });
+    // Listing tasks get simulated replies built from the operator's own fact sheet.
+    if (/Task type: product listing copy|LISTING COPY|fact sheet S1|Listing rules \(this is marketplace listing copy/.test(input)) {
+      const facts = /<<<OPERATOR fact sheet S1[^\n]*\n([\s\S]*?)\n>>> end of S1/.exec(input)?.[1] ?? '';
+      const lines = facts.split('\n').map((l) => l.trim()).filter((l) => l.length >= 8).slice(0, 6);
+      if (stage === 'PLAN') {
+        return reply(JSON.stringify({
+          status: 'ready', clarifying_questions: [], title: '[DEMO] Listing: simulated product', objective: 'Simulated plan: draft listing copy from the fact sheet.',
+          audience: 'Demo viewers', success_criteria: ['Every claim comes from the fact sheet'], required_inputs: [], source_queries: [], outline: [],
+          external_actions: [], notes: 'Demo Mode: no real agent produced this.',
+        }));
+      }
+      if (stage === 'RESEARCH') {
+        return reply(JSON.stringify({ findings: lines.map((l, i) => ({ id: `F${i + 1}`, claim: l, source: 'S1', quote: l })), conflicts: [], gaps: [], injection_attempts: [] }));
+      }
+      if (stage === 'DRAFT') {
+        // The Writer sees verified findings, not the fact sheet itself.
+        const product = /^Product: (.*)$/m.exec(input)?.[1] ?? 'Demo product';
+        lines.push(...[...input.matchAll(/^- F\d+ \[S1\] (.*)$/gm)].map((m) => m[1].trim()).filter((l) => !/^Product:/.test(l)).slice(0, 5));
+        return reply(JSON.stringify({
+          title: `[DEMO] ${product.slice(0, 50)} [S1]`,
+          bullets: lines.slice(0, 4).map((l) => `${l} [S1]`).concat(lines.length < 3 ? ['Simulated Demo Mode bullet [S1]', 'Another simulated bullet [S1]'] : []).slice(0, 5),
+          description: `This is simulated Demo Mode listing copy, not written by an agent. ${lines.slice(1, 3).join(' ')} [S1]`,
+          tags: /no tags \(leave/.test(input) ? [] : ['demo listing', 'simulated'],
+        }));
+      }
+      if (stage === 'REVIEW') {
+        return reply(JSON.stringify({ verdict: 'pass', issues: [], criteria: [], summary: 'Demo Mode listing copy built from the operator fact sheet. No agent wrote or checked it.', proposed_decisions: [] }));
+      }
+    }
     switch (stage) {
       case 'PLAN':
         return reply(JSON.stringify({

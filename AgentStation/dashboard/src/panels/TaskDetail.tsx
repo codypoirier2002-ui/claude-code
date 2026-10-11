@@ -9,6 +9,7 @@ type Tab = 'report' | 'sources' | 'steps' | 'plan';
 export function TaskDetail({ taskId, version, slack, onError, disabled }: { taskId: number | null; version: string; slack: SlackStatus; onError: (m: string) => void; disabled: boolean }) {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [preparing, setPreparing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<Tab>('report');
   const [sourceText, setSourceText] = useState<{ ref: string; content: string } | null>(null);
 
@@ -24,7 +25,10 @@ export function TaskDetail({ taskId, version, slack, onError, disabled }: { task
     };
   }, [taskId, version, onError]);
 
-  useEffect(() => setSourceText(null), [taskId]);
+  useEffect(() => {
+    setSourceText(null);
+    setCopied(false);
+  }, [taskId]);
 
   if (taskId === null || !detail || detail.task.id !== taskId) {
     return (
@@ -38,6 +42,10 @@ export function TaskDetail({ taskId, version, slack, onError, disabled }: { task
   const research = detail.steps.filter((s) => s.stage === 'research' && s.output).at(-1)?.output;
   const reviews = detail.steps.filter((s) => s.stage === 'review' && s.output);
   const text = detail.output ?? detail.draft;
+  // A saved listing's paste-ready section, as plain text (headings become labels).
+  const pasteReady = detail.request.kind === 'listing' && detail.output
+    ? (/## Ready to paste\n\n[^\n]*\n\n([\s\S]*?)\n\n## Claim support/.exec(detail.output)?.[1] ?? '').replace(/^### (.*)$/gm, '$1:').trim()
+    : '';
   // One Slack post per report: one that is waiting, sending, unconfirmed, or done blocks another.
   const slackPost = detail.actions.filter((a) => a.kind === 'slack_post' && a.status !== 'failed' && a.status !== 'rejected').at(-1);
 
@@ -83,6 +91,11 @@ export function TaskDetail({ taskId, version, slack, onError, disabled }: { task
           {detail.output && (
             <div className="report-actions">
               <p className="muted small">Saved to <span className="mono">{t.outputPath}</span></p>
+              {pasteReady && (
+                <button className="btn tiny" onClick={() => navigator.clipboard.writeText(pasteReady).then(() => setCopied(true), () => onError('Copy failed. Select the text instead.'))}>
+                  {copied ? 'Copied' : 'Copy listing text'}
+                </button>
+              )}
               {t.status === 'completed' &&
                 (slackPost ? (
                   <span className="muted small">
@@ -113,7 +126,7 @@ export function TaskDetail({ taskId, version, slack, onError, disabled }: { task
               {detail.sources.map((s) => (
                 <tr key={s.id}>
                   <td className="mono">{s.ref}</td>
-                  <td><a href={s.url} target="_blank" rel="noopener noreferrer nofollow">{s.title}</a><div className="muted small">{s.type} · {fmtNum(s.chars)} chars</div></td>
+                  <td>{s.type === 'operator' ? <span>{s.title}</span> : <a href={s.url} target="_blank" rel="noopener noreferrer nofollow">{s.title}</a>}<div className="muted small">{s.type} · {fmtNum(s.chars)} chars</div></td>
                   <td className="small">{fmtTime(s.retrievedAt)}</td>
                   <td className="mono small" title={s.sha256}>{s.sha256.slice(0, 12)}…</td>
                   <td><button className="btn tiny" onClick={() => openSource(s.id, s.ref)}>View text</button></td>

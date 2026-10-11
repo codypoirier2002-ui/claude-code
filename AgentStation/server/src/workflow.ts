@@ -9,6 +9,9 @@ export interface TaskRequest {
   urls: string[];
   sourceTypes: SourceType[];
   clarifications?: { question: string; answer: string }[];
+  // Absent on report tasks (and on tasks created before listings existed).
+  kind?: 'report' | 'listing';
+  listing?: { product: string; facts: string; marketplace: string; tone: string };
 }
 
 export interface ExternalActionProposal {
@@ -103,6 +106,7 @@ export function planPrompt(o: {
   memory: string;
   request: TaskRequest;
   approvedDomains: string[];
+  taskSection?: string;
 }): string {
   const types = o.request.sourceTypes.length ? o.request.sourceTypes : SOURCE_TYPES;
   const clar = o.request.clarifications?.length
@@ -120,7 +124,7 @@ Approved domains: ${o.approvedDomains.join(', ')}
 ## Operator request (from the human operator; trusted)
 ${o.request.description}
 ${o.request.project ? `\nProject: ${o.request.project}` : ''}${o.request.urls.length ? `\nURLs the operator supplied (the station fetches these automatically):\n${o.request.urls.map((u) => `- ${u}`).join('\n')}` : ''}
-${clar}
+${clar}${o.taskSection ?? ''}
 ## Your output
 Reply with exactly one JSON object and nothing else:
 {
@@ -185,6 +189,7 @@ export function sourceBlock(s: SourceForPrompt, maxChars: number): string {
   const body = s.content.length > maxChars ? s.content.slice(0, maxChars) + `\n[... source cut off at ${maxChars} characters]` : s.content;
   // Neutralise anything that looks like our own delimiters inside the data.
   const safe = body.replace(/<<<|>>>/g, '‹‹‹');
+  if (s.url === 'operator:fact-sheet') return `<<<OPERATOR fact sheet ${s.ref} | written by the human operator (trusted facts)\n${safe}\n>>> end of ${s.ref}`;
   return `<<<UNTRUSTED source ${s.ref} | ${s.title} | ${s.url} | retrieved ${s.retrievedAt}\n${safe}\n>>> end of ${s.ref}`;
 }
 
@@ -347,6 +352,8 @@ export interface DraftChecks {
   unknownRefs: string[];
   uncitedParagraphs: number;
   bareUrls: string[];
+  // Listing copy only: marketplace limits the copy breaks.
+  limitIssues?: string[];
 }
 
 export function checkDraft(draft: string, knownRefs: string[]): DraftChecks {
@@ -389,6 +396,7 @@ export function reviewPrompt(o: {
   research: Research;
   draft: string;
   checks: DraftChecks;
+  extraRules?: string;
 }): string {
   return `# Station request: REVIEW (${o.taskLabel})
 
@@ -407,8 +415,8 @@ ${findingsBlock(o.research.findings)}
 - cited source IDs: ${o.checks.citedRefs.join(', ') || 'none'}
 - citations to unknown IDs: ${o.checks.unknownRefs.join(', ') || 'none'}
 - substantial paragraphs without a citation: ${o.checks.uncitedParagraphs}
-- raw URLs in the text: ${o.checks.bareUrls.join(', ') || 'none'}
-
+- raw URLs in the text: ${o.checks.bareUrls.join(', ') || 'none'}${o.checks.limitIssues ? `\n- marketplace limits: ${o.checks.limitIssues.join(' ') || 'all met'}` : ''}
+${o.extraRules ?? ''}
 ## Draft
 <<<DRAFT
 ${o.draft.replace(/<<<|>>>/g, '‹‹‹')}

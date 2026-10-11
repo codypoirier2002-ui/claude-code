@@ -17,6 +17,11 @@ import {
   planPrompt, parsePlan, researchPrompt, parseResearch, draftPrompt, parseDraft, checkDraft, reviewPrompt, parseReview,
   finalReport, OutputError, type Plan, type Research, type Review, type TaskRequest, type SourceForPrompt,
 } from './workflow.ts';
+import {
+  validateListing, listingPlanSection, factSheetSource, listingDraftPrompt, parseListingDraft, renderListingDraft, listingFromDraft,
+  checkListing, listingOutput, LISTING_REVIEW_RULES,
+} from './listing.ts';
+import { extractJsonObject } from './workflow.ts';
 import { proposeActions, executeReadyActions, recoverActions, voidOpenActions, reviveActionsAfterRetry, approveSlackPost, freezeSlackPosts } from './actions.ts';
 
 export type TeamMode = 'solo' | 'team';
@@ -28,6 +33,8 @@ export interface NewTask {
   sourceTypes?: SourceType[];
   dependsOn?: number[];
   idempotencyKey?: string | null;
+  // Present for a "prepare product listing copy" task.
+  listing?: unknown;
 }
 
 export interface ApprovalDecision {
@@ -151,12 +158,13 @@ export class Engine {
       if (!this.db.prepare('SELECT 1 FROM tasks WHERE id = ?').get(d)) throw new Error(`Dependency ${taskLabel(d)} does not exist.`);
     }
     const key = input.idempotencyKey?.trim() || null;
+    const listing = input.listing === undefined || input.listing === null ? null : validateListing(input.listing);
     return tx(this.db, () => {
       if (key) {
         const existing = this.db.prepare('SELECT * FROM tasks WHERE idempotency_key = ?').get(key) as unknown as TaskRow | undefined;
         if (existing) return { task: existing, created: false };
       }
-      const request: TaskRequest = { description, project: input.project?.trim() || null, urls, sourceTypes };
+      const request: TaskRequest = { description, project: input.project?.trim() || null, urls, sourceTypes, ...(listing ? { kind: 'listing' as const, listing } : {}) };
       const now = nowIso();
       const res = this.db
         .prepare(
@@ -522,9 +530,13 @@ export class Engine {
 
     switch (step.stage) {
       case 'plan': {
-        const prompt = planPrompt({ taskLabel: label, today: stationDay(this.cfg), memory: memoryBlockFor('commander', memory!), request: input.request ?? req, approvedDomains: this.approvedDomains() });
+        const prompt = planPrompt({
+          taskLabel: label, today: stationDay(this.cfg), memory: memoryBlockFor('commander', memory!), request: input.request ?? req, approvedDomains: this.approvedDomains(),
+          taskSection: req.listing ? listingPlanSection(req.listing, req.sourceTypes.length > 0) : undefined,
+        });
         const text = await this.callAgent(step, prompt, memory, signal);
-        const plan = parsePlan(text, req.sourceTypes, req.urls.length);
+        // A listing's fact sheet counts as an operator-supplied source.
+        const plan = parsePlan(text, req.sourceTypes, req.urls.length + (req.listing ? 1 : 0));
         return {
           output: plan,
           raw: text,
@@ -543,15 +555,21 @@ export class Engine {
       }
       case 'fetch': {
         const plan = this.latestOutput<Plan>(task.id, 'plan')!;
-        const queries: SourceQuery[] = [...req.urls.map((u) => ({ source: 'url' as const, query: u })), ...plan.source_queries];
-        if (!queries.length) throw new StepFailure('The plan has no source queries and the operator supplied no URLs.', false);
+        // A listing with no source types ticked fetches only the operator's URLs
+        // (an empty list means "all types" for reports).
+        const planned = req.listing && !req.sourceTypes.length ? [] : plan.source_queries;
+        const queries: SourceQuery[] = [...req.urls.map((u) => ({ source: 'url' as const, query: u })), ...planned];
+        if (!queries.length && !req.listing) throw new StepFailure('The plan has no source queries and the operator supplied no URLs.', false);
         const policy = {
           approvedDomains: this.approvedDomains(),
           maxBytes: this.cfg.sources.maxBytesPerSource,
           timeoutMs: this.cfg.sources.fetchTimeoutSec * 1000,
           userAgent: this.cfg.sources.userAgent,
         };
-        const { sources, errors } = await this.fetchSources(queries, policy, this.cfg.sources.maxSourcesPerTask, signal, FETCH_BUDGET_MS);
+        const fetched = queries.length ? await this.fetchSources(queries, policy, this.cfg.sources.maxSourcesPerTask, signal, FETCH_BUDGET_MS) : { sources: [], errors: [] };
+        const { errors } = fetched;
+        // A listing's own facts are source S1; anything fetched follows.
+        const sources = req.listing ? [factSheetSource(req.listing, nowIso()), ...fetched.sources] : fetched.sources;
         if (!sources.length) {
           // Identical failures (e.g. one blocked host) are reported once with a count.
           const grouped = new Map<string, string[]>();
@@ -590,10 +608,21 @@ export class Engine {
         const plan = this.latestOutput<Plan>(task.id, 'plan')!;
         const research = this.latestOutput<Research>(task.id, 'research')!;
         const sources = this.sourcesFor(task.id);
-        const prompt = draftPrompt({ taskLabel: label, memory: memoryBlockFor(step.agent as AgentRole, memory!), plan, research, sources, feedback: input.feedback ?? null, previousDraft: input.previousDraft ?? null });
+        const common = { taskLabel: label, memory: memoryBlockFor(step.agent as AgentRole, memory!), plan, research, sources, feedback: input.feedback ?? null, previousDraft: input.previousDraft ?? null };
+        const prompt = req.listing ? listingDraftPrompt({ ...common, listing: req.listing, operatorNotes: req.description }) : draftPrompt(common);
         const text = await this.callAgent(step, prompt, memory, signal);
-        const draft = parseDraft(text);
-        const checks = checkDraft(draft, sources.map((s) => s.ref));
+        let draft: string;
+        let checks: ReturnType<typeof checkDraft>;
+        if (req.listing) {
+          const listing = parseListingDraft(text, extractJsonObject);
+          draft = renderListingDraft(listing, req.listing.marketplace, req.listing.product);
+          // The saved copy is rebuilt from this text after approval, so it must read back exactly.
+          if (JSON.stringify(listingFromDraft(draft)) !== JSON.stringify(listing)) throw new OutputError('listing copy does not survive its own formatting; rewrite it without heading lines');
+          checks = checkListing(listing, sources.map((s) => s.ref), req.listing.marketplace);
+        } else {
+          draft = parseDraft(text);
+          checks = checkDraft(draft, sources.map((s) => s.ref));
+        }
         if (checks.citedRefs.length === 0) throw new OutputError('draft cites no sources');
         return {
           output: { draft, checks },
@@ -612,13 +641,14 @@ export class Engine {
         const plan = this.latestOutput<Plan>(task.id, 'plan')!;
         const research = this.latestOutput<Research>(task.id, 'research')!;
         const { draft, checks } = this.latestOutput<{ draft: string; checks: ReturnType<typeof checkDraft> }>(task.id, 'draft')!;
-        const prompt = reviewPrompt({ taskLabel: label, memory: memoryBlockFor('reviewer', memory!), plan, research, draft, checks });
+        const prompt = reviewPrompt({ taskLabel: label, memory: memoryBlockFor('reviewer', memory!), plan, research, draft, checks, extraRules: req.listing ? LISTING_REVIEW_RULES : undefined });
         const text = await this.callAgent(step, prompt, memory, signal);
         const review = parseReview(text);
         // Station checks can force a revision even if the model passes it.
         const mechanical = [
           ...checks.unknownRefs.map((r) => `Citation ${r} does not match any fetched source.`),
-          ...(checks.uncitedParagraphs > 0 ? [`${checks.uncitedParagraphs} substantial paragraph(s) have no citation.`] : []),
+          ...(checks.uncitedParagraphs > 0 ? [req.listing ? `${checks.uncitedParagraphs} line(s) of the listing (title, bullet, or description paragraph) have no citation.` : `${checks.uncitedParagraphs} substantial paragraph(s) have no citation.`] : []),
+          ...(checks.limitIssues ?? []),
         ];
         const needsRevision = review.verdict === 'revise' || mechanical.length > 0;
         return {
@@ -653,9 +683,11 @@ export class Engine {
       draftPath: path.relative(this.cfg.rootDir, path.join(this.cfg.stagingDir, label, 'draft.md')),
       reviewVerdict: review?.verdict ?? 'not reviewed (solo mode)',
       issues: review?.issues ?? [],
-      mechanical: review?.mechanical ?? [],
+      // Solo mode has no review, but marketplace limits are still shown.
+      mechanical: review?.mechanical ?? checks.limitIssues ?? [],
       criteria: review?.criteria ?? [],
       summary: review?.summary ?? draft.split('\n').find((l) => l.trim() && !l.startsWith('#'))?.slice(0, 400) ?? '',
+      taskKind: checks.limitIssues ? 'listing' : 'report',
       proposedDecisions: review?.proposed_decisions ?? [],
       checks,
       draftSha256: createHash('sha256').update(draft).digest('hex'),
@@ -678,7 +710,10 @@ export class Engine {
     }
     const sources = this.sourcesFor(task.id);
     const approvedAt = approval.decided_at as string;
-    const report = finalReport({ taskLabel: label, title: task.title, draft, sources, approvedAt, reviewVerdict: payload.reviewVerdict });
+    const req: TaskRequest = JSON.parse(task.request_json);
+    const report = req.listing
+      ? listingOutput({ taskLabel: label, title: task.title, product: req.listing.product, marketplace: req.listing.marketplace, draft, sources, approvedAt, reviewVerdict: payload.reviewVerdict })
+      : finalReport({ taskLabel: label, title: task.title, draft, sources, approvedAt, reviewVerdict: payload.reviewVerdict });
     const day = stationDay(this.cfg);
     const base = `${day}-${label.toLowerCase()}-${slugify(task.title).slice(0, 50) || 'report'}`;
     mkdirSync(this.cfg.outputsDir, { recursive: true });

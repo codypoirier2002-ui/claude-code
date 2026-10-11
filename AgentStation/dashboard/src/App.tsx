@@ -104,7 +104,7 @@ export function App() {
           </div>
           <div className="col-side">
             <Approvals state={state} onOpen={setSelected} onError={onError} disabled={linkDown} />
-            <TaskForm tasks={state.tasks} onCreated={setSelected} onError={onError} disabled={linkDown} />
+            <TaskForm tasks={state.tasks} marketplaces={state.settings.marketplaces} onCreated={setSelected} onError={onError} disabled={linkDown} />
             <TaskQueue tasks={state.tasks} selected={selected} onSelect={setSelected} onError={onError} disabled={linkDown} />
             <Controls state={state} onError={onError} disabled={linkDown} />
             <Activity events={state.events} selected={selected} />

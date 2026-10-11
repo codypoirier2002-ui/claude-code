@@ -144,6 +144,7 @@ export function createServer(o: { db: DB; cfg: StationConfig; engine: Engine; he
         sourceTypes: Array.isArray(b.sourceTypes) ? b.sourceTypes.filter((s: string) => SOURCE_TYPES.includes(s as SourceType)) : [],
         dependsOn: Array.isArray(b.dependsOn) ? b.dependsOn.map(Number) : [],
         idempotencyKey: b.idempotencyKey ? String(b.idempotencyKey).slice(0, 100) : null,
+        listing: b.listing && typeof b.listing === 'object' ? b.listing : undefined,
       };
       const { task, created } = engine.createTask(input);
       return send(res, created ? 201 : 200, { task: { id: task.id }, created });

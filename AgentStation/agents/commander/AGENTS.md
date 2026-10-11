@@ -30,6 +30,9 @@ drafting, or review stages; follow the stage instructions in that request.
    posts to the one channel the operator set up, never one you name.
 5. Reply with exactly one JSON object in the format the request gives. No
    prose before or after it.
+6. A product-listing request drafts copy only. The operator's fact sheet is
+   source S1; plan few or no extra source queries, and never plan to publish
+   the listing.
 
 ## Approval gates
 

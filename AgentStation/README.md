@@ -197,6 +197,43 @@ counted in full. Treat the totals as a lower bound.
    *Cancel* aborts the running agent call. *Retry* restarts a failed task from
    the step that failed.
 
+## Task type: product listing copy
+
+**New task → Product listing** drafts marketplace listing copy: a title, 3
+to 5 bullet points, a description, and tags. You paste it into the
+marketplace yourself. The station never publishes a listing.
+
+1. Enter the product, the marketplace (General, Etsy, eBay, or Amazon), and
+   the **product facts**: material, size, care, origin, anything true. The
+   copy can claim only what these facts, or an approved source, say. Add the
+   maker's page under URLs if it is on an approved domain.
+2. The team runs the usual workflow:
+   - Your facts become source **S1**. The Researcher quotes facts from S1 and
+     the station checks every quote against it, so an invented spec never
+     reaches the Writer.
+   - The Writer cites `[S#]` on every line.
+   - The Reviewer flags unsupported claims, superlatives, and invented
+     specifics.
+   - The station checks the citations and the marketplace's length limits
+     itself, and sends the copy back once if it breaks them.
+3. Approve it like a report. The saved file in `outputs/` starts with
+   **Ready to paste** (citations removed, character counts shown), then
+   **Claim support** (each line with its source). **Copy listing text** on
+   the task copies the ready-to-paste part.
+
+Limits the station enforces, and where they come from:
+
+| Marketplace | Title | Tags | Source |
+| --- | --- | --- | --- |
+| eBay | 80 characters | none (no tags field) | [eBay Trading API: listing title](https://developer.ebay.com/api-docs/user-guides/static/trading-user-guide/listing-title.html) |
+| Amazon | 200 characters | none | [Seller Central: product detail page rules](https://sellercentral.amazon.com/help/hub/reference/external/G202024200) |
+| Etsy | 140 characters | 13, each up to 20 characters | Seller guides such as [Outfy](https://www.outfy.com/blog/etsy-character-limit/); Etsy's own help pages were not reachable, so check its form |
+| General | none | up to 15 | n/a |
+
+Amazon's bullet-point limits vary by category and could not be confirmed, so
+none are enforced; check your category template. Marketplace rules beyond
+length (banned characters, capitalization) are not checked.
+
 Memory works in plain Markdown and is Obsidian-compatible: open
 `AgentStation/memory` as a vault. See `memory/README.md` for exactly what is
 read and written, and when.
@@ -264,6 +301,8 @@ no token totals are invented.
   - single-instance lock, crash recovery, clean-shutdown requeue
 - Approved-source fetcher: https only, exact-host allowlist re-checked on every
   redirect, size and time limits, untrusted-content markers, verified quotes
+- Two task types: sourced research reports, and product listing copy
+  (drafting only; your facts as source S1; marketplace length checks)
 - Approval gates for final reports, clarifications, and external actions
   (Slack posts and generic webhooks; exact text approved before sending,
   idempotency key, `needs_review` when delivery is unconfirmed or a crash
@@ -280,7 +319,7 @@ no token totals are invented.
 - Auth: admin token → HttpOnly session, CSRF on every control action,
   loopback `Host` and `Origin` checks, login rate limit
 - Demo Mode, backup and restore, systemd unit, SSH tunnel helper
-- 43 automated tests; seven live demonstrations (see `docs/VERIFICATION.md`)
+- 49 automated tests; seven live demonstrations (see `docs/VERIFICATION.md`)
 
 ## Limitations (read these)
 
@@ -384,7 +423,9 @@ itself, remove it in the Slack app's *Incoming Webhooks* page.
 
 ## Next: one business integration at a time
 
-Slack is the first. Add the next one the same way: its own executor in
+Slack and the listing-copy task type are in. Add the next one the same way:
+for anything that leaves the station, its own executor in
 `server/src/actions.ts`, exact-content approval, a destination bound at
-approval time, and tests with a stand-in for the service. A good next step is a
-"prepare product listing copy" task type (drafting only, nothing published).
+approval time, and tests with a stand-in for the service. Publishing a listing
+to a marketplace would be such an action, and would also need a marketplace
+account connection (which requires your approval).

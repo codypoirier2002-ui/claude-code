@@ -99,8 +99,10 @@ export function slackMessage(o: {
   reviewVerdict: string;
   approvedAt: string;
   outputPath: string;
+  kind?: 'report' | 'listing';
 }): string {
-  const head = `*${slackEscape(o.taskLabel)} · ${cutEscaped(slackEscape(o.title), 200)}*\nApproved research report from AgentStation (review: ${cutEscaped(slackEscape(o.reviewVerdict), 40)}, ${o.sources.length} source${o.sources.length === 1 ? '' : 's'}).`;
+  const what = o.kind === 'listing' ? 'Approved listing copy (not published anywhere)' : 'Approved research report';
+  const head = `*${slackEscape(o.taskLabel)} · ${cutEscaped(slackEscape(o.title), 200)}*\n${what} from AgentStation (review: ${cutEscaped(slackEscape(o.reviewVerdict), 40)}, ${o.sources.length} source${o.sources.length === 1 ? '' : 's'}).`;
   const foot = `Full report on the station: ${cutEscaped(slackEscape(o.outputPath), 300)} (approved ${o.approvedAt.slice(0, 16).replace('T', ' ')} UTC).`;
   // A URL is never shortened (that would break it); one too long to show is
   // left out, and whole source lines are dropped until the summary keeps at
@@ -135,5 +137,6 @@ export function slackMessageForTask(db: DB, cfg: StationConfig, t: TaskRow): str
     reviewVerdict: JSON.parse(approval.payload_json).reviewVerdict ?? 'unknown',
     approvedAt: approval.decided_at,
     outputPath: t.output_path,
+    kind: JSON.parse(t.request_json).kind === 'listing' ? 'listing' : 'report',
   });
 }

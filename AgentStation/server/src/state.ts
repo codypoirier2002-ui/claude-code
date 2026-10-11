@@ -8,6 +8,7 @@ import type { Health } from './openclaw.ts';
 import type { Engine } from './engine.ts';
 import { usageSummary } from './usage.ts';
 import { slackWebhook } from './slack.ts';
+import { MARKETPLACES } from './listing.ts';
 
 export type AgentVisualState = 'offline' | 'idle' | 'running' | 'awaiting_approval' | 'failed' | 'complete' | 'standby';
 
@@ -123,7 +124,12 @@ export function buildState(db: DB, cfg: StationConfig, engine: Engine, health: H
     approvals,
     actions,
     events,
-    settings: { approvedDomains: engine.approvedDomains(), timezone: cfg.timezone, webhookAllowlist: cfg.actions.webhookAllowlist },
+    settings: {
+      approvedDomains: engine.approvedDomains(),
+      timezone: cfg.timezone,
+      webhookAllowlist: cfg.actions.webhookAllowlist,
+      marketplaces: Object.entries(MARKETPLACES).map(([id, m]) => ({ id, ...m })),
+    },
     integrations: { slack: slackState(db, cfg) },
   };
 }
