@@ -85,8 +85,7 @@ openclaw gateway status                 # expect: Listening 127.0.0.1:18789
 ### 4. Get AgentStation and configure OpenClaw for it
 
 ```bash
-# Until the branch is merged, clone it explicitly:
-git clone -b claude/agentstation-command-center https://github.com/codypoirier2002-ui/claude-code.git ~/claude-code
+git clone https://github.com/codypoirier2002-ui/claude-code.git ~/claude-code
 ln -s ~/claude-code/AgentStation ~/AgentStation
 cd ~/AgentStation
 scripts/setup-openclaw.sh               # creates the 4 agents and locks them down (idempotent)
