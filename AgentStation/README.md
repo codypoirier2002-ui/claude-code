@@ -408,13 +408,16 @@ full report is saved. Every post waits for your approval of its exact text.
    (*Create New App* → *From scratch*). You need permission to install apps.
 2. In the app, open *Incoming Webhooks*, turn them on, click *Add New Webhook
    to Workspace*, and pick the channel the station may post to.
-3. Copy the webhook URL (`https://hooks.slack.com/services/…`) into the
-   station's secrets file, then check its mode:
+3. Copy the webhook URL (`https://hooks.slack.com/services/…`). On the VPS,
+   run the script and paste the URL when it asks. The input is hidden, and the
+   URL never lands in your shell history:
 
    ```bash
-   echo 'SLACK_WEBHOOK_URL=https://hooks.slack.com/services/…' >> ~/.agentstation/secrets.env
-   chmod 600 ~/.agentstation/secrets.env
+   ~/claude-code/AgentStation/scripts/set-slack-webhook.sh
    ```
+
+   It checks the URL's form, stores it in `~/.agentstation/secrets.env` (mode
+   600), and replaces any earlier one. `--remove` deletes it.
 
 4. Open the dashboard. Under *Spending, limits & safety → Integrations*, Slack
    should say "set up" with the last four characters of the URL. No restart
@@ -447,7 +450,7 @@ message is written.
 - The URL is a secret. It stays in the secrets file: never in SQLite, logs,
   events, git, or the browser. Demo Mode never posts.
 
-To stop posting, delete the `SLACK_WEBHOOK_URL` line. To revoke the webhook
+To stop posting, run `scripts/set-slack-webhook.sh --remove`. To revoke the webhook
 itself, remove it in the Slack app's *Incoming Webhooks* page.
 
 ## Next: one business integration at a time
