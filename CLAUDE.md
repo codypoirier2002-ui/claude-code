@@ -55,7 +55,7 @@ Every change reaches `main` through a reviewed pull request.
   The description says what changed, why, and how you checked it.
 - CodeRabbit reviews every pull request. Fix each finding, or reply on its
   thread saying why not, before asking for the merge.
-- The repository owner merges. Do not merge your own pull request, or push to
-  `main` to skip review, unless the owner asks for that in the conversation.
+- The repository owner merges. Do not merge your own pull request unless the
+  owner asks for that in the conversation.
 - After a merge, start the next change on a new branch from the updated
   `main`. Do not add new work to a branch whose pull request has merged.
