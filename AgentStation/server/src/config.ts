@@ -40,6 +40,8 @@ export interface StationConfig {
     userAgent: string;
   };
   actions: { webhookAllowlist: string[] };
+  // Owner-only env file with the station's secrets (admin token, Slack webhook).
+  secretsFile: string;
 }
 
 export interface Secrets {
@@ -85,6 +87,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): StationConfig 
     limits: raw.limits,
     sources: raw.sources,
     actions: raw.actions,
+    secretsFile: expandHome(env.STATION_SECRETS_FILE ?? '~/.agentstation/secrets.env'),
   };
 }
 
@@ -105,8 +108,7 @@ export function readEnvFile(file: string): Record<string, string> {
 }
 
 export function loadSecrets(cfg: StationConfig, env: NodeJS.ProcessEnv = process.env): Secrets {
-  const stationFile = expandHome(env.STATION_SECRETS_FILE ?? '~/.agentstation/secrets.env');
-  const station = readEnvFile(stationFile);
+  const station = readEnvFile(cfg.secretsFile);
   const gateway = env.OPENCLAW_GATEWAY_TOKEN ? {} : readEnvFile(cfg.openclaw.envFile);
   return {
     adminToken: env.STATION_ADMIN_TOKEN ?? station.STATION_ADMIN_TOKEN ?? null,

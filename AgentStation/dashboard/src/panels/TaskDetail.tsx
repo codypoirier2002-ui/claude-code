@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import type { TaskDetail as Detail } from '../types.ts';
+import type { TaskDetail as Detail, SlackStatus } from '../types.ts';
 import { api } from '../api.ts';
 import { Markdown } from '../Markdown.tsx';
 import { Chip, Panel, fmtNum, fmtTime } from './ui.tsx';
 
 type Tab = 'report' | 'sources' | 'steps' | 'plan';
 
-export function TaskDetail({ taskId, version, onError }: { taskId: number | null; version: string; onError: (m: string) => void }) {
+export function TaskDetail({ taskId, version, slack, onError, disabled }: { taskId: number | null; version: string; slack: SlackStatus; onError: (m: string) => void; disabled: boolean }) {
   const [detail, setDetail] = useState<Detail | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [tab, setTab] = useState<Tab>('report');
   const [sourceText, setSourceText] = useState<{ ref: string; content: string } | null>(null);
 
@@ -37,6 +38,19 @@ export function TaskDetail({ taskId, version, onError }: { taskId: number | null
   const research = detail.steps.filter((s) => s.stage === 'research' && s.output).at(-1)?.output;
   const reviews = detail.steps.filter((s) => s.stage === 'review' && s.output);
   const text = detail.output ?? detail.draft;
+  // One Slack post per report: one that is waiting, sending, unconfirmed, or done blocks another.
+  const slackPost = detail.actions.filter((a) => a.kind === 'slack_post' && a.status !== 'failed' && a.status !== 'rejected').at(-1);
+
+  const prepareSlack = async () => {
+    setPreparing(true);
+    try {
+      await api.post(`/api/tasks/${t.id}/slack`);
+    } catch (e) {
+      onError((e as Error).message);
+    } finally {
+      setPreparing(false);
+    }
+  };
 
   const openSource = async (id: number, ref: string) => {
     try {
@@ -66,7 +80,26 @@ export function TaskDetail({ taskId, version, onError }: { taskId: number | null
         <div className="report">
           {!text && <p className="muted">No draft yet. The report appears here once the Writer finishes.</p>}
           {text && !detail.output && <p className="warn-text small">Draft in staging/, not approved. Final reports are written to outputs/ only after your approval.</p>}
-          {detail.output && <p className="muted small">Saved to <span className="mono">{t.outputPath}</span></p>}
+          {detail.output && (
+            <div className="report-actions">
+              <p className="muted small">Saved to <span className="mono">{t.outputPath}</span></p>
+              {t.status === 'completed' &&
+                (slackPost ? (
+                  <span className="muted small">
+                    Slack: {slackPost.status === 'done' ? 'posted' : slackPost.status === 'proposed' ? 'message waiting for your approval under Approvals' : slackPost.status.replace('_', ' ')}
+                  </span>
+                ) : (
+                  <button
+                    className="btn tiny"
+                    disabled={disabled || preparing || !slack.configured}
+                    title={slack.configured ? 'Writes the Slack message and holds it under Approvals. Nothing is sent until you approve it.' : (slack.problem ?? `Add SLACK_WEBHOOK_URL to ${slack.setupFile}`)}
+                    onClick={prepareSlack}
+                  >
+                    Post to Slack…
+                  </button>
+                ))}
+            </div>
+          )}
           {text && <Markdown text={text} />}
         </div>
       )}

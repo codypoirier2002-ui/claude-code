@@ -100,7 +100,7 @@ export function App() {
               <StationScene agents={state.agents} offline={offline} />
             </section>
             <AgentStatus agents={state.agents} linkDown={linkDown} onOpen={setSelected} />
-            <TaskDetail taskId={selected} version={version} onError={onError} />
+            <TaskDetail taskId={selected} version={version} slack={state.integrations.slack} onError={onError} disabled={linkDown} />
           </div>
           <div className="col-side">
             <Approvals state={state} onOpen={setSelected} onError={onError} disabled={linkDown} />

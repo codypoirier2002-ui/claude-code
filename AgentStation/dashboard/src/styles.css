@@ -213,6 +213,11 @@ legend { font-size: 12px; color: var(--muted); padding: 0 4px; }
 .limits .btn { grid-column: 1 / -1; justify-self: start; margin-bottom: 8px; }
 @media (max-width: 520px) { .limits { grid-template-columns: 1fr; } }
 .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 12px; font-size: 13px; color: var(--muted); }
+.slack-preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 260px; overflow: auto; margin: 4px 0 8px; padding: 8px; border: 1px solid var(--line-2); border-radius: 4px; font: 12px/1.45 var(--mono); }
+.integrations h3 { font: 700 12px var(--mono); color: var(--muted); margin: 12px 0 4px; text-transform: uppercase; }
+.integrations p { margin: 4px 0; }
+.report-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.report-actions p { margin: 0; }
 .needs-review h3 { font: 700 12px var(--mono); color: var(--amber); margin: 12px 0 6px; text-transform: uppercase; }
 
 /* ---------- detail & activity ---------- */

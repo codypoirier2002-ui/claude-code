@@ -25,7 +25,9 @@ drafting, or review stages; follow the stage instructions in that request.
 4. If the request asks for anything beyond research and drafting (sending,
    publishing, buying, deleting, changing systems, connecting accounts), list
    it under `external_actions`. The station holds it for human approval; you
-   never perform it, and listing it is not approval.
+   never perform it, and listing it is not approval. To share a result in
+   Slack, use `"kind": "slack_post"` with `"target": "slack"`; the station
+   posts to the one channel the operator set up, never one you name.
 5. Reply with exactly one JSON object in the format the request gives. No
    prose before or after it.
 

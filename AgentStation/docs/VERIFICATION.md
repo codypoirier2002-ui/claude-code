@@ -73,7 +73,7 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 
 ## Automated tests
 
-`cd server && npm test`: 34 tests, all passing.
+`cd server && npm test`: 43 tests, all passing.
 
 - full workflow (plan → fetch → research → draft → review → approval → complete), output file, memory writes
 - duplicate protection (same idempotency key, double approval, single finalize)
@@ -104,6 +104,12 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 - a hold reason left over from before a restart is cleared on the first tick
 - a sources heading the Writer adds is dropped; "Sources of disagreement" is kept
 - a stale lock file whose pid now belongs to another process does not block startup
+- Slack: report and source text cannot form mentions, links, or `@here` alerts; URLs keep their `@`; long reports and long source lists are cut without losing the footer or splitting an escape
+- Slack: setup status for a missing, group-readable, or non-Slack webhook URL; Demo Mode never posts
+- Slack: preparing a post sends nothing; approving it sends exactly the approved text once (POST JSON, no redirects, link previews off); a second post of the same report is refused; the webhook secret appears nowhere in the state, events, or database
+- Slack: 404 `no_service` and refused connections fail with nothing sent; a timeout goes to review, is not retried on its own, and a retry resends the same text; a webhook changed after approval blocks the post
+- Slack: a post the Commander proposes gets its text only when the report is approved, and cannot be approved before that; approval is refused while Slack is not set up
+- a generic webhook answering 503 goes to review instead of failing; marking a post done clears its old error
 
 API checks against the running server: no session → 401; foreign `Host`
 header → 421 (DNS-rebinding guard); missing CSRF → 403; foreign `Origin` →
@@ -172,6 +178,36 @@ was checked against the code before it was fixed. The fixes:
 
 All 11 new tests fail on the previous code. The dashboard changes were also
 checked live in Chromium.
+
+## Slack integration (2026-10-11)
+
+The first business integration posts approved reports to one Slack channel
+through an incoming webhook. Slack's behaviour was taken from the official
+`@slack/webhook` SDK source (POST JSON, `redirect: 'error'`, non-2xx is an
+error, 5xx is transient, 4xx including 429 is final; incoming webhooks accept
+`unfurl_links`/`unfurl_media`) and Slack's formatting rules (escape `&`, `<`,
+`>` and nothing else).
+
+This build container cannot reach Slack (DNS for `hooks.slack.com` fails), so
+the automated tests use a stand-in that returns Slack's responses. Live check
+in Chromium, on a copy of the station database with a fake webhook URL:
+Integrations showed "set up (webhook …1234)". "Post to Slack…" on T-0008
+produced an approval card with the exact message. The card and the task said
+"waiting for your approval", and nothing was sent until "Approve & post". The
+real send then failed with `could not connect (ENOTFOUND). Nothing was sent.`,
+which the status line and task showed, and the post could be prepared again.
+The webhook URL was absent from `/api/state`. The first real post happens on
+the VPS.
+
+An adversarial review (three reviewers, three skeptics per finding) found no
+security issue. It found five low-severity problems, each confirmed by all
+three skeptics and all fixed with tests:
+- very long source URLs could push out the message footer or cut inside an
+  `&amp;`;
+- the `@` word joiner broke URLs such as `medium.com/@author`;
+- the "sent within a few seconds" copy ignored a paused queue;
+- an old error stayed on a post marked done;
+- this file was out of date.
 
 ## Usage on the test day
 

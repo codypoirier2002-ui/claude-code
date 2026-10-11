@@ -9,7 +9,7 @@ import type { HealthMonitor } from './health.ts';
 import { Auth, hostAllowed, originAllowed } from './auth.ts';
 import { buildState, taskDetail } from './state.ts';
 import { bus, logEvent } from './events.ts';
-import { resolveAction } from './actions.ts';
+import { resolveAction, prepareSlackPost } from './actions.ts';
 import { currentLimits, type Limits } from './usage.ts';
 import { SOURCE_TYPES, type SourceType } from './sources.ts';
 
@@ -160,6 +160,10 @@ export function createServer(o: { db: DB; cfg: StationConfig; engine: Engine; he
     if ((m = /^\/api\/tasks\/(\d+)\/retry$/.exec(p)) && method === 'POST') {
       engine.retryTask(Number(m[1]));
       return send(res, 200, { ok: true });
+    }
+    if ((m = /^\/api\/tasks\/(\d+)\/slack$/.exec(p)) && method === 'POST') {
+      const actionId = prepareSlackPost(db, cfg, Number(m[1]));
+      return send(res, 201, { ok: true, actionId });
     }
     if ((m = /^\/api\/sources\/(\d+)$/.exec(p)) && method === 'GET') {
       const row = db.prepare('SELECT * FROM sources WHERE id=?').get(Number(m[1]));

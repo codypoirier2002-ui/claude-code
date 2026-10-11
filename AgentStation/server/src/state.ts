@@ -7,6 +7,7 @@ import { AGENT_ROLES, type StationConfig, type AgentRole } from './config.ts';
 import type { Health } from './openclaw.ts';
 import type { Engine } from './engine.ts';
 import { usageSummary } from './usage.ts';
+import { slackWebhook } from './slack.ts';
 
 export type AgentVisualState = 'offline' | 'idle' | 'running' | 'awaiting_approval' | 'failed' | 'complete' | 'standby';
 
@@ -79,6 +80,15 @@ function agentStates(db: DB, cfg: StationConfig, health: Health, teamMode: strin
   });
 }
 
+// Whether a Slack webhook is set (never the URL itself) and how the last post went.
+function slackState(db: DB, cfg: StationConfig) {
+  const last = db.prepare(`SELECT id, task_id, status, result_json, updated_at FROM actions WHERE kind='slack_post' AND status IN ('done','failed','needs_review') ORDER BY updated_at DESC, id DESC LIMIT 1`).get() as any;
+  return {
+    ...slackWebhook(cfg).status,
+    lastPost: last ? { actionId: last.id, taskLabel: taskLabel(last.task_id), status: last.status, error: last.result_json ? JSON.parse(last.result_json).error ?? null : null, at: last.updated_at } : null,
+  };
+}
+
 export function buildState(db: DB, cfg: StationConfig, engine: Engine, health: Health) {
   const teamMode = engine.teamMode();
   const tasks = (db.prepare(`SELECT * FROM tasks ORDER BY id DESC LIMIT 60`).all() as unknown as TaskRow[]).map(taskOut);
@@ -114,6 +124,7 @@ export function buildState(db: DB, cfg: StationConfig, engine: Engine, health: H
     actions,
     events,
     settings: { approvedDomains: engine.approvedDomains(), timezone: cfg.timezone, webhookAllowlist: cfg.actions.webhookAllowlist },
+    integrations: { slack: slackState(db, cfg) },
   };
 }
 

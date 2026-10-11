@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { StationState } from '../types.ts';
 import { api } from '../api.ts';
-import { Panel, Meter, fmtNum } from './ui.tsx';
+import { Panel, Meter, fmtNum, fmtAgo } from './ui.tsx';
 
 export function Controls({ state, onError, disabled }: { state: StationState; onError: (m: string) => void; disabled: boolean }) {
   const u = state.usage;
@@ -28,6 +28,7 @@ export function Controls({ state, onError, disabled }: { state: StationState; on
   };
 
   const needsReview = state.actions.filter((a) => a.status === 'needs_review');
+  const slack = state.integrations.slack;
 
   return (
     <Panel title="Spending, limits & safety" id="controls">
@@ -90,8 +91,30 @@ export function Controls({ state, onError, disabled }: { state: StationState; on
       </form>
 
       <div className="small">
-        <span className="muted">External action destinations (edit config/station.json): </span>
-        {state.settings.webhookAllowlist.length ? state.settings.webhookAllowlist.map((w) => <code key={w}>{w}</code>) : <b>none, so no external action can run</b>}
+        <span className="muted">Generic webhook destinations (edit config/station.json): </span>
+        {state.settings.webhookAllowlist.length ? state.settings.webhookAllowlist.map((w) => <code key={w}>{w}</code>) : <b>none, so no webhook_post can run</b>}
+      </div>
+
+      <div className="integrations small">
+        <h3>Integrations</h3>
+        <p>
+          <b>Slack</b>:{' '}
+          {slack.configured ? (
+            <span className="ok-text">set up (webhook {slack.hint}). Each post shows you its exact text and waits for your approval.</span>
+          ) : slack.problem ? (
+            <span className="error">{slack.problem}</span>
+          ) : (
+            <span className="muted">
+              not set up. Add <code>SLACK_WEBHOOK_URL=https://hooks.slack.com/services/…</code> to <code>{slack.setupFile}</code> (mode 600). No restart needed.
+            </span>
+          )}
+        </p>
+        {slack.lastPost && (
+          <p className="muted">
+            Last post: {slack.lastPost.taskLabel}, {slack.lastPost.status === 'done' ? 'posted' : slack.lastPost.status === 'failed' ? 'failed' : 'needs checking'} {fmtAgo(slack.lastPost.at)}
+            {slack.lastPost.error ? `: ${slack.lastPost.error}` : ''}
+          </p>
+        )}
       </div>
 
       {needsReview.length > 0 && (
@@ -99,7 +122,7 @@ export function Controls({ state, onError, disabled }: { state: StationState; on
           <h3>Actions to check</h3>
           {needsReview.map((a) => (
             <div key={a.id} className="approval external">
-              <p>#{a.id} {a.kind} → <span className="mono">{a.target}</span> ({a.taskLabel}) was in progress when the station stopped. Check the destination before deciding.</p>
+              <p>#{a.id} {a.kind} → <span className="mono">{a.target}</span> ({a.taskLabel}) {a.result?.maybeSent ? `may have been sent but was not confirmed: ${a.result.error}` : 'was in progress when the station stopped.'} Check the destination before deciding.</p>
               <div className="btn-row">
                 <button className="btn" disabled={disabled} onClick={() => api.post(`/api/actions/${a.id}/resolve`, { resolution: 'mark_done' }).catch((e) => onError(e.message))}>It was sent: mark done</button>
                 <button className="btn danger" disabled={disabled} onClick={() => window.confirm('Send it again?') && api.post(`/api/actions/${a.id}/resolve`, { resolution: 'retry' }).catch((e) => onError(e.message))}>Not sent: retry</button>

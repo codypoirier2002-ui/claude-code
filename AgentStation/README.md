@@ -142,11 +142,12 @@ header other than localhost.
 | --- | --- |
 | Ports, timeouts, workers (max 2), default limits, approved domains, agent IDs, time zone | `config/station.json` |
 | Daily and per-task token caps, dollar limit, team mode (Commander only / full team), approved domains | Dashboard → *Spending, limits & safety*. Stored in SQLite and overrides the file. |
-| External action destinations | `config/station.json` → `actions.webhookAllowlist`. File-only on purpose; restart to apply. Empty means no external action can run. |
+| Generic webhook destinations | `config/station.json` → `actions.webhookAllowlist`. File-only on purpose; restart to apply. Empty means no `webhook_post` can run. |
+| Slack webhook | `SLACK_WEBHOOK_URL` in `~/.agentstation/secrets.env` (see [Slack](#integration-slack)). Read when needed; no restart. |
 | Role instructions | `agents/<role>/AGENTS.md`; re-run `scripts/setup-openclaw.sh` after editing |
 | Agent model | `STATION_MODEL=anthropic/claude-opus-5-5 scripts/setup-openclaw.sh` (default Sonnet 5.5) |
 | Goals, rules, decisions, project notes | `memory/` (see `memory/README.md`) |
-| Dashboard admin token | `~/.agentstation/secrets.env` (mode 600; the server refuses group- or world-readable files) |
+| Dashboard admin token | `~/.agentstation/secrets.env` (mode 600; the server refuses group- or world-readable files). `STATION_SECRETS_FILE` points elsewhere. |
 | Gateway token | `~/.openclaw/.env` (mode 600) |
 
 No secret is ever written to `config/`, `memory/`, logs, SQLite, git, or the
@@ -264,8 +265,9 @@ no token totals are invented.
 - Approved-source fetcher: https only, exact-host allowlist re-checked on every
   redirect, size and time limits, untrusted-content markers, verified quotes
 - Approval gates for final reports, clarifications, and external actions
-  (webhook executor with allowlist, idempotency key, `needs_review` after a
-  crash mid-send)
+  (Slack posts and generic webhooks; exact text approved before sending,
+  idempotency key, `needs_review` when delivery is unconfirmed or a crash
+  interrupts a send)
 - Daily and per-task token caps enforced from reported usage; explicit
   "cost unavailable" handling
 - React + TypeScript + PixiJS dashboard:
@@ -278,7 +280,7 @@ no token totals are invented.
 - Auth: admin token → HttpOnly session, CSRF on every control action,
   loopback `Host` and `Origin` checks, login rate limit
 - Demo Mode, backup and restore, systemd unit, SSH tunnel helper
-- 18 automated tests; seven live demonstrations (see `docs/VERIFICATION.md`)
+- 43 automated tests; seven live demonstrations (see `docs/VERIFICATION.md`)
 
 ## Limitations (read these)
 
@@ -300,10 +302,13 @@ no token totals are invented.
 - **Quote checks prove the quote exists, not that the claim is fair.** Reviewer
   and your approval are the safeguard for interpretation.
 - **One operator, one admin token**; no roles or multi-user audit trail.
-- **One external action type exists** (`webhook_post`), and its allowlist is
-  empty by default. Email, publishing, purchasing, deletion, production
-  changes, and account connections have no executor, so they are always
-  refused even if approved.
+- **Two external action types exist**: `slack_post` (one channel, through
+  the webhook you set up) and `webhook_post` (empty allowlist by default).
+  Email, publishing, purchasing, deletion, production changes, and account
+  connections have no executor, so they are always refused even if approved.
+- **The Slack integration was tested against a stand-in, not Slack.** The
+  build container could not reach Slack. Your first real post is the live
+  test; check the channel and the *Integrations* line under Controls.
 - **Two OpenClaw audit warnings remain by design** (`trusted_proxies_missing`,
   device-less `probe_failed`); see `docs/VERIFICATION.md`.
 - **Built and verified in a cloud container**, where only PyPI and GitHub
@@ -323,9 +328,63 @@ no token totals are invented.
 | `OpenClaw … 401` | the token in `~/.openclaw/.env` changed: restart the gateway, then the station (`systemctl --user restart agentstation`); both read it only at start |
 | An agent should not be able to do X | `npm run probe:tools`, `openclaw exec-policy show --agent station-commander` |
 
+## Integration: Slack
+
+Posts a short summary of an approved report to one Slack channel: the
+report's first section, its source list, the review verdict, and where the
+full report is saved. Every post waits for your approval of its exact text.
+
+**Set up (once, about five minutes):**
+
+1. Create a Slack app for your workspace at <https://api.slack.com/apps>
+   (*Create New App* → *From scratch*). You need permission to install apps.
+2. In the app, open *Incoming Webhooks*, turn them on, click *Add New Webhook
+   to Workspace*, and pick the channel the station may post to.
+3. Copy the webhook URL (`https://hooks.slack.com/services/…`) into the
+   station's secrets file, then check its mode:
+
+   ```bash
+   echo 'SLACK_WEBHOOK_URL=https://hooks.slack.com/services/…' >> ~/.agentstation/secrets.env
+   chmod 600 ~/.agentstation/secrets.env
+   ```
+
+4. Open the dashboard. Under *Spending, limits & safety → Integrations*, Slack
+   should say "set up" with the last four characters of the URL. No restart
+   is needed.
+
+Slack's guide: [Sending messages using incoming webhooks](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks).
+
+**Post a report:** open a completed task and click **Post to Slack…**. The
+station writes the message and holds it under *Approvals* with the exact
+text. **Approve & post** sends it within a few seconds (if the queue is
+paused, it is sent when you resume the queue). You can also ask for
+it in the task ("…and share the result in Slack"). The Commander then lists a
+`slack_post`, and you can approve it once the report is approved and the
+message is written.
+
+**What the station guarantees:**
+
+- Nothing is posted without your approval of that exact text. The text you
+  approved is the text sent, and a retry resends the same text.
+- The approval is bound to the webhook set when you approved. If you change
+  `SLACK_WEBHOOK_URL` before it sends, the post is refused, not redirected.
+- Report and source text is escaped the way Slack requires (`&`, `<`, `>`),
+  so it cannot form `@channel`/`@here` alerts, user mentions, or hidden
+  links. Link previews are off.
+- One post per report. A refused post (for example `no_service` after the
+  webhook was removed, or `channel_is_archived`) shows Slack's answer and can
+  be posted again. A post whose delivery is unconfirmed (timeout, Slack
+  server error) is never resent on its own. It appears under *Actions to
+  check*: look at the channel, then choose *mark done* or *retry*.
+- The URL is a secret. It stays in the secrets file: never in SQLite, logs,
+  events, git, or the browser. Demo Mode never posts.
+
+To stop posting, delete the `SLACK_WEBHOOK_URL` line. To revoke the webhook
+itself, remove it in the Slack app's *Incoming Webhooks* page.
+
 ## Next: one business integration at a time
 
-Once this runs on your VPS, add integrations one at a time, each with its own
-approval gate and allowlist entry. Good first steps are a "prepare product
-listing copy" task type (drafting only, nothing published), or delivering
-approved reports to a Slack or email webhook you control.
+Slack is the first. Add the next one the same way: its own executor in
+`server/src/actions.ts`, exact-content approval, a destination bound at
+approval time, and tests with a stand-in for the service. A good next step is a
+"prepare product listing copy" task type (drafting only, nothing published).

@@ -17,7 +17,7 @@ export function tempStation(mutate?: (cfg: StationConfig) => void): StationConfi
   cpSync(path.join(real, 'memory'), path.join(root, 'memory'), { recursive: true });
   mkdirSync(path.join(root, 'outputs'));
   mkdirSync(path.join(root, 'staging'));
-  const cfg = loadConfig({ STATION_ROOT: root, STATION_DATA_DIR: path.join(root, 'data') });
+  const cfg = loadConfig({ STATION_ROOT: root, STATION_DATA_DIR: path.join(root, 'data'), STATION_SECRETS_FILE: path.join(root, 'secrets.env') });
   cfg.queue.pollMs = 20;
   mutate?.(cfg);
   return cfg;

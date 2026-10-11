@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Approval, StationState } from '../types.ts';
+import type { Approval, SlackStatus, StationState } from '../types.ts';
 import { api } from '../api.ts';
 import { Chip, Panel, fmtAgo } from './ui.tsx';
 
@@ -80,12 +80,21 @@ function ReportApproval({ a, onOpen, onError, disabled }: { a: Approval; onOpen:
   );
 }
 
-function ActionApproval({ a, allow, onError, disabled }: { a: Approval; allow: string[]; onError: (m: string) => void; disabled: boolean }) {
+// What Slack readers will see: the sent text has &, <, > escaped and a word
+// joiner after "@" (server/src/slack.ts).
+const slackReadable = (s: string) => s.replace(/\u2060/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+
+function ActionApproval({ a, allow, slack, paused, onError, disabled }: { a: Approval; allow: string[]; slack: SlackStatus; paused: boolean; onError: (m: string) => void; disabled: boolean }) {
   const p = a.payload;
   const [busy, setBusy] = useState(false);
-  const ok = p.kind === 'webhook_post' && allowlisted(p.target, allow);
+  const isSlack = p.kind === 'slack_post';
+  const hasText = typeof p.text === 'string' && p.text.length > 0;
+  const ok = isSlack ? slack.configured && hasText : p.kind === 'webhook_post' && allowlisted(p.target, allow);
   const decide = async (decision: 'approve' | 'reject') => {
-    if (decision === 'approve' && !window.confirm(`Allow ${a.taskLabel} to ${p.kind} → ${p.target}?\nThis sends data outside the station once the report is approved.`)) return;
+    const question = isSlack
+      ? `Post this message from ${a.taskLabel} to Slack (webhook ${slack.hint ?? 'not set'})?\n${paused ? 'The queue is paused: it is sent as soon as you resume the queue.' : 'It is sent within a few seconds.'} It cannot be unsent from here.`
+      : `Allow ${a.taskLabel} to ${p.kind} → ${p.target}?\nThis sends data outside the station once the report is approved.`;
+    if (decision === 'approve' && !window.confirm(question)) return;
     setBusy(true);
     try {
       await api.post(`/api/approvals/${a.id}`, { decision });
@@ -103,13 +112,22 @@ function ActionApproval({ a, allow, onError, disabled }: { a: Approval; allow: s
       </header>
       <p className="warn-text">Nothing has been sent. This runs only if you approve it and the report is approved.</p>
       <dl className="kv">
-        <dt>Action</dt><dd>{p.kind}</dd>
-        <dt>Destination</dt><dd className="mono">{p.target}</dd>
+        <dt>Action</dt><dd>{isSlack ? 'Post to Slack' : p.kind}</dd>
+        <dt>Destination</dt><dd className="mono">{isSlack ? `Slack channel of webhook ${slack.hint ?? '(not set)'}` : p.target}</dd>
         <dt>Reason</dt><dd>{p.reason || '–'}</dd>
       </dl>
-      {!ok && <p className="error">{p.kind === 'webhook_post' ? 'This destination is not on actions.webhookAllowlist in config/station.json, so it will be refused even if approved.' : `No integration is installed for “${p.kind}”, so it cannot run even if approved.`}</p>}
+      {isSlack && hasText && (
+        <>
+          <p className="muted small">Exact message (Slack shows *text* in bold):</p>
+          <pre className="slack-preview">{slackReadable(p.text)}</pre>
+        </>
+      )}
+      {isSlack && !hasText && <p className="muted">The message is written when the report is approved. You can approve the post after that.</p>}
+      {isSlack && hasText && paused && <p className="warn-text small">The queue is paused. An approved post is sent when you resume the queue.</p>}
+      {isSlack && !slack.configured && <p className="error">Slack is not set up{slack.problem ? `: ${slack.problem}` : `. Add SLACK_WEBHOOK_URL to ${slack.setupFile}.`}</p>}
+      {!ok && !isSlack && <p className="error">{p.kind === 'webhook_post' ? 'This destination is not on actions.webhookAllowlist in config/station.json, so it will be refused even if approved.' : `No integration is installed for “${p.kind}”, so it cannot run even if approved.`}</p>}
       <div className="btn-row">
-        <button className="btn" disabled={busy || disabled} onClick={() => decide('approve')}>Approve action</button>
+        <button className="btn" disabled={busy || disabled || (isSlack && !ok)} onClick={() => decide('approve')}>{isSlack ? 'Approve & post' : 'Approve action'}</button>
         <button className="btn danger" disabled={busy || disabled} onClick={() => decide('reject')}>Reject</button>
       </div>
     </article>
@@ -158,7 +176,7 @@ export function Approvals({ state, onOpen, onError, disabled }: { state: Station
         a.kind === 'final_report' ? (
           <ReportApproval key={a.id} a={a} onOpen={onOpen} onError={onError} disabled={disabled} />
         ) : a.kind === 'external_action' ? (
-          <ActionApproval key={a.id} a={a} allow={state.settings.webhookAllowlist} onError={onError} disabled={disabled} />
+          <ActionApproval key={a.id} a={a} allow={state.settings.webhookAllowlist} slack={state.integrations.slack} paused={state.queue.paused} onError={onError} disabled={disabled} />
         ) : (
           <Clarification key={a.id} a={a} onError={onError} disabled={disabled} />
         ),

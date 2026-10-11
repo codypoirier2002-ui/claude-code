@@ -17,7 +17,7 @@ import {
   planPrompt, parsePlan, researchPrompt, parseResearch, draftPrompt, parseDraft, checkDraft, reviewPrompt, parseReview,
   finalReport, OutputError, type Plan, type Research, type Review, type TaskRequest, type SourceForPrompt,
 } from './workflow.ts';
-import { proposeActions, executeReadyActions, recoverActions, voidOpenActions, reviveActionsAfterRetry } from './actions.ts';
+import { proposeActions, executeReadyActions, recoverActions, voidOpenActions, reviveActionsAfterRetry, approveSlackPost, freezeSlackPosts } from './actions.ts';
 
 export type TeamMode = 'solo' | 'team';
 
@@ -276,6 +276,7 @@ export class Engine {
       if (upd.changes !== 1) throw new Error(`Approval #${approvalId} was already decided.`);
 
       if (a.kind === 'external_action') {
+        if (d.decision === 'approve' && payload.kind === 'slack_post') approveSlackPost(this.db, this.cfg, payload.actionId, payload.text);
         this.db.prepare(`UPDATE actions SET status=?, updated_at=? WHERE id=? AND status='proposed'`).run(d.decision === 'approve' ? 'approved' : 'rejected', nowIso(), payload.actionId);
         logEvent(this.db, { taskId: t.id, agent: 'commander', type: 'action_decided', message: `External action #${payload.actionId} (${payload.kind} → ${payload.target}) ${d.decision === 'approve' ? 'approved' : 'rejected'} by operator.` });
         return;
@@ -694,6 +695,7 @@ export class Engine {
       next: () => {
         this.db.prepare(`UPDATE tasks SET status='completed', output_path=?, completed_at=?, updated_at=? WHERE id=?`).run(rel, nowIso(), nowIso(), task.id);
         const t = this.getTask(task.id)!;
+        freezeSlackPosts(this.db, this.cfg, task.id);
         // The report is already published: a memory write error is logged, not
         // allowed to roll back the completion or void approved actions.
         let memoryNote = `Memory updated (daily note${t.project ? ', project note' : ''}${(payload.keepDecisions ?? []).length ? ', decisions' : ''}).`;

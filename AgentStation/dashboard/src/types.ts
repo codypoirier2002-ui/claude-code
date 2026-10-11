@@ -118,6 +118,16 @@ export interface StationState {
   actions: Action[];
   events: StationEvent[];
   settings: { approvedDomains: string[]; timezone: string; webhookAllowlist: string[] };
+  integrations: { slack: SlackStatus };
+}
+
+// Whether a Slack webhook is set. The browser never receives the URL.
+export interface SlackStatus {
+  configured: boolean;
+  hint: string | null;
+  problem: string | null;
+  setupFile: string;
+  lastPost: { actionId: number; taskLabel: string; status: string; error: string | null; at: string } | null;
 }
 
 export interface Step {

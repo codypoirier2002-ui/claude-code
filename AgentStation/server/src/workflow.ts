@@ -133,10 +133,10 @@ Reply with exactly one JSON object and nothing else:
   "required_inputs": [inputs the work depends on],
   "source_queries": [{"source": one of ${JSON.stringify(types)}, "query": "..."}],
   "outline": [report section headings],
-  "external_actions": [{"kind": "webhook_post", "target": "where", "reason": "why"}],
+  "external_actions": [{"kind": "slack_post" or "webhook_post", "target": "slack" for slack_post, or the webhook URL, "reason": "why"}],
   "notes": "anything the team should know"
 }
-Use 1 to 6 source_queries. List an external action only if the operator asked for one.`;
+Use 1 to 6 source_queries. List an external action only if the operator asked for one. Use slack_post when the operator asks to share the result in Slack: the station posts a short summary of the approved report to the operator's Slack channel.`;
 }
 
 export function parsePlan(text: string, allowedTypes: SourceType[], operatorUrls = 0): Plan {
@@ -164,6 +164,8 @@ export function parsePlan(text: string, allowedTypes: SourceType[], operatorUrls
     outline: strList(o.outline, 10, 200),
     external_actions: (Array.isArray(o.external_actions) ? o.external_actions : [])
       .map((a: any) => ({ kind: str(a?.kind, 40), target: str(a?.target, 300), reason: str(a?.reason, 500) }))
+      // An incoming webhook posts to one fixed channel, so a Slack post has one target.
+      .map((a: ExternalActionProposal) => (a.kind === 'slack_post' ? { ...a, target: 'slack' } : a))
       .filter((a: ExternalActionProposal) => a.kind)
       .slice(0, 3),
     notes: str(o.notes, 1000),
