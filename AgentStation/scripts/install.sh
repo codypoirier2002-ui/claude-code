@@ -250,7 +250,14 @@ systemctl --user restart agentstation
 ok "running as a service: systemctl --user status agentstation"
 
 step "Exposure check"
-exposed="$(ss -ltnH 2>/dev/null | awk '{print $4}' | grep -E ':(8787|18789)$' | grep -vE '^(127\.0\.0\.1|\[::1\]):' || true)"
+# Fail closed: if ss cannot list the listeners, or does not show both services,
+# the check proves nothing.
+sockets="$(ss -ltnH 2>/dev/null)" || die "could not list TCP listeners (ss failed), so exposure cannot be checked."
+listeners="$(printf '%s\n' "$sockets" | awk '{print $4}' | grep -E ':(8787|18789)$' || true)"
+for port in 8787 18789; do
+  grep -q ":$port\$" <<< "$listeners" || die "ss shows no listener on port $port, so exposure cannot be checked."
+done
+exposed="$(grep -vE '^(127\.0\.0\.1|\[::1\]):' <<< "$listeners" || true)"
 [ -z "$exposed" ] || die "these listeners are reachable from outside: $exposed. Stop the station and the gateway and fix gateway.bind / config/station.json, then re-run with --skip-probe."
 ok "the dashboard (8787) and gateway (18789) listen on localhost only"
 
