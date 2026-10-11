@@ -22,7 +22,7 @@ import {
   checkListing, listingOutput, LISTING_REVIEW_RULES,
 } from './listing.ts';
 import { extractJsonObject } from './workflow.ts';
-import { proposeActions, executeReadyActions, recoverActions, voidOpenActions, reviveActionsAfterRetry, approveSlackPost, freezeSlackPosts } from './actions.ts';
+import { proposeActions, executeReadyActions, recoverActions, voidOpenActions, reviveActionsAfterRetry, approveSlackPost, freezeSlackPosts, autoSendToSlack } from './actions.ts';
 
 export type TeamMode = 'solo' | 'team';
 
@@ -42,6 +42,8 @@ export interface ApprovalDecision {
   note?: string;
   answers?: string[];
   keepDecisions?: string[];
+  // Set only by the station's own auto-approval, never from the API.
+  byStation?: boolean;
 }
 
 class StepFailure extends Error {
@@ -127,6 +129,15 @@ export class Engine {
 
   approvedDomains(): string[] {
     return getSetting<string[]>(this.db, 'approved_domains', this.cfg.sources.approvedDomains);
+  }
+
+  // Operator settings, both off unless switched on in the dashboard.
+  autoApproveListings(): boolean {
+    return getSetting<boolean>(this.db, 'auto_approve_listings', false);
+  }
+
+  autoSendListings(): boolean {
+    return getSetting<boolean>(this.db, 'auto_send_listings_slack', false);
   }
 
   isPaused(): boolean {
@@ -321,9 +332,28 @@ export class Engine {
       }
       this.db.prepare(`UPDATE approvals SET payload_json=json_set(payload_json,'$.keepDecisions',json(?)) WHERE id=?`).run(JSON.stringify((d.keepDecisions ?? []).slice(0, 5)), approvalId);
       this.addStep(t.id, 'finalize', { approvalId });
-      logEvent(this.db, { taskId: t.id, agent: 'commander', type: 'report_approved', message: `${taskLabel(t.id)} report approved by operator.` });
+      logEvent(this.db, d.byStation
+        ? { taskId: t.id, agent: 'commander', type: 'report_auto_approved', message: `${taskLabel(t.id)} listing copy approved automatically: the review passed and every station check passed (operator setting "Auto-approve clean listings").` }
+        : { taskId: t.id, agent: 'commander', type: 'report_approved', message: `${taskLabel(t.id)} report approved by operator.` });
     });
     this.refreshTaskStatus(t.id);
+  }
+
+  // Operator setting "Auto-approve clean listings": approves listing copy the
+  // station marked eligible (review passed, no station check issue). Anything
+  // else, and every report, still waits for the operator.
+  private autoApprove(): void {
+    if (!this.autoApproveListings()) return;
+    const eligible = this.db
+      .prepare(`SELECT id, task_id FROM approvals WHERE kind='final_report' AND status='pending' AND json_extract(payload_json,'$.autoEligible')=1 ORDER BY id`)
+      .all() as { id: number; task_id: number }[];
+    for (const a of eligible) {
+      try {
+        this.decideApproval(a.id, { decision: 'approve', note: 'Approved automatically: operator setting "Auto-approve clean listings".', byStation: true });
+      } catch (err) {
+        logEvent(this.db, { taskId: a.task_id, type: 'auto_approve_error', message: `Could not auto-approve: ${(err as Error).message}. It waits for you.` });
+      }
+    }
   }
 
   private cancelInsideTx(t: TaskRow, reason: string) {
@@ -343,6 +373,7 @@ export class Engine {
     try {
       this.failTasksWithBrokenDependencies();
       if (this.isPaused()) return;
+      this.autoApprove();
       await executeReadyActions(this.db, this.cfg);
       const free = this.cfg.queue.maxWorkers - this.inFlight.size;
       if (free <= 0) return;
@@ -618,7 +649,7 @@ export class Engine {
           draft = renderListingDraft(listing, req.listing.marketplace, req.listing.product);
           // The saved copy is rebuilt from this text after approval, so it must read back exactly.
           if (JSON.stringify(listingFromDraft(draft)) !== JSON.stringify(listing)) throw new OutputError('listing copy does not survive its own formatting; rewrite it without heading lines');
-          checks = checkListing(listing, sources.map((s) => s.ref), req.listing.marketplace);
+          checks = checkListing(listing, sources.map((s) => s.ref), req.listing.marketplace, req.listing.facts);
         } else {
           draft = parseDraft(text);
           checks = checkDraft(draft, sources.map((s) => s.ref));
@@ -688,6 +719,9 @@ export class Engine {
       criteria: review?.criteria ?? [],
       summary: review?.summary ?? draft.split('\n').find((l) => l.trim() && !l.startsWith('#'))?.slice(0, 400) ?? '',
       taskKind: checks.limitIssues ? 'listing' : 'report',
+      // Listing copy the reviewer passed with no station issue may be approved
+      // automatically, if the operator switched that on.
+      autoEligible: Boolean(checks.limitIssues) && review?.verdict === 'pass' && (review.mechanical ?? []).length === 0 && checks.unknownRefs.length === 0 && checks.uncitedParagraphs === 0,
       proposedDecisions: review?.proposed_decisions ?? [],
       checks,
       draftSha256: createHash('sha256').update(draft).digest('hex'),
@@ -712,7 +746,7 @@ export class Engine {
     const approvedAt = approval.decided_at as string;
     const req: TaskRequest = JSON.parse(task.request_json);
     const report = req.listing
-      ? listingOutput({ taskLabel: label, title: task.title, product: req.listing.product, marketplace: req.listing.marketplace, draft, sources, approvedAt, reviewVerdict: payload.reviewVerdict })
+      ? listingOutput({ taskLabel: label, title: task.title, product: req.listing.product, marketplace: req.listing.marketplace, region: req.listing.region, draft, sources, approvedAt, reviewVerdict: payload.reviewVerdict })
       : finalReport({ taskLabel: label, title: task.title, draft, sources, approvedAt, reviewVerdict: payload.reviewVerdict });
     const day = stationDay(this.cfg);
     const base = `${day}-${label.toLowerCase()}-${slugify(task.title).slice(0, 50) || 'report'}`;
@@ -731,6 +765,7 @@ export class Engine {
         this.db.prepare(`UPDATE tasks SET status='completed', output_path=?, completed_at=?, updated_at=? WHERE id=?`).run(rel, nowIso(), nowIso(), task.id);
         const t = this.getTask(task.id)!;
         freezeSlackPosts(this.db, this.cfg, task.id);
+        if (JSON.parse(t.request_json).listing && this.autoSendListings()) autoSendToSlack(this.db, this.cfg, task.id);
         // The report is already published: a memory write error is logged, not
         // allowed to roll back the completion or void approved actions.
         let memoryNote = `Memory updated (daily note${t.project ? ', project note' : ''}${(payload.keepDecisions ?? []).length ? ', decisions' : ''}).`;

@@ -19,7 +19,10 @@ characters when injected.
 4. No external action happens without explicit human approval in the
    dashboard: sending messages or outreach, publishing content or listings,
    buying anything, deleting files, changing production systems, or
-   connecting business accounts.
+   connecting business accounts. The operator may switch on a standing
+   approval for one narrow case in the dashboard (auto-approving clean
+   listing copy, or sending approved listings to their own Slack channel);
+   the station, not an agent, applies it and logs every use.
 5. Separate facts from interpretation, and mark uncertainty.
 6. Structure: summary first, then findings, then open questions.
 7. Never put secrets, API keys, tokens, or personal data in outputs.

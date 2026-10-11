@@ -24,6 +24,7 @@ export function TaskForm({ tasks, marketplaces, onCreated, onError, disabled }: 
   const [facts, setFacts] = useState('');
   const [marketplace, setMarketplace] = useState('etsy');
   const [tone, setTone] = useState('');
+  const [region, setRegion] = useState<'canada' | 'other'>('canada');
   const [busy, setBusy] = useState(false);
   // One key per form fill: a double click or a retried request cannot create two tasks.
   const [key, setKey] = useState(() => crypto.randomUUID());
@@ -44,7 +45,7 @@ export function TaskForm({ tasks, marketplaces, onCreated, onError, disabled }: 
         sourceTypes: sources,
         dependsOn: dep ? [Number(dep)] : [],
         idempotencyKey: key,
-        ...(isListing ? { listing: { product, facts, marketplace, tone } } : {}),
+        ...(isListing ? { listing: { product, facts, marketplace, tone, region } } : {}),
       });
       setDescription('');
       setUrls('');
@@ -98,6 +99,13 @@ export function TaskForm({ tasks, marketplaces, onCreated, onError, disabled }: 
                 </select>
               </label>
             </div>
+            <label className="stack">
+              <span>Selling in</span>
+              <select value={region} onChange={(e) => setRegion(e.target.value as 'canada' | 'other')}>
+                <option value="canada">Canada (Canadian spelling, metric first, origin claims checked)</option>
+                <option value="other">Anywhere else</option>
+              </select>
+            </label>
             {market && <p className="muted small">{market.basis}</p>}
             <label className="stack">
               <span>Product facts (the copy can claim only what these, or approved sources, say)</span>

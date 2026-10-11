@@ -96,6 +96,36 @@ export function Controls({ state, onError, disabled }: { state: StationState; on
       </div>
 
       <div className="integrations small">
+        <h3>Listings</h3>
+        <div className="settings-row">
+          <span>Auto-approve clean listings</span>
+          <div className="seg" role="group" aria-label="Auto-approve clean listings">
+            <button className={!state.settings.autoApproveListings ? 'on' : ''} disabled={disabled} onClick={() => save({ autoApproveListings: false }, 'Auto-approve')}>Off</button>
+            <button
+              className={state.settings.autoApproveListings ? 'on' : ''}
+              disabled={disabled}
+              onClick={() => window.confirm('Approve listing copy automatically when the Reviewer passes it and every station check passes? Flagged listings and all reports still wait for you.') && save({ autoApproveListings: true }, 'Auto-approve')}
+            >
+              On
+            </button>
+          </div>
+        </div>
+        <div className="settings-row">
+          <span>Send every approved listing to Slack</span>
+          <div className="seg" role="group" aria-label="Send every approved listing to Slack">
+            <button className={!state.settings.autoSendListings ? 'on' : ''} disabled={disabled} onClick={() => save({ autoSendListings: false }, 'Slack copies')}>Off</button>
+            <button
+              className={state.settings.autoSendListings ? 'on' : ''}
+              disabled={disabled}
+              onClick={() => window.confirm('Post every approved listing to your Slack channel without asking? Each post is logged and sent once.') && save({ autoSendListings: true }, 'Slack copies')}
+            >
+              On
+            </button>
+          </div>
+        </div>
+        {state.settings.autoSendListings && !slack.configured && <p className="warn-text">Slack is not set up, so nothing will be sent until it is.</p>}
+        {(state.settings.autoApproveListings || state.settings.autoSendListings) && <p className="muted">Automatic decisions appear in Activity and in each task's history.</p>}
+
         <h3>Integrations</h3>
         <p>
           <b>Slack</b>:{' '}

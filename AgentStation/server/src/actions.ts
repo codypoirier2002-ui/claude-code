@@ -258,6 +258,52 @@ export function prepareSlackPost(db: DB, cfg: StationConfig, taskId: number): nu
   });
 }
 
+// Operator setting "Send every approved listing to Slack": the operator has
+// approved, in advance, posting each approved listing to the configured
+// channel. Runs inside the completion transaction, after freezeSlackPosts, so
+// it never throws. The post is bound to the webhook set at this moment, and is
+// sent once by executeReadyActions like any approved post.
+export function autoSendToSlack(db: DB, cfg: StationConfig, taskId: number): void {
+  const label = taskLabel(taskId);
+  const note = 'Sent automatically: operator setting "Send every approved listing to Slack".';
+  try {
+    const { url, status } = slackWebhook(cfg);
+    if (!url) {
+      logEvent(db, { taskId, type: 'auto_send_skipped', message: `${label} was not sent to Slack: ${(status.problem ?? `Slack is not set up (add SLACK_WEBHOOK_URL to ${status.setupFile})`).replace(/\.$/, '')}.` });
+      return;
+    }
+    const existing = db
+      .prepare(`SELECT * FROM actions WHERE task_id=? AND kind='slack_post' AND status IN ('proposed','approved','executing','needs_review','done') ORDER BY id DESC LIMIT 1`)
+      .get(taskId) as unknown as ActionRow | undefined;
+    if (existing && existing.status !== 'proposed') return;
+    let actionId: number;
+    if (existing) {
+      // A post the Commander proposed: approve it with the text frozen at completion.
+      const text = JSON.parse(existing.payload_json).text;
+      if (typeof text !== 'string' || !text) throw new Error('the held Slack post has no message text');
+      actionId = existing.id;
+      db.prepare(`UPDATE actions SET status='approved', payload_json=json_set(payload_json,'$.webhookFp',?,'$.auto',json('true')), updated_at=? WHERE id=? AND status='proposed'`).run(webhookFingerprint(url), nowIso(), actionId);
+      db.prepare(`UPDATE approvals SET status='approved', note=?, decided_at=? WHERE kind='external_action' AND status='pending' AND json_extract(payload_json,'$.actionId')=?`).run(note, nowIso(), actionId);
+    } else {
+      const t = db.prepare('SELECT * FROM tasks WHERE id=?').get(taskId) as unknown as TaskRow;
+      const text = slackMessageForTask(db, cfg, t);
+      const { n } = db.prepare(`SELECT count(*) AS n FROM actions WHERE task_id=? AND kind='slack_post'`).get(taskId) as { n: number };
+      const key = createHash('sha256').update(`${taskId}|slack_post|auto|${n}`).digest('hex');
+      const reason = 'Operator setting: send every approved listing to Slack.';
+      const res = db
+        .prepare(`INSERT INTO actions (task_id, kind, target, payload_json, idempotency_key, status, created_at, updated_at) VALUES (?, 'slack_post', 'slack', ?, ?, 'approved', ?, ?)`)
+        .run(taskId, JSON.stringify({ reason, text, webhookFp: webhookFingerprint(url), auto: true }), key, nowIso(), nowIso());
+      actionId = Number(res.lastInsertRowid);
+      db.prepare(`INSERT INTO approvals (task_id, kind, status, payload_json, note, created_at, decided_at) VALUES (?, 'external_action', 'approved', ?, ?, ?, ?)`).run(
+        taskId, JSON.stringify({ actionId, kind: 'slack_post', target: 'slack', reason, text }), note, nowIso(), nowIso(),
+      );
+    }
+    logEvent(db, { taskId, agent: 'commander', type: 'action_auto_approved', message: `${label} will be posted to Slack (action #${actionId}). ${note}` });
+  } catch (err) {
+    logEvent(db, { taskId, type: 'action_error', message: `${label} was not sent to Slack automatically: ${(err as Error).message}. Use "Post to Slack" on the task.` });
+  }
+}
+
 // Commander path: a slack_post proposed at planning time gets its text when
 // the report is approved and the task completes. Runs inside the completion
 // transaction, so it never throws: the report is already published.

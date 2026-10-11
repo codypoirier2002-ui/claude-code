@@ -129,6 +129,8 @@ export function buildState(db: DB, cfg: StationConfig, engine: Engine, health: H
       timezone: cfg.timezone,
       webhookAllowlist: cfg.actions.webhookAllowlist,
       marketplaces: Object.entries(MARKETPLACES).map(([id, m]) => ({ id, ...m })),
+      autoApproveListings: engine.autoApproveListings(),
+      autoSendListings: engine.autoSendListings(),
     },
     integrations: { slack: slackState(db, cfg) },
   };

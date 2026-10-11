@@ -117,7 +117,14 @@ export interface StationState {
   approvals: Approval[];
   actions: Action[];
   events: StationEvent[];
-  settings: { approvedDomains: string[]; timezone: string; webhookAllowlist: string[]; marketplaces: Marketplace[] };
+  settings: {
+    approvedDomains: string[];
+    timezone: string;
+    webhookAllowlist: string[];
+    marketplaces: Marketplace[];
+    autoApproveListings: boolean;
+    autoSendListings: boolean;
+  };
   integrations: { slack: SlackStatus };
 }
 
@@ -181,7 +188,7 @@ export interface TaskDetail {
     sourceTypes: SourceType[];
     clarifications?: { question: string; answer: string }[];
     kind?: 'report' | 'listing';
-    listing?: { product: string; facts: string; marketplace: string; tone: string };
+    listing?: { product: string; facts: string; marketplace: string; tone: string; region?: 'other' | 'canada' };
   };
   steps: Step[];
   sources: Source[];

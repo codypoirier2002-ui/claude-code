@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { tempStation, ScriptedRunner, makeEngine, until, fakeFetch } from './helpers.ts';
+import { tempStation, ScriptedRunner, makeEngine, until, fakeFetch, REPLIES as REPORT_REPLIES } from './helpers.ts';
+import { setSetting } from '../src/db.ts';
 import { Engine } from '../src/engine.ts';
 import { openDb, type DB } from '../src/db.ts';
 import { checkListing, listingFromDraft, parseListingDraft, renderListingDraft, stripCitations, validateListing } from '../src/listing.ts';
@@ -184,4 +185,87 @@ test('a listing with no source types ticked fetches only pasted URLs, and the Wr
   assert.deepEqual(seen, [['url:https://example.org/maker']], 'the planned pypi query is not fetched');
   assert.match(runner.prompts.PLAN[0], /The operator allowed no other sources: return an empty source_queries list\./);
   assert.match(runner.prompts.DRAFT[0], /- conflict: S2 says 10 oz, S1 says 12 oz\nS1 is the operator's own fact sheet\. Where another source disagrees with S1,\nfollow S1/);
+});
+
+const HOOK = `https://hooks.slack.com/services/T000/B000/${['test', 'secret', 'not', 'real', '1234'].join('')}`;
+function slackStandIn() {
+  const calls: any[] = [];
+  const real = globalThis.fetch;
+  globalThis.fetch = (async (_url: string, init: RequestInit) => (calls.push(JSON.parse(String(init.body))), new Response('ok'))) as typeof fetch;
+  return { calls, restore: () => (globalThis.fetch = real) };
+}
+
+test('Canadian listings get Canadian rules, and an origin claim must be the operator’s own words', async () => {
+  const cfg = tempStation();
+  const runner = new RecordingRunner();
+  Object.assign(runner.replies, replies({ ...GOOD, bullets: [...GOOD.bullets, 'Proudly Made in Canada [S1]'] }));
+  const { engine, db } = makeEngine(cfg, runner);
+  const { task } = engine.createTask({ description: 'Write a Kijiji posting for my mug', listing: { ...LISTING, marketplace: 'kijiji', region: 'canada' } });
+  await until(engine, () => status(db, task.id) === 'awaiting_approval');
+  assert.match(runner.prompts.DRAFT[0], /Region: Canada\. Write for Canadian shoppers:\n- Canadian English spelling \(colour, centre, metre, jewellery\)\./);
+  assert.match(runner.prompts.DRAFT[0], /Do\n  not convert units yourself\./);
+  assert.match(runner.prompts.DRAFT[1], /The copy says "Made in Canada" but the fact sheet does not\. Canada's Competition Bureau guidelines require at least 51%/);
+
+  const withClaim = checkListing({ ...GOOD, bullets: [...GOOD.bullets, 'Made in Canada with imported clay [S1]'] }, ['S1'], 'etsy', `${FACTS}\nMade in Canada with imported clay.`);
+  assert.deepEqual(withClaim.limitIssues, [], 'the claim is fine when the operator stated it');
+  assert.equal(validateListing({ ...LISTING, region: 'canada' }).region, 'canada');
+  assert.throws(() => validateListing({ ...LISTING, region: 'mars' }), /Region must be one of: other, canada/);
+});
+
+test('auto-approve: clean listing copy is approved and sent to Slack with no click; everything else still waits', async () => {
+  const cfg = tempStation();
+  writeFileSync(cfg.secretsFile, `SLACK_WEBHOOK_URL=${HOOK}\n`, { mode: 0o600 });
+  const runner = new RecordingRunner();
+  Object.assign(runner.replies, replies(GOOD));
+  const { engine, db } = makeEngine(cfg, runner);
+  const slack = slackStandIn();
+  try {
+    // Off by default: a clean listing waits for the operator.
+    const first = engine.createTask({ description: 'Write an Etsy listing for my mug', listing: { ...LISTING, region: 'canada' } }).task;
+    await until(engine, () => status(db, first.id) === 'awaiting_approval');
+    for (let i = 0; i < 3; i++) await engine.tick();
+    assert.equal(status(db, first.id), 'awaiting_approval');
+
+    setSetting(db, 'auto_approve_listings', true);
+    setSetting(db, 'auto_send_listings_slack', true);
+    await until(engine, () => status(db, first.id) === 'completed');
+    const approval = db.prepare(`SELECT note FROM approvals WHERE task_id=? AND kind='final_report'`).get(first.id) as any;
+    assert.match(approval.note, /Approved automatically: operator setting "Auto-approve clean listings"/);
+    await until(engine, () => (db.prepare(`SELECT status FROM actions WHERE task_id=?`).get(first.id) as any)?.status === 'done');
+    assert.equal(slack.calls.length, 1);
+    assert.match(slack.calls[0].text, /Approved listing copy \(not published anywhere\) from AgentStation/);
+    const events = (db.prepare('SELECT type FROM events WHERE task_id=?').all(first.id) as any[]).map((e) => e.type);
+    assert.ok(events.includes('report_auto_approved') && events.includes('action_auto_approved') && events.includes('action_executed'));
+
+    // A flagged listing (uncited bullet that survives the one revision) still waits.
+    runner.replies.DRAFT = JSON.stringify({ ...GOOD, bullets: [...GOOD.bullets, 'A joy to hold'] });
+    const flagged = engine.createTask({ description: 'Write another Etsy listing for my mug', listing: LISTING }).task;
+    await until(engine, () => status(db, flagged.id) === 'awaiting_approval');
+    for (let i = 0; i < 3; i++) await engine.tick();
+    assert.equal(status(db, flagged.id), 'awaiting_approval');
+    assert.equal(JSON.parse(pending(db, flagged.id).payload_json).autoEligible, false);
+
+    // Reports are never approved automatically.
+    Object.assign(runner.replies, REPORT_REPLIES);
+    const report = engine.createTask({ description: 'Compare alpha and beta libraries' }).task;
+    await until(engine, () => status(db, report.id) === 'awaiting_approval');
+    for (let i = 0; i < 3; i++) await engine.tick();
+    assert.equal(status(db, report.id), 'awaiting_approval');
+    assert.equal(slack.calls.length, 1);
+  } finally {
+    slack.restore();
+  }
+});
+
+test('auto-send with Slack not set up records why nothing was sent', async () => {
+  const cfg = tempStation();
+  const runner = new RecordingRunner();
+  Object.assign(runner.replies, replies(GOOD));
+  const { engine, db } = makeEngine(cfg, runner);
+  setSetting(db, 'auto_approve_listings', true);
+  setSetting(db, 'auto_send_listings_slack', true);
+  const { task } = engine.createTask({ description: 'Write an Etsy listing for my mug', listing: LISTING });
+  await until(engine, () => status(db, task.id) === 'completed');
+  assert.equal((db.prepare('SELECT count(*) AS n FROM actions').get() as any).n, 0);
+  assert.match((db.prepare(`SELECT message FROM events WHERE type='auto_send_skipped'`).get() as any).message, /T-0001 was not sent to Slack: Slack is not set up/);
 });

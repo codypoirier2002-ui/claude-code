@@ -2,6 +2,7 @@
 // checked. Parsers are strict; anything malformed is a stage failure.
 import type { SourceQuery, SourceType } from './sources.ts';
 import { SOURCE_TYPES } from './sources.ts';
+import type { ListingRequest } from './listing.ts';
 
 export interface TaskRequest {
   description: string;
@@ -11,7 +12,7 @@ export interface TaskRequest {
   clarifications?: { question: string; answer: string }[];
   // Absent on report tasks (and on tasks created before listings existed).
   kind?: 'report' | 'listing';
-  listing?: { product: string; facts: string; marketplace: string; tone: string };
+  listing?: ListingRequest;
 }
 
 export interface ExternalActionProposal {

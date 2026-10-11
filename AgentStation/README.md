@@ -228,7 +228,36 @@ Limits the station enforces, and where they come from:
 | eBay | 80 characters | none (no tags field) | [eBay Trading API: listing title](https://developer.ebay.com/api-docs/user-guides/static/trading-user-guide/listing-title.html) |
 | Amazon | 200 characters | none | [Seller Central: product detail page rules](https://sellercentral.amazon.com/help/hub/reference/external/G202024200) |
 | Etsy | 140 characters | 13, each up to 20 characters | Seller guides such as [Outfy](https://www.outfy.com/blog/etsy-character-limit/); Etsy's own help pages were not reachable, so check its form |
+| Kijiji | not confirmed, none enforced | none | n/a |
 | General | none | up to 15 | n/a |
+
+**Selling in Canada** (the default) adds Canadian rules:
+- Canadian spelling.
+- Metric units first when your facts give them. The Writer never converts
+  units.
+- No currency unless your facts name one.
+- A "Made in Canada" / "Product of Canada" claim only if your facts say it in
+  those words. The station blocks any such claim that isn't in your facts. The
+  [Competition Bureau's guidelines](https://competition-bureau.canada.ca/en/node/944)
+  set thresholds for those claims: 51% of direct costs plus a note on imported
+  content, or 98% for "Product of Canada".
+
+Kijiji is listed, but its title limit could not be confirmed, so none is
+enforced. If you sell to customers in Quebec, the Charter of the French
+language generally requires French for commercial publications. French copy
+is not generated yet.
+
+**Automation (Controls → Listings, both off by default):**
+- *Auto-approve clean listings* approves listing copy only when the Reviewer
+  passed it and every station check passed: citations, limits, origin claims,
+  and no notes in the copy. Flagged listings and all research reports still
+  wait for you.
+- *Send every approved listing to Slack* posts each approved listing, whether
+  approved automatically or by you, to your Slack channel without a separate
+  click. It uses the same escaping and webhook binding as manual posts, and an
+  unconfirmed send still goes to *Actions to check*.
+
+Every automatic decision is logged in Activity and in the task's history.
 
 Amazon's bullet-point limits vary by category and could not be confirmed, so
 none are enforced; check your category template. Marketplace rules beyond
@@ -319,7 +348,7 @@ no token totals are invented.
 - Auth: admin token → HttpOnly session, CSRF on every control action,
   loopback `Host` and `Origin` checks, login rate limit
 - Demo Mode, backup and restore, systemd unit, SSH tunnel helper
-- 49 automated tests; seven live demonstrations (see `docs/VERIFICATION.md`)
+- 52 automated tests; seven live demonstrations (see `docs/VERIFICATION.md`)
 
 ## Limitations (read these)
 

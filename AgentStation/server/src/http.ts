@@ -224,6 +224,15 @@ export function createServer(o: { db: DB; cfg: StationConfig; engine: Engine; he
         setSetting(db, 'team_mode', b.teamMode as TeamMode);
         changes.push(`team mode → ${b.teamMode}`);
       }
+      for (const [field, key, label] of [
+        ['autoApproveListings', 'auto_approve_listings', 'auto-approve clean listings'],
+        ['autoSendListings', 'auto_send_listings_slack', 'send every approved listing to Slack'],
+      ] as const) {
+        if (b[field] === undefined) continue;
+        if (typeof b[field] !== 'boolean') throw new HttpError(400, `${field} must be true or false.`);
+        setSetting(db, key, b[field]);
+        changes.push(`${label} → ${b[field] ? 'ON' : 'off'}`);
+      }
       if (changes.length) logEvent(db, { type: 'settings_changed', message: `Operator changed settings: ${changes.join('; ')}.` });
       return send(res, 200, { ok: true, teamMode: getSetting(db, 'team_mode', 'team') });
     }

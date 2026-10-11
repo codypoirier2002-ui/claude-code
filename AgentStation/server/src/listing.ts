@@ -37,15 +37,33 @@ export const MARKETPLACES: Record<string, Marketplace> = {
     titleMax: 200,
     tagsMax: 0,
     tagMax: null,
-    basis: 'Amazon title limit (200 characters) from Seller Central product detail page rules. Bullet limits vary by category: check your category template.',
+    basis: 'Amazon title limit (200 characters) from Seller Central product detail page rules (checked on amazon.com; confirm on Amazon.ca). Bullet limits vary by category: check your category template.',
+  },
+  kijiji: {
+    name: 'Kijiji',
+    titleMax: null,
+    tagsMax: 0,
+    tagMax: null,
+    basis: 'Kijiji’s title limit could not be confirmed, so none is applied; its posting form shows the limit. Kijiji has no tags field.',
   },
 };
+
+export const REGIONS = { other: 'Anywhere (no regional rules)', canada: 'Canada' } as const;
+export type Region = keyof typeof REGIONS;
+
+// Competition Bureau enforcement guidelines for non-food products (updated
+// March 2025): "Product of Canada" needs at least 98% of total direct costs
+// incurred in Canada; "Made in Canada" needs at least 51% plus a statement of
+// imported content; both need the last substantial transformation in Canada.
+const CANADA_ORIGIN = /\b(made in canada|product of canada|canadian[- ]made|made in [a-z .'-]*,? canada)\b/i;
 
 export interface ListingRequest {
   product: string;
   facts: string;
   marketplace: string;
   tone: string;
+  // Absent on listings created before regions existed.
+  region?: Region;
 }
 
 export function validateListing(raw: unknown): ListingRequest {
@@ -59,7 +77,9 @@ export function validateListing(raw: unknown): ListingRequest {
   if (facts.length > 6000) throw new Error('Product facts are limited to 6,000 characters.');
   if (!Object.hasOwn(MARKETPLACES, marketplace)) throw new Error(`Marketplace must be one of: ${Object.keys(MARKETPLACES).join(', ')}.`);
   if (tone.length > 200) throw new Error('Tone is limited to 200 characters.');
-  return { product, facts, marketplace, tone };
+  const region = String(r.region ?? 'other');
+  if (!Object.hasOwn(REGIONS, region)) throw new Error(`Region must be one of: ${Object.keys(REGIONS).join(', ')}.`);
+  return { product, facts, marketplace, tone, region: region as Region };
 }
 
 export const FACT_SHEET_URL = 'operator:fact-sheet';
@@ -100,6 +120,16 @@ accurate, supported, marketplace-ready copy. The station never publishes a
 listing; nothing goes live from this task.`;
 }
 
+const CANADA_RULES = `Region: Canada. Write for Canadian shoppers:
+- Canadian English spelling (colour, centre, metre, jewellery).
+- Use units as the facts give them; if they give metric, lead with metric. Do
+  not convert units yourself.
+- Give a price only if the facts do, and add a currency only if the facts name
+  one (CAD, C$).
+- Say "Made in Canada", "Product of Canada", or similar only if the facts say
+  it in those words. Canada's Competition Bureau sets thresholds for those
+  claims; the station checks them against the fact sheet.`;
+
 export function listingDraftPrompt(o: {
   taskLabel: string;
   memory: string;
@@ -122,7 +152,7 @@ ${o.memory}
 ## Listing brief
 Product: ${o.listing.product}
 Marketplace: ${m.name}. Limits the station checks: ${rulesLine(m)}.
-Tone: ${o.listing.tone || 'clear, warm, and specific'}
+Tone: ${o.listing.tone || 'clear, warm, and specific'}${o.listing.region === 'canada' ? `\n${CANADA_RULES}` : ''}
 Operator request: ${o.operatorNotes}
 Success criteria:
 ${o.plan.success_criteria.map((c) => `- ${c}`).join('\n')}
@@ -259,7 +289,7 @@ export interface ListingChecks extends DraftChecks {
 
 const cites = (s: string) => new RegExp(CITATION.source).test(s);
 
-export function checkListing(l: Listing, knownRefs: string[], marketplace: string): ListingChecks {
+export function checkListing(l: Listing, knownRefs: string[], marketplace: string, facts = ''): ListingChecks {
   const m = MARKETPLACES[marketplace];
   const all = [l.title, ...l.bullets, l.description].join('\n');
   const cited = new Set<string>();
@@ -282,6 +312,11 @@ export function checkListing(l: Listing, knownRefs: string[], marketplace: strin
   const dupes = [...new Set(lower.filter((t, i) => lower.indexOf(t) !== i))];
   if (dupes.length) issues.push(`Repeated tags: ${dupes.join(', ')}.`);
   if (l.tags.some((t) => new RegExp(CITATION.source).test(t))) issues.push('Tags must not carry [S#] citations.');
+  // A Canadian origin claim must be the operator's own words, not the Writer's.
+  const origin = CANADA_ORIGIN.exec([l.title, ...l.bullets, l.description].join('\n'));
+  if (origin && !facts.toLowerCase().includes(origin[0].toLowerCase())) {
+    issues.push(`The copy says "${origin[0]}" but the fact sheet does not. Canada's Competition Bureau guidelines require at least 51% of direct costs in Canada for "Made in Canada" (with a note on imported content) and 98% for "Product of Canada", with the last substantial transformation in Canada. Remove it, or add it to the facts if it is true.`);
+  }
   // Notes to the operator belong in "notes", where they stay out of the copy.
   if (/draft note|notes? (for|to) the operator|delete (this )?before publishing/i.test([l.title, ...l.bullets, l.description].join('\n'))) {
     issues.push('The copy contains a note meant for the operator; move it to "notes" so shoppers never see it.');
@@ -317,6 +352,7 @@ export function listingOutput(o: {
   title: string;
   product: string;
   marketplace: string;
+  region?: Region;
   draft: string;
   sources: SourceForPrompt[];
   approvedAt: string;
@@ -330,6 +366,7 @@ export function listingOutput(o: {
     `task: ${o.taskLabel}`,
     'kind: listing',
     `marketplace: ${m.name}`,
+    ...(o.region === 'canada' ? ['region: Canada'] : []),
     `title: ${JSON.stringify(o.title)}`,
     `approved_at: ${o.approvedAt}`,
     `review_verdict: ${o.reviewVerdict}`,

@@ -73,7 +73,7 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 
 ## Automated tests
 
-`cd server && npm test`: 49 tests, all passing.
+`cd server && npm test`: 52 tests, all passing.
 
 - full workflow (plan → fetch → research → draft → review → approval → complete), output file, memory writes
 - duplicate protection (same idempotency key, double approval, single finalize)
@@ -112,6 +112,8 @@ default. Side effect: the per-call token floor fell from ~43k to ~20k.
 - a generic webhook answering 503 goes to review instead of failing; marking a post done clears its old error
 - listing copy: the fact sheet is S1, nothing is fetched without queries, a quote not in the fact sheet never reaches the Writer, and the saved file's ready-to-paste copy has no citation markers or operator notes
 - listing copy over a marketplace limit, with an uncited line, or with tags where the marketplace has none, goes back to the Writer with the station's reasons
+- Canadian listings get Canadian rules; a "Made in Canada" claim not in the fact sheet sends the copy back, and one the operator stated passes
+- with auto-approve on, a clean listing completes and is posted to Slack exactly once with no click; with it off, a flagged listing, or any report, still waits; with Slack not set up the skip is logged
 - listing requests with an unknown marketplace, a missing product, or too few facts are refused before queuing; the draft round-trips through its rendered form; operator notes inside the copy are flagged
 
 API checks against the running server: no session → 401; foreign `Host`
