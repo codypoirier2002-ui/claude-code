@@ -1,0 +1,30 @@
+# systemd USER unit for the AgentStation server. Install as the same Linux
+# user that runs the OpenClaw gateway service:
+#   mkdir -p ~/.config/systemd/user
+#   cp deploy/agentstation.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now agentstation
+#   sudo loginctl enable-linger "$USER"   # keep user services running after logout
+# Logs: journalctl --user -u agentstation -f
+[Unit]
+Description=AgentStation (task queue, memory, dashboard on 127.0.0.1:8787)
+After=network-online.target openclaw-gateway.service
+Wants=openclaw-gateway.service
+
+[Service]
+Type=simple
+# Adjust if you cloned somewhere other than ~/AgentStation.
+WorkingDirectory=%h/AgentStation/server
+# A login shell resolves the Node 24/26 that the OpenClaw installer set up.
+ExecStart=/bin/bash -lc 'exec node --disable-warning=ExperimentalWarning src/main.ts'
+Restart=on-failure
+RestartSec=5
+# SIGTERM lets the station requeue running steps cleanly.
+KillSignal=SIGTERM
+TimeoutStopSec=20
+NoNewPrivileges=yes
+PrivateTmp=yes
+UMask=0077
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,26 @@
+[
+  {
+    "ref": "S1",
+    "url": "https://pypi.org/project/attrs/",
+    "title": "attrs on PyPI",
+    "retrievedAt": "2026-10-09T22:09:05.350Z",
+    "sha256": "bcf99b8c354a16fec03f3f740139e8a7d1506d3cf523393f08e666b25b1d661d",
+    "chars": 8094
+  },
+  {
+    "ref": "S2",
+    "url": "https://raw.githubusercontent.com/pydantic/pydantic/HEAD/README.md",
+    "title": "pydantic/pydantic README.md (GitHub)",
+    "retrievedAt": "2026-10-09T22:09:05.468Z",
+    "sha256": "20f8172718f932a76c99f5fb463be2b9cfc1195e0c84b8320d5dbd8de3cb13a0",
+    "chars": 3445
+  },
+  {
+    "ref": "S3",
+    "url": "https://raw.githubusercontent.com/python-attrs/attrs/HEAD/README.md",
+    "title": "python-attrs/attrs README.md (GitHub)",
+    "retrievedAt": "2026-10-09T22:09:05.580Z",
+    "sha256": "9b01f41e29935d0b1fdd1c0fbc5a4e5b7b8559ecda28bd72df2fe5f159d1e98d",
+    "chars": 7376
+  }
+]

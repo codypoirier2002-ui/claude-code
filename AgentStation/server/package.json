@@ -1,0 +1,21 @@
+{
+  "name": "agentstation-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local AgentStation backend: task queue, SQLite state, OpenClaw adapter, dashboard API.",
+  "type": "module",
+  "engines": {
+    "node": ">=24.16.0 <25 || >=26.1.0"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/main.ts",
+    "demo": "STATION_MODE=demo node --disable-warning=ExperimentalWarning src/main.ts",
+    "test": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit -p .",
+    "probe:tools": "node --disable-warning=ExperimentalWarning scripts/probe-tools.ts"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.0",
+    "typescript": "7.0.2"
+  }
+}
