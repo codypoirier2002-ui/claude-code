@@ -12,11 +12,16 @@ on:
 
 jobs:
   claude:
+    # Bots never trigger this job. contains() ignores case, so a review bot that
+    # writes a file path like "@CLAUDE.md" matches '@claude'; the action refuses
+    # bot senders anyway, so skip the job instead of failing it.
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      github.event.sender.type != 'Bot' && (
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+        (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      )
     # This job calls Claude, so it runs on GitHub's egress-firewall runner, which
     # filters the job's outbound network traffic (allow list: .github/egress-firewall.yaml).
     runs-on: ubuntu-24.04-firewall
