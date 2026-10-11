@@ -38,3 +38,24 @@ must set no permission mode at all. Do not skip or weaken the check.
 
 Keep each workflow's `permissions:` block minimal, and never print tokens or
 environment variables in workflow logs.
+
+## Branches and pull requests
+
+Every change reaches `main` through a reviewed pull request.
+
+- Do not commit or push to `main` directly. Start each change on its own branch
+  from the latest `main`:
+  `git fetch origin main && git checkout -b claude/<short-topic> origin/main`.
+  Keep one topic per branch.
+- Before pushing, run the checks for the code you changed:
+  - `AgentStation/server`: `npm test` and `npm run typecheck`
+  - `AgentStation/dashboard`: `npm run build` (it type-checks first)
+  - `claude-api-quickstart`: `npm run typecheck`
+- Open a pull request against `main`. Keep it small: one feature or one fix.
+  The description says what changed, why, and how you checked it.
+- CodeRabbit reviews every pull request. Fix each finding, or reply on its
+  thread saying why not, before asking for the merge.
+- The repository owner merges. Do not merge your own pull request unless the
+  owner asks for that in the conversation.
+- After a merge, start the next change on a new branch from the updated
+  `main`. Do not add new work to a branch whose pull request has merged.
