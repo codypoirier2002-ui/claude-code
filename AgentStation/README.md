@@ -58,14 +58,18 @@ own computer.
 ### Quick install (one command)
 
 First harden SSH (key-only login, firewall; see step 1 below). Then create
-the user that will own the station. As root on the VPS:
+the user that will own the station. On the VPS, from the account you SSH in
+with (root, or a user with sudo):
 
 ```bash
-adduser station
-loginctl enable-linger station        # keep its services running after logout
-install -d -m 700 -o station -g station ~station/.ssh
-install -m 600 -o station -g station ~/.ssh/authorized_keys ~station/.ssh/
+sudo adduser station
+sudo loginctl enable-linger station   # keep its services running after logout
+sudo install -d -m 700 -o station -g station ~station/.ssh
+sudo install -m 600 -o station -g station ~/.ssh/authorized_keys ~station/.ssh/
 ```
+
+The last line copies the SSH keys of the account you are logged in as. If it
+has none, put your public key in `~station/.ssh/authorized_keys` instead.
 
 Log in as that user from your own computer (`ssh station@<your-vps-address>`).
 Do not switch with `sudo -iu` or `su`: they give no systemd user session, so

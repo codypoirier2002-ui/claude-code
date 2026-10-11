@@ -60,6 +60,16 @@ version_at_least() { # version_at_least 24.21.0 24.16.0
   [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]
 }
 
+# Downloads the whole installer before running it, so a cut-off transfer
+# never runs half a script.
+run_installer() { # run_installer <url> [args...]
+  local url="$1" file; shift
+  file="$(mktemp)"
+  curl -fsSL -o "$file" "$url" || { rm -f "$file"; die "could not download $url"; }
+  bash "$file" "$@" || { rm -f "$file"; die "the installer from $url failed (output above)."; }
+  rm -f "$file"
+}
+
 wait_for() { # wait_for <seconds> <command...>
   local limit="$1"; shift
   for _ in $(seq 1 "$limit"); do "$@" && return 0; sleep 1; done
@@ -70,12 +80,13 @@ wait_for() { # wait_for <seconds> <command...>
 step "Preflight"
 # `sudo -iu <user>` / `su` give no systemd user session, so the services could
 # not be installed; the user has to really log in.
-NEW_USER_HELP="As root (or with sudo):
-  adduser station
-  loginctl enable-linger station
-  install -d -m 700 -o station -g station ~station/.ssh
-  install -m 600 -o station -g station ~/.ssh/authorized_keys ~station/.ssh/
-Then log in as that user from your computer (ssh station@<your-vps-address>),
+NEW_USER_HELP="From the account you SSH in with (root, or a user with sudo):
+  sudo adduser station
+  sudo loginctl enable-linger station
+  sudo install -d -m 700 -o station -g station ~station/.ssh
+  sudo install -m 600 -o station -g station ~/.ssh/authorized_keys ~station/.ssh/
+(The last line copies that account's SSH keys; if it has none, put your public
+key in ~station/.ssh/authorized_keys instead.) Then log in as that user from your computer (ssh station@<your-vps-address>),
 clone the repo, and run this script. Do not use 'sudo -iu' or 'su': they give
 no systemd user session."
 [ "$(id -u)" != 0 ] || die "run this as the non-root user that will own the station, not as root.
@@ -121,7 +132,7 @@ step "OpenClaw (the agent backend)"
 if ! command -v openclaw >/dev/null; then
   confirm "Install OpenClaw with its official installer (curl -fsSL https://openclaw.ai/install.sh | bash -s -- --no-onboard)? It may use sudo to install Node.js." \
     || die "OpenClaw is required. Install it yourself (README step 2), then re-run."
-  curl -fsSL https://openclaw.ai/install.sh | bash -s -- --no-onboard
+  run_installer https://openclaw.ai/install.sh --no-onboard
   refresh_path
   command -v openclaw >/dev/null || die "the OpenClaw installer finished but openclaw is not on PATH. Open a new shell and re-run."
 fi
@@ -140,7 +151,7 @@ step "Claude Code, logged in to your Claude subscription"
 if ! command -v claude >/dev/null; then
   confirm "Install Claude Code with its official installer (curl -fsSL https://claude.ai/install.sh | bash)?" \
     || die "Claude Code is required. Install it yourself (code.claude.com/docs/en/setup), then re-run."
-  curl -fsSL https://claude.ai/install.sh | bash
+  run_installer https://claude.ai/install.sh
   refresh_path
   command -v claude >/dev/null || die "the Claude Code installer finished but claude is not on PATH (expected ~/.local/bin/claude)."
 fi
@@ -170,6 +181,18 @@ else
     --gateway-bind loopback --gateway-auth token \
     --install-daemon --skip-channels --skip-search --skip-skills --skip-hooks --skip-ui
 fi
+# An onboarding run that stopped early can leave the config without the
+# gateway service; install it if systemd does not know it.
+gateway_service_loaded() {
+  openclaw gateway status --json --no-probe 2>/dev/null \
+    | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{process.exit(JSON.parse(s).service?.loaded===true?0:1)}catch{process.exit(1)}})'
+}
+if gateway_service_loaded; then
+  ok "gateway service installed"
+else
+  openclaw gateway install
+  ok "gateway service installed (openclaw gateway install)"
+fi
 
 # ---------------------------------------------------------------------------
 step "AgentStation agents and lockdown (scripts/setup-openclaw.sh)"
@@ -180,7 +203,7 @@ printf '%s\n' "$setup_out" | sed -n '/^== /p;/created/p'
 openclaw gateway restart
 gateway_ready() { curl -fsS --noproxy 127.0.0.1 --max-time 3 http://127.0.0.1:18789/readyz 2>/dev/null | grep -q '"ready":true'; }
 wait_for 120 gateway_ready || die "the OpenClaw gateway is not ready on 127.0.0.1:18789. Check: openclaw gateway status
-If an earlier run stopped during onboarding, the gateway service may not be installed: run the onboard command from README step 3 (it is safe to repeat), then re-run this script."
+Its log: journalctl --user -u openclaw-gateway -n 50"
 ok "gateway ready on 127.0.0.1:18789"
 
 step "Dashboard admin token (scripts/init-secrets.sh)"
