@@ -55,6 +55,52 @@ Tested on Ubuntu 24.04. Run every command as the Linux user that will own the
 station (a dedicated user is a good idea). Commands marked "laptop" run on your
 own computer.
 
+### Quick install (one command)
+
+First harden SSH (key-only login, firewall; see step 1 below). Then create
+the user that will own the station. As root on the VPS:
+
+```bash
+adduser station
+loginctl enable-linger station        # keep its services running after logout
+install -d -m 700 -o station -g station ~station/.ssh
+install -m 600 -o station -g station ~/.ssh/authorized_keys ~station/.ssh/
+```
+
+Log in as that user from your own computer (`ssh station@<your-vps-address>`).
+Do not switch with `sudo -iu` or `su`: they give no systemd user session, so
+the script cannot install the services and stops. Then:
+
+```bash
+git clone https://github.com/codypoirier2002-ui/claude-code.git ~/claude-code
+~/claude-code/AgentStation/scripts/install.sh
+```
+
+The script runs steps 2 to 5 below in order. You can run it again after a fix
+or an update: installs and onboarding that are already done are skipped, while
+the tests, the build and the tool probe run every time (add `--skip-probe` once
+the probe has passed). It asks before running the
+official OpenClaw and Claude Code installers. It stops once for you: Claude
+Code's login. Open the URL it prints in a browser on your own computer, sign
+in with your Claude account, and paste back the code if the page shows one.
+
+Before it starts the station, it checks:
+- Node 24.16+ or 26.1+
+- your Claude subscription login
+- the agent lockdown (`setup-openclaw.sh`)
+- the server tests
+- `openclaw security audit` (stops on any critical finding)
+- the live tool probe (`probe:tools`; about 80k tokens, skip with `--skip-probe`)
+
+It then installs the station as a systemd user service and confirms that ports
+8787 and 18789 listen on localhost only. It never opens a port or prints a
+secret. The script itself uses sudo only for `loginctl enable-linger`, and
+only if linger is not on yet; the official OpenClaw installer may use sudo to
+install Node.js.
+
+When it finishes, open the dashboard as in step 6. The manual steps below are
+what the script does, in case you want to run them yourself.
+
 ### 1. Prepare the server
 
 Harden SSH access before installing anything (key-only login, firewall). The
