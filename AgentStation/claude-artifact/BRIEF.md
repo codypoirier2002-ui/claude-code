@@ -1,5 +1,10 @@
 # AgentStation for claude.ai — build brief
 
+> **Historical brief, kept as written for the first build.** Two points are out of date: the page
+> now lives in this repository at `AgentStation/claude-artifact/agentstation.html`, not the `/tmp`
+> path below. Task numbers are allocated only while the shared `meta/counter` lease is held,
+> never from the highest existing number without it. `PORT-NOTES.md` has the current state.
+
 Rebuild AgentStation (the repo at /home/user/claude-code/AgentStation) as ONE self-contained
 claude.ai Artifact page: `/tmp/claude-0/-home-user-claude-code/2f92d40b-c1cf-50fb-84d1-fec684eb8ab3/scratchpad/artifact-port/agentstation.html`.
 The owner cannot run servers or terminals. The page must work by opening a link in claude.ai.
