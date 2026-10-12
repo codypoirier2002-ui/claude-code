@@ -60,8 +60,8 @@ After publishing, an `interact`-level write was refused by the db rules. Not yet
 
 Check each one against the code before fixing. Items now fixed are listed under "Fixed after review": the sessionStorage holder, the stage handoff, the day-timer restart, run pruning and the counter lease.
 
-- runtime-contract: Lease holder comes from sessionStorage, so a duplicated tab shares it and leases stop excluding it: running steps get requeued and run twice
-- runtime-contract: A db failure in outcome.next() after the step is marked completed is swallowed and leaves the task stranded
+- **[resolved]** runtime-contract: Lease holder comes from sessionStorage, so a duplicated tab shares it and leases stop excluding it: running steps get requeued and run twice
+- **[resolved]** runtime-contract: A db failure in outcome.next() after the step is marked completed is swallowed and leaves the task stranded
 - runtime-contract: callAgent treats db write failures after a successful sample() as Claude failures and asks Claude again
 - runtime-contract: The 1 s tick writes a date- and time-zone-derived queueBlock string, so two owner tabs overwrite each other every second and log an event each time
 - runtime-contract: A rate_limited hold is cleared automatically when any concurrent call succeeds, so the page re-sends without the viewer
@@ -70,12 +70,12 @@ Check each one against the code before fixing. Items now fixed are listed under 
 - runtime-contract: empty_completion is re-sent unchanged automatically
 - runtime-contract: A page-side stage timeout aborts in-progress Claude calls and re-sends them
 - runtime-contract: sample() is called from the 1 s queue timer as soon as the page loads
-- runtime-contract: The task-number lease is never released, so the 8-try acquire loop fails for another tab for up to 10 s
+- **[resolved]** runtime-contract: The task-number lease is never released, so the 8-try acquire loop fails for another tab for up to 10 s
 - hard-rules: Rule 3: the daily call limit can be passed (the check runs before the runs snapshot arrives, and several calls can start from one stale count)
 - hard-rules: Rule 5: leaving live mode for Demo Mode can still start a real sample() call
 - hard-rules: Rule 4: tasks and steps still show as running and 'Writing…' while the page shows Disconnected
 - hard-rules: Rule 8: closing the page mid-run uses up step attempts, so a task can fail instead of resuming
-- hard-rules: Rule 8 lease: the holder id comes from sessionStorage, so duplicated tabs share it and both run the same task
+- **[resolved]** hard-rules: Rule 8 lease: the holder id comes from sessionStorage, so duplicated tabs share it and both run the same task
 - hard-rules: Rule 6: task briefs are labelled trusted, and agent output is reinserted outside data delimiters
 - hard-rules: Rules 4/8: a step shows as working for up to 7.5 minutes after the owner's tab is gone
 - hard-rules: Rule 7: the built-in rules sent to every agent describe fetched sources, approved domains and Slack sending that do not exist here
@@ -87,16 +87,18 @@ Check each one against the code before fixing. Items now fixed are listed under 
 - page-contract-ui: Checkbox keyboard focus is nearly invisible
 - page-contract-ui: Segmented-control focus ring is clipped by .seg { overflow: hidden }
 - page-contract-ui: Pasted-source controls use index-based ids that shift on removal; copy-fallback textarea has no id
-- logic-bugs: Stage handoff is not atomic, so a task can be left with no runnable step and no way to recover
-- logic-bugs: A duplicated tab shares the sessionStorage holder id, so lease exclusion and the completion compare-and-set stop working
+- **[resolved]** logic-bugs: Stage handoff is not atomic, so a task can be left with no runnable step and no way to recover
+- **[resolved]** logic-bugs: A duplicated tab shares the sessionStorage holder id, so lease exclusion and the completion compare-and-set stop working
 - logic-bugs: The daily call limit can be exceeded by one call (checked once per tick, while the run record is written later)
 - logic-bugs: Read-modify-write appends to memory documents lose entries when two tasks finish at the same time
 - logic-bugs: writeSettings does a full read-modify-write, so concurrent settings changes overwrite each other
-- logic-bugs: reconnect() starts a new day-rollover interval without clearing the old one
-- logic-bugs: Pruning deletes run records of tasks that are still open, which resets their per-task call count
-- logic-bugs: The task-counter lease is never released, so a second tab cannot create a task for about 10 seconds
+- **[resolved]** logic-bugs: reconnect() starts a new day-rollover interval without clearing the old one
+- **[resolved]** logic-bugs: Pruning deletes run records of tasks that are still open, which resets their per-task call count
+- **[resolved]** logic-bugs: The task-counter lease is never released, so a second tab cannot create a task for about 10 seconds
 
-## Builder's report
+## Builder's report (historical snapshot, before the fixes above)
+
+Written by the first build, before publishing and before the fixes above. Its "not published" status and its open items are out of date; see the top of this file for the current state.
 
 AgentStation is rebuilt as one artifact page and all three requested checks pass: the script parses, there are no unsafe HTML calls, and no hosts other than the two Google Fonts ones. It is not published yet, so nothing has been tested against the real claude.ai db, `sample()` or consent dialog.
 

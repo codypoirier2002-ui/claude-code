@@ -1,7 +1,7 @@
 # AgentStation for claude.ai — build brief
 
 Rebuild AgentStation (the repo at /home/user/claude-code/AgentStation) as ONE self-contained
-claude.ai Artifact page: `/tmp/claude-0/-home-user-claude-code/2f92d40b-c1cf-50fb-84d1-fec684eb8ab3/scratchpad/artifact-port/agentstation.html`.
+claude.ai Artifact page: `AgentStation/claude-artifact/agentstation.html`.
 The owner cannot run servers or terminals. The page must work by opening a link in claude.ai.
 No server, no VPS, no OpenClaw, no API key, no secrets anywhere.
 
@@ -59,8 +59,8 @@ Capabilities the page will be published with:
    from its last saved stage when the page is reopened (use the lease so only one tab runs it).
 
 ## Data model (suggested; adapt to the spec)
-- `tasks/{id}`: number (T-0001 style, from a stored counter guarded by `acquire` or derived from max
-  existing), type, title, inputs, status, stage, timestamps, per-stage outputs (plan, research, draft,
+- `tasks/{id}`: number (T-0001 style, allocated only while holding a shared `acquire` lease on the
+  stored counter; never derived from the max existing number without that lease), type, title, inputs, status, stage, timestamps, per-stage outputs (plan, research, draft,
   review JSON), revision count, final output, approval {decision, by (user id), at, auto, reason}, hold
   reason, error. Keep each doc well under 256 KiB (truncate long agent outputs if needed).
 - `runs/{id}`: one doc per agent call {taskId, agent, startedAt, endedAt, ok, tierApplied, error}.
