@@ -3,9 +3,33 @@
 `agentstation.html` is the whole app as one claude.ai Artifact page. It needs no server, VPS or API key: agents run through `sample()` on the owner's Claude plan, and state lives in the Artifact `db`.
 Publish it with these capabilities: `{ db: { rules: [ { path: "", read: "interact", write: "owner" } ] }, sample: {}, user: {} }`.
 
-Status: **not published yet.** `BRIEF.md` is the build brief and `SPEC.md` is the porting spec of the original app.
+Status: **published (private)** at https://claude.ai/artifact/L6WRBp81kTiuP26jbv4M8E. `BRIEF.md` is the build brief and `SPEC.md` is the porting spec of the original app.
 
-## Fix before publishing: 5 findings upheld by skeptic review
+## Fixed after review
+
+All five findings below are fixed in `agentstation.html`:
+
+1. Project notes reach agents inside a `PROJECT_NOTE` data block, not under the trusted memory header. The review summary is saved to the project note only when the owner ticks "Save the summary above to this project's memory note" on the approval card. It is never saved on auto-approval, and auto-approval keeps no proposed decisions either.
+2. The Reviewer's draft and the Writer's previous draft are sent as `dataBlock`s with a note to ignore instructions inside them. Tag problems are reported by position and length, and raw URLs only as a count, so no Writer text appears in the station-authored checks.
+3. Markdown links in rendered drafts and reports are never clickable: they show as `label (full URL)`. The station-built Sources tab keeps the operator's own links. A URL anywhere in a sourced draft or listing is now a station check issue, so it forces a revision and blocks auto-approval.
+4. Stage handoff is recoverable. Completing a step sets `status: 'completed'` and `handoff: 'pending'` in one write, and a decided approval stores its follow-up with `handoff: 'pending'`. Every follow-up is idempotent: steps are keyed by `parentKey`, and approvals get deterministic ids. `tick()` runs `recoverHandoffs()`, which finishes any handoff left pending for over 60 s, and a failed handoff is logged as `engine_error`. `retryTask` adds the step before re-queueing the task.
+5. `htmlToText` walks the parsed DOM. Closing block tags and `<br>` become newlines, and other tag edges become spaces, as in the original `sources.ts`.
+
+Also fixed from the unverified list: the lease holder id is fresh per page load instead of coming from sessionStorage (duplicated tabs no longer share it); `subscribeRuns`' day timer is cleared before it is restarted; pruning keeps the run records of open tasks; the task-counter lease lasts 3 s instead of 10 s.
+
+How it was checked: `node --check` on the inline script; no innerHTML, eval, fetch or storage APIs, and no hosts besides the two Google Fonts ones. A Playwright run in Chromium against a fake `window.claude` (in-memory db with write-fault injection, scripted agents) covered:
+- HTML paste conversion;
+- a dropped write on the research→draft handoff, recovered once with no duplicate step;
+- data-block wrapping in review and revision prompts;
+- URL-forced revision and non-clickable agent links;
+- summary saved to the project note only when ticked;
+- a dropped write on the finalize step after approval, recovered;
+- no horizontal scroll at 400px;
+- the bare page showing "Disconnected", and a full Demo Mode run.
+
+After publishing, an `interact`-level write was refused by the db rules. Not yet exercised on the real platform: `sample()`, its consent dialog, and real db latency.
+
+## The 5 findings upheld by skeptic review (all fixed; see above)
 
 ### 1. [medium] Agent-written review summary is saved into project memory, which later prompts present as trusted operator text
 - Where: recordCompletion (lines 1865-1871, summary appended at 1870); finalize (2331-2334); requestFinalApproval summary (2297); memoryBlockFor (851, 857, 862); autoApprove (2389-2398)
@@ -34,7 +58,7 @@ Status: **not published yet.** `BRIEF.md` is the build brief and `SPEC.md` is th
 
 ## Not yet verified (the reviewers reported them, but verification stopped when the org spend limit was hit)
 
-Check each one against the code before fixing.
+Check each one against the code before fixing. Items now fixed are listed under "Fixed after review": the sessionStorage holder, the stage handoff, the day-timer restart, run pruning and the counter lease.
 
 - runtime-contract: Lease holder comes from sessionStorage, so a duplicated tab shares it and leases stop excluding it: running steps get requeued and run twice
 - runtime-contract: A db failure in outcome.next() after the step is marked completed is swallowed and leaves the task stranded
