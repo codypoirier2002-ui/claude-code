@@ -414,7 +414,7 @@ def diagnose(fr, probes, traced, bounds_origin):
         ("rotated 180 degrees", lambda x, y: (-x, -y), FIX_ROT),
         ("X and Y swapped", lambda x, y: (y, x), FIX_REGEN),
         ("X and Y swapped and mirrored", lambda x, y: (-y, -x), FIX_REGEN),
-        ("rotated 90 deg clockwise (as in OW_Preview.png)", lambda x, y: (-y, x), FIX_ROT),
+        ("rotated 90 deg clockwise", lambda x, y: (-y, x), FIX_ROT),
         ("rotated 90 deg counter-clockwise", lambda x, y: (y, -x), FIX_ROT),
     ]
     fc = fr.center

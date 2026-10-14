@@ -87,7 +87,7 @@ SHORE_END_M = 1.10                 # back to normal ground at this height
 SHORE_JITTER_M = 0.30              # noise added to the shoreline edge (total range, m)
 SHORE_DARKEN = 0.55                # shore Base Color = Dirt x this (wet look)
 SHORE_ROUGHNESS_MUL = 0.60         # shore Roughness = Dirt x this (wet look)
-HIGH_ROCK_START_M = 30.0           # rock starts mixing in this high above the water (rim crest only)
+HIGH_ROCK_START_M = 30.0           # rock starts mixing in this high above the water (rim crest, highest knoll)
 HIGH_ROCK_FULL_M = 45.0            # full high-rock amount here
 HIGH_ROCK_AMOUNT = 0.5             # 0..1, how much rock at full height
 

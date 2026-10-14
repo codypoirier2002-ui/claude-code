@@ -146,7 +146,7 @@ def mesh_underside(comps, x, y, z_low, z_high):
     return best
 
 
-def drop_to_ground(actor, sink_for_height, frac=0.4):
+def drop_to_ground(actor, sink_for_height, frac=0.5):  # frac = CORNER_INSET of p8_ground_check.py
     """Lower/raise the actor so that, in 5 columns over its footprint, its underside is at
     least sink cm below the ground: nothing floats on slopes. Uses the real mesh underside
     (per-component trace, like p8_ground_check.py) where it can, else the bounding-box bottom."""

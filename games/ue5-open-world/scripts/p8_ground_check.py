@@ -18,7 +18,7 @@ What it checks
     pulled in by CORNER_INSET. Where the mesh has collision, it also traces the mesh
     underside in the same columns.
       gap  = largest air gap under the mesh (cm; > 0 means air)
-      sink = landscape height at the centre - bounds bottom (cm; > 0 means sunk)
+      sink = lowest landscape height under the prop - bounds bottom (cm; > 0 means sunk)
     Status: FLOATING (gap > float_tol), BURIED (sink > bury_cm or sink/height > bury_frac),
     NO GROUND (no landscape under it), OK. The thresholds are per kind in KIND_RULES.
   * Player Start: capsule clearance above the ground, not inside a boundary wall or a
@@ -199,14 +199,12 @@ def analyse(actor):
     columns = [(origin.x, origin.y)] + [(origin.x + sx * ext.x * CORNER_INSET, origin.y + sy * ext.y * CORNER_INSET)
                                         for sx, sy in ((1, 1), (1, -1), (-1, 1), (-1, -1))]
     comps = mesh_components(actor) if USE_MESH_PROBES else []
-    grounds, gaps, g_centre = [], [], None
-    for i, (x, y) in enumerate(columns):
+    grounds, gaps = [], []
+    for x, y in columns:
         g = ow.ground_z(x, y)
         if g is None:
             continue
         grounds.append(g)
-        if i == 0:
-            g_centre = g
         m = mesh_underside(comps, x, y, bottom - 100.0, origin.z + ext.z + 10.0) if comps else None
         if m is not None:
             gaps.append(m - g)
@@ -216,10 +214,10 @@ def analyse(actor):
         r["status"] = "NO GROUND"
         return r
     g_min = min(grounds)
-    if g_centre is None:
-        g_centre = sum(grounds) / len(grounds)
     gap = max(gaps) if gaps else bottom - g_min
-    sink = g_centre - bottom
+    # sink is measured from the LOWEST ground sample: that is the shallowest burial, and it is the
+    # same reference p7_props.py places props by and FIX moves them to (so a fixed prop reads OK).
+    sink = g_min - bottom
     r["gap"], r["sink"] = gap, sink
     target = max(rules["fix_sink_cm"], rules["fix_sink_frac"] * height)
     if gap > rules["float_tol"]:

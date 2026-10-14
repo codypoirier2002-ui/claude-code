@@ -254,7 +254,7 @@ def textures_of(mi):
             if tex:
                 found.append(tex)
         m, depth = m.get_editor_property("parent"), depth + 1
-    if depth == 0 and isinstance(m, unreal.Material):
+    if isinstance(m, unreal.Material):   # the base material's own (non-parameter) textures too
         found.extend(unreal.MaterialEditingLibrary.get_used_textures(m) or [])
     return found
 
@@ -265,7 +265,8 @@ def textures_of(mi):
 def preserve_is_set(ns):
     try:
         if SHAPE_ENUM is not None:
-            return ns.get_editor_property("shape_preservation") != SHAPE_ENUM.NONE
+            # any value except None (Preserve Area or Voxelize) counts as set
+            return "NONE" not in str(ns.get_editor_property("shape_preservation")).upper()
         return bool(ns.get_editor_property("preserve_area"))
     except Exception:
         return False
@@ -306,8 +307,11 @@ def configure_nanite(job, notes):
         return before_text, before_text, False, target
     if not DRY_RUN:
         ns.set_editor_property("enabled", target)
-        if add_preserve:
-            set_preserve(ns)
+        if add_preserve and not set_preserve(ns):
+            if target == before:
+                # nothing else to change: skip the (slow) Nanite rebuild so re-runs stay "no change"
+                return before_text, before_text, False, target
+            after_text = after_text.replace("+preserve", "")
         SME.set_nanite_settings(mesh, ns, apply_changes=True)
     return before_text, after_text, True, target
 
