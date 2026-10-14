@@ -381,16 +381,14 @@ def check_probes(fr, probes):
         failed += status == "FAIL"
         emit(status, "%-6s %-14s %8.1f %8.1f %12s %12s %+9.1f"
              % (status, p["name"], p["x"], p["y"], cm(want), cm(z), diff))
-    if failed:
-        row("FAIL", "Probe heights", "%d of %d probes off by more than %.0f cm or not hit"
-            % (failed, len(probes), HEIGHT_TOLERANCE_CM))
-    else:
-        row("PASS", "Probe heights", "all %d probes within %.0f cm" % (len(probes), HEIGHT_TOLERANCE_CM))
     return failed, traced
 
 
 def diagnose(fr, probes, traced, bounds_origin):
-    """Find which transform of the layout explains the traced heights."""
+    """Find which transform of the layout explains the traced heights.
+
+    Returns True when the only differences are local edits that nothing later depends on.
+    """
     base_z = fr.origin.z
     want = [fr.height_to_world_z(p["h"]) for p in probes]
 
@@ -406,7 +404,7 @@ def diagnose(fr, probes, traced, bounds_origin):
         else:
             fix += "Nothing later depends on the rock knoll heights, so you can ignore this."
         row("WARN", "Diagnosis", "the import is fine; heights changed locally", fix)
-        return
+        return not important
 
     # 2) Test the 8 mirror/rotation hypotheses (+ a shift if the bounds disagree with the frame)
     hyps = [
@@ -454,7 +452,7 @@ def diagnose(fr, probes, traced, bounds_origin):
         else:
             row("FAIL", "Diagnosis", "the terrain is %s (max error %.1f cm under that hypothesis)" % (name, direct),
                 fix)
-        return
+        return False
 
     scaled = sorted((r for r in results if r[4] > 0.2 and r[5] <= HEIGHT_TOLERANCE_CM * max(1.0, abs(r[4]))),
                     key=lambda r: r[5])
@@ -468,16 +466,17 @@ def diagnose(fr, probes, traced, bounds_origin):
         if abs(b - 1.0) > 0.02:
             parts.append("heights are %.3f x what OW_Layout.json expects" % b)
             fixes.append("Heights: the heightmap was generated for a different LANDSCAPE_SCALE_Z than ow_config.py "
-                         "has now (or the PNG was edited). Regenerate (2.1) and import again (2.2). Quick fix "
-                         "without re-importing: Details > Transform > Scale Z = %.1f." % (fr.scale.z / b))
+                         "has now, or the PNG was edited. Regenerate (2.1), delete the Landscape and import again "
+                         "(2.2) with Scale Z = %.0f." % cfg.LANDSCAPE_SCALE_Z)
         if abs(a) > HEIGHT_TOLERANCE_CM:
             parts.append("heights are offset by %+.0f cm" % a)
             fixes.append("Offset: the file's zero level is not 32768 (8-bit, edited or wrong file). Import the "
                          "16-bit OW_Height_505.png written by 2.1.")
         row("FAIL", "Diagnosis", "; ".join(parts) + " (fit error %.1f cm)" % res, " ".join(fixes))
-        return
+        return False
 
     row("FAIL", "Diagnosis", "no hypothesis fits the traced heights", FIX_STALE)
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -530,8 +529,12 @@ def main():
     probes = probe_list(lay)
     if probes:
         failed, traced = check_probes(fr, probes)
-        if failed:
-            diagnose(fr, probes, traced, bounds_origin)
+        if not failed:
+            row("PASS", "Probe heights", "all %d probes within %.0f cm" % (len(probes), HEIGHT_TOLERANCE_CM))
+        else:
+            minor = diagnose(fr, probes, traced, bounds_origin)
+            row("WARN" if minor else "FAIL", "Probe heights", "%d of %d probes off by more than %.0f cm or not hit"
+                % (failed, len(probes), HEIGHT_TOLERANCE_CM))
     return report()
 
 

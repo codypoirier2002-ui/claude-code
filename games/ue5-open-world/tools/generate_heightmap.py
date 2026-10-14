@@ -10,10 +10,12 @@ Writes, from the values in scripts/ow_config.py:
                                positions read by the Unreal-side scripts
 
 No extra packages needed. Run it either way:
-  * Inside Unreal: Tools > Execute Python Script... and pick this file, or type
-      py "C:/path/to/ue5-open-world/tools/generate_heightmap.py"
-    in the Output Log with the command box set to Python.
-  * From Windows: py generate_heightmap.py [output_folder]
+  * Inside Unreal (recommended - files go to <Project>/Saved/OpenWorld where the
+    other scripts look for them): Tools > Execute Python Script... and pick this
+    file, or type this in the Output Log command box (Cmd mode):
+      py "C:/path/to/OpenWorldTools/tools/generate_heightmap.py"
+  * From Windows Python: py generate_heightmap.py "C:/path/to/<Project>/Saved/OpenWorld"
+    (without the folder argument the files go to OpenWorldTools/output instead)
 It takes about 10-30 seconds.
 """
 import json
