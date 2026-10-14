@@ -6,6 +6,22 @@ From a blank project to walking around a finished-looking 500 × 500 m valley: r
 
 *The generated layout, 1 pixel = 1 m. Lake top right of centre, road from the bottom-left corner to the cabin on the lake's south-east shore, spawn on the road with its view line pointing at the water. The yellow square is the invisible boundary; the raised rim outside it hides the landscape edge.*
 
+## Contents
+
+- [Before you start](#before-you-start)
+- [Phase 1 – Project setup](#phase-1--project-setup)
+- [Phase 2 – Landscape](#phase-2--landscape)
+- [Phase 3 – Materials](#phase-3--materials)
+- [Phase 4 – Lighting & sky](#phase-4--lighting--sky)
+- [Phase 5 – Water](#phase-5--water)
+- [Phase 6 – Vegetation (PCG)](#phase-6--vegetation-pcg)
+- [Phase 7 – Props & road](#phase-7--props--road)
+- [Phase 8 – Player](#phase-8--player)
+- [Phase 9 – Polish & performance](#phase-9--polish--performance)
+- [Phase 9A – Performance pass (do this first)](#phase-9a--performance-pass-do-this-first)
+- [Phase 9B – "It looks real now" (the last steps of the plan)](#phase-9b--it-looks-real-now-the-last-steps-of-the-plan)
+- [Final checklist – 8 things to verify before calling it "realistic"](#final-checklist--8-things-to-verify-before-calling-it-realistic)
+
 ## Before you start
 
 ### What this plan assumes
@@ -71,6 +87,8 @@ OpenWorldTools/
 | 9. Polish & performance | 9A performance pass, then 9B "it looks real now" | 2–4 h | `p9_quality.py` |
 
 Work through the phases in order: later scripts depend on earlier results (the lake needs the landscape, vegetation avoids the lake and props, the ground check needs everything placed). The "it looks real now" polish is deliberately last, in Phase 9B.
+
+---
 
 ## Phase 1 – Project setup
 
@@ -382,6 +400,8 @@ FPS targets: the editor viewport should stay at 30 fps or more while you work. T
 
 > ❓ **Not verified:** the exact labels of the 5.6+ scalability menu, whether it changes the editor-wide `sg.*` values or only the viewport (the check script reads the `sg.*` console variables), and whether a separate Landscape group appears in it.
 
+---
+
 ## Phase 2 – Landscape
 
 Goal: turn the layout in `ow_config.py` into terrain. You generate a 505 × 505 heightmap (504 m × 504 m at 1 m per vertex) with the lake basin, road, cabin pad and a raised rim already carved in. Then you import it as one Landscape actor centred on the world origin, confirm with a script that it sits exactly where every later script expects it, and set the actor's collision, LOD and Nanite options. The landscape stays untextured (grey grid) until Phase 3.
@@ -585,6 +605,8 @@ Distant mountains are not sculpted on this landscape. The rim only hides the edg
 
 > ⚡ **Performance:** sculpting does not change the vertex count, so the game cost is unchanged. Each edit layer keeps its own height data in the editor (about 1 MB here, estimate) and is merged after every stroke, with no cost in the packaged game. **Lower first:** `OW_Sculpt` edit layer → **collapsed** into the base layer when you are finished (right-click the layer), or delete it.
 
+---
+
 ## Phase 3 – Materials
 
 Goal: give the grey landscape a realistic ground. A script builds one landscape material, `M_OW_Landscape`, and its instance, `MI_OW_Landscape`. The material paints itself: grass on flat ground, dirt on slopes over 22°, rock on slopes over 33° and on the rim crest, and dark wet mud along the lake shore. Repetition is broken up by large soft colour patches and by bigger tiles in the distance. You then create the five paint layers (`Auto`, `Grass`, `Dirt`, `Rock`, `Road`), import the generated Auto and Road weightmaps so the road shows up, tune the look live in the material instance, and paint your own patches of Grass, Dirt or Rock on top. You can do the whole phase without any downloaded textures: the script falls back to flat colours, and you re-run it once the textures are in.
@@ -785,6 +807,8 @@ Re-importing the heightmap (2.1/2.2) discards all paint. After a re-import, assi
 
 > ❓ **Not verified:** the 5.7/5.8 exclusive-paint label and default. Check: paint Grass at full strength on a dirt slope; the dirt must disappear completely.
 
+> **Note:** PCG (Phase 6) keeps vegetation off rock by *slope* (≥ 33°), not by paint. Grass and trees will still grow on a flat patch you paint with `Rock`. Paint `Rock` on slopes, or place a Blocking Volume over the patch and give it the actor tag `OW_PCGExclude` (any actor with that tag is avoided; see 6.4, node V2), then regenerate.
+
 ### 3.8 Optional polish: Runtime Virtual Texturing
 
 Skip this unless profiling shows the landscape material is your bottleneck (`stat gpu`, or the viewport's **Shader Complexity** view, Alt+8). Runtime Virtual Texturing (RVT) renders the finished landscape colour, normal and roughness into a cached texture once, so each frame samples about 3 textures instead of 12–16. The setup: **Edit → Project Settings → Engine → Rendering → Virtual Textures → Enable virtual texture support** (restart). Then **Add → Texture → Runtime Virtual Texture**, a **Runtime Virtual Texture Volume** fitted to the landscape, the landscape's `Draw in Virtual Textures` set to that asset, and a **Runtime Virtual Texture Output** / **Sample** pair in the material, which the script does not build. For a 16-component landscape with four surfaces, the gain rarely justifies the setup.
@@ -792,6 +816,8 @@ Skip this unless profiling shows the landscape material is your bottleneck (`sta
 > ⚡ **Performance:** RVT trades texture samples for page rendering when the camera moves, plus VT memory, and it blurs up close unless the RVT is large. **Lower first:** a smaller RVT `Size` (`tile_count`), or remove the RVT.
 
 > ❓ **Not verified:** the default of `r.VirtualTextures` in new 5.6–5.8 projects, and the RVT UI labels on 5.7/5.8.
+
+---
 
 ## Phase 4 – Lighting & sky
 
@@ -1007,6 +1033,8 @@ Script tunables: `EXPOSURE_*`, `LOCAL_EXPOSURE_*`, `COLOR_*`, `BLOOM_INTENSITY`,
 
 > ❓ **Not verified:** Where the exposure "Game Settings" option sits in the 5.6+ viewport toolbar, and the label **Show → Visualize → HDR (Eye Adaptation)**. If you cannot find them, search the viewport menus for "Exposure" and "HDR".
 
+---
+
 ## Phase 5 – Water
 
 Goal: fill the lake basin that Phase 2 carved with calm, dark, clear freshwater that meets the bank all the way round, without the Water plugin re-sculpting your terrain. A script places one Water Body Lake on the shoreline points from `OW_Layout.json` and fits the Water Zone around it. You then pick the wave setting, tune the water colour and decide what the player does at the lake: wade (the default) or swim (optional).
@@ -1165,6 +1193,8 @@ Do **not** block the lake with invisible walls along the shore: they catch the c
 > ⚡ **Performance:** the underwater post process costs GPU time only while the camera is under water. The Physics Volume costs nothing. **Lower first:** `r.Water.EnableUnderwaterPostProcess` → **0**.
 
 > ❓ **Not verified:** how swimming feels with the First Person template (camera at the surface, effect flicker), and the menu path **Place Actors → Volumes** in 5.7/5.8. If Volumes is missing, type `Physics Volume` in the Place Actors search box.
+
+---
 
 ## Phase 6 – Vegetation (PCG)
 
@@ -1534,6 +1564,8 @@ The graph setting `Use Hierarchical Generation` stays **off** (default; it is on
 
 > ❓ **Not verified:** that the button is labelled **Generate**, and Ctrl-click forces it, in 5.7/5.8 (verified in 5.6.1 source). That plain Generate always picks up newly tagged props without Ctrl: use Ctrl-click to be sure.
 
+---
+
 ## Phase 7 – Props & road
 
 Goal: furnish the world. The road is already carved and painted, so it only gets optional dressing. A script places the cabin on its pad facing the lake, a fence along the road, 16 roadside boulders and a ring of distant mountains, and drops every prop onto the terrain with line traces. Empty asset slots get grey Engine shapes, so you can run this phase before any download and swap the real assets in later. Option B swaps the mountain meshes for a second, coarse "backdrop" landscape. Last, both PCG volumes are regenerated so the vegetation clears the new props.
@@ -1801,6 +1833,8 @@ Both PCG graphs remove plants inside the bounds of every `OW_PCGExclude` actor (
 
 > ❓ **Not verified:** End's bounding-box behaviour on slopes, and the other snap variants in the right-click **Transform** menu (Snap/Align Pivot/Bottom Center Bounds to Floor) and their shortcuts. These come from recall, so test on one prop first.
 
+---
+
 ## Phase 8 – Player
 
 Make the world walkable. You spawn as the First Person template character on the road, facing the lake. You walk at a realistic pace, sprint with Left Shift, cannot leave the 414 m playable square, and are caught if you start in a bad spot. Two scripts do the placement and the checking. You build two small Blueprint graphs by hand, because Python cannot create graph nodes. **Estimated time:** about 1 h 30 min, or 1 h 10 min without the optional 8.5.
@@ -2067,6 +2101,8 @@ Controls:
 > ❓ **Not verified:**
 > - Row 9: the arms-only view with a body shadow is the design of 5.6+ First Person Rendering. The template specifics were not confirmed.
 > - The default **Alt+P** shortcut and the play-mode labels are from memory. The Play button always works.
+
+---
 
 ## Phase 9 – Polish & performance
 
@@ -2475,7 +2511,9 @@ Silence is the biggest realism gap left at this point.
 > - The exact screenshot subfolder names.
 > - Whether TSR causes tile seams in tiled captures.
 
-### 9.16 Run the "realistic" checklist
+## Final checklist – 8 things to verify before calling it "realistic"
+
+*(Step 9.16.)*
 
 The last step of the plan. Run every test from the named view with the `balanced` preset, in Play unless the row says editor or script, and fix the step named in the last column until all eight pass.
 
