@@ -632,7 +632,7 @@ def main():
         ow.refresh_trace_cache()
     check_backdrop(F)
     ow.log("p7_props done: " + "; ".join(SUMMARY) + ("; %d warning(s) above" % WARN_COUNT[0] if WARN_COUNT[0] else ""))
-    ow.log("next: regenerate the PCG vegetation so it clears the new props (7.4)")
+    ow.log("next: Ctrl-click Generate on BOTH PCG volumes (PCGV_OW_Vegetation, then PCGV_OW_Grass) so the vegetation clears the new props (7.4)")
     if SAVE_LEVEL:
         ow.save_level()
 
