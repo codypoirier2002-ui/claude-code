@@ -292,11 +292,13 @@ def configure_nanite(job, notes):
     before_preserve = preserve_is_set(ns)
     want = job.nanite
     if want == "auto":
-        if all(is_opaque(m) for m in materials_of(mesh)) and materials_of(mesh):
+        mats = materials_of(mesh)
+        if mats and all(is_opaque(m) for m in mats):
             want = True
         else:
             want = None
-            notes.append("Nanite left as imported (masked or translucent material)")
+            notes.append("Nanite left as imported (%s)" % (
+                "masked or translucent material" if mats else "no readable material slots"))
     target = before if want is None else bool(want)
     add_preserve = target and job.preserve and not before_preserve
     after_text = "on" if target else "off"
@@ -414,7 +416,7 @@ def configure_collision(job, bounds, notes):
         if result is False or result is None:
             continue
         done.append(result if isinstance(result, str) else label)
-    return before, ", ".join(done) if done else "failed (see warning)", bool(done) and not DRY_RUN or DRY_RUN
+    return before, ", ".join(done) if done else "failed (see warning)", bool(done)
 
 
 # ---------------------------------------------------------------------------

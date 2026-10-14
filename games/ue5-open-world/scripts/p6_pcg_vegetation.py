@@ -644,7 +644,7 @@ def lake_box(frame, water_z):
     bx, by = cx + mu * math.cos(a) - mv * math.sin(a), cy + mu * math.sin(a) + mv * math.cos(a)
     loc = frame.to_world(bx, by)
     loc = unreal.Vector(round(loc.x), round(loc.y), round(water_z))
-    k = frame.scale.x          # cm per layout metre
+    k = frame.cm_per_m_x       # cm per layout metre
     return loc, float(deg), float(round((max(us) - min(us)) / 2.0 * k)), float(round((max(vs) - min(vs)) / 2.0 * k))
 
 
@@ -1027,7 +1027,11 @@ def main():
         ow.error("the PCG plugin is not loaded: Edit > Plugins > search 'PCG' > tick 'Procedural Content "
                  "Generation Framework (PCG)' > Restart Now (step 1.3). Nothing was changed.")
         return
-    frame = ow.frame()
+    try:
+        frame = ow.frame()
+    except RuntimeError as exc:
+        ow.error("%s - open L_OpenWorld and finish Phase 2 first. Nothing was changed." % exc)
+        return
     lake = find_lake()
     water_z, water_src = water_z_cm(frame, lake)
     mode = NEAR_WATER_SOURCE

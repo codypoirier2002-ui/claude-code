@@ -213,8 +213,8 @@ def build_walls(lay, fr):
     half_m = float(b["half_extent_m"])
     thick_cm = float(b["wall_thickness_m"]) * 100.0
     height_cm = float(b["wall_height_m"]) * 100.0
-    span_x_cm = 2.0 * half_m * fr.scale.x       # layout metres -> world cm (100 cm per m at Scale 100)
-    span_y_cm = 2.0 * half_m * fr.scale.y
+    span_x_cm = 2.0 * half_m * fr.cm_per_m_x    # layout metres -> world cm
+    span_y_cm = 2.0 * half_m * fr.cm_per_m_y
     z_centre = fr.origin.z + WALL_BOTTOM_M * 100.0 + height_cm / 2.0
     # name, layout centre (m), size along X and Y (cm). Walls run one thickness past each corner.
     specs = [

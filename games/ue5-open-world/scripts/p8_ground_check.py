@@ -120,7 +120,7 @@ def capsule_size(actor, default_half=92.0, default_radius=40.0):
 
 
 def world_to_layout(fr, loc):
-    return ((loc.x - fr.origin.x) / fr.scale.x - fr.half_m, (loc.y - fr.origin.y) / fr.scale.y - fr.half_m)
+    return ((loc.x - fr.origin.x) / fr.cm_per_m_x - fr.half_m, (loc.y - fr.origin.y) / fr.cm_per_m_y - fr.half_m)
 
 
 def folder_of(actor):
@@ -222,7 +222,9 @@ def analyse(actor):
     target = max(rules["fix_sink_cm"], rules["fix_sink_frac"] * height)
     if gap > rules["float_tol"]:
         r["status"] = "FLOATING"
-        r["dz"] = -(gap + target) if gaps else (g_min - target) - bottom
+        # same reference as BURIED and p7_props.py: bottom to (lowest ground - target); never move a
+        # floating prop up (possible only if its bounds reach below its mesh underside)
+        r["dz"] = min((g_min - target) - bottom, 0.0) or -(gap + target)
     elif (rules["bury_cm"] is not None and sink > rules["bury_cm"]) or sink / height > rules["bury_frac"]:
         r["status"] = "BURIED"
         r["dz"] = (g_min - target) - bottom

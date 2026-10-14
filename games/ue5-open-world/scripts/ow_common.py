@@ -117,9 +117,18 @@ class LandscapeFrame(object):
         if abs(rot.yaw) > 0.01 or abs(rot.pitch) > 0.01 or abs(rot.roll) > 0.01:
             warn("the landscape is rotated (%s); keep Rotation at 0,0,0 or positions will be off" % rot)
 
+    @property
+    def cm_per_m_x(self):
+        # actor scale is cm per heightmap quad; one quad is LANDSCAPE_SCALE_XY_CM / 100 layout metres
+        return self.scale.x * 100.0 / cfg.LANDSCAPE_SCALE_XY_CM
+
+    @property
+    def cm_per_m_y(self):
+        return self.scale.y * 100.0 / cfg.LANDSCAPE_SCALE_XY_CM
+
     def to_world(self, x_m, y_m, h_m=None):
-        x = self.origin.x + (x_m + self.half_m) * self.scale.x
-        y = self.origin.y + (y_m + self.half_m) * self.scale.y
+        x = self.origin.x + (x_m + self.half_m) * self.cm_per_m_x
+        y = self.origin.y + (y_m + self.half_m) * self.cm_per_m_y
         z = self.origin.z if h_m is None else self.height_to_world_z(h_m)
         return unreal.Vector(x, y, z)
 
