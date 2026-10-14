@@ -131,12 +131,12 @@ MP = {"BaseColor": "MP_BASE_COLOR", "Normal": "MP_NORMAL",
 ROOT_PIN_LABEL = {"BaseColor": "Base Color", "Normal": "Normal",
                   "Roughness": "Roughness", "AO": "Ambient Occlusion"}
 
-# Input-pin names the script asks for, and other spellings the editor may use
-# for the same pin (raw C++ name vs. the shortened name shown on the node).
+# Input-pin names the script asks for, and other spellings an engine version may
+# use for the same pin. In the 5.6.1 source, connect and get_material_expression_
+# input_names both use the shortened names ("Coordinates" -> "UVs", "Input" -> "").
 PIN_ALIASES = {
     "": ["Input"],
     "UVs": ["Coordinates", "UV"],
-    "Position": ["Pos"],
 }
 
 PROBLEMS = []                      # every step the script could not do, with the manual fix
@@ -295,7 +295,7 @@ class Graph(object):
                          sort_priority=prio, default_value=unreal.LinearColor(rgb[0], rgb[1], rgb[2], 1.0))
 
     def metres_to_cm(self, param, col=8):
-        return self.mul(col, param.get_name() + " x100", param, None, const_b=100.0)
+        return self.mul(col, self.label(param) + " x100", param, None, const_b=100.0)
 
 
 # ===========================================================================
@@ -309,7 +309,17 @@ def clean_path(text):
     return p.strip()
 
 
+_TEXTURE_CACHE = {}
+
+
 def load_texture(surface, slot):
+    key = (surface, slot)
+    if key not in _TEXTURE_CACHE:
+        _TEXTURE_CACHE[key] = _load_texture(surface, slot)
+    return _TEXTURE_CACHE[key]
+
+
+def _load_texture(surface, slot):
     path = clean_path(TEXTURES.get(surface, {}).get(slot, ""))
     if not path:
         return None
@@ -400,7 +410,7 @@ def build_graph(g, mapping_scale, water_z_cm):
     nz = g.mask(8, "normal.z = cos(slope)", vnormal, "b")
 
     def cos_deg(param):
-        return g.one_in(C.MaterialExpressionCosine, 8, "cos(" + param.get_name() + ")", param, period=360.0)
+        return g.one_in(C.MaterialExpressionCosine, 8, "cos(" + g.label(param) + ")", param, period=360.0)  # 360 = degrees
 
     dirt_a = g.smoothstep(7, "Dirt slope mask", cos_deg(p_dirt_full), cos_deg(p_dirt_start), nz, invert=True)
     rock_slope = g.smoothstep(7, "Rock slope mask", cos_deg(p_rock_full), cos_deg(p_rock_start), nz, invert=True)
@@ -414,12 +424,13 @@ def build_graph(g, mapping_scale, water_z_cm):
     noise = None
     macro = None
     if USE_MACRO_NOISE:
+        # Position pin left unconnected on purpose: the node then samples the absolute world position (cm).
+        # Every property is set because the engine defaults differ (6 levels, turbulence, output -1..1).
         noise = g.node(C.MaterialExpressionNoise, 8, "Macro noise (0..1, ~%g m blotches)" % MACRO_SIZE_M,
                        noise_function=C.NoiseFunction.NOISEFUNCTION_VALUE_ALU,
                        scale=1.0 / (MACRO_SIZE_M * 100.0), levels=int(NOISE_LEVELS), level_scale=2.0,
-                       output_min=0.0, output_max=1.0, turbulence=False, tiling=False,
+                       output_min=0.0, output_max=1.0, turbulence=False, tiling=False, quality=1,
                        world_position_origin_type=C.PositionOrigin.ABSOLUTE)
-        g.connect(wp, noise, "Position")    # unconnected Position also means world position, so a miss is harmless
         p_contrast = g.scalar("MacroContrast", MACRO_CONTRAST, "06 Variation", lo=0, hi=1, prio=0)
         centred = g.op(C.MaterialExpressionSubtract, 7, "noise - 0.5", noise, None, const_b=0.5)
         macro = g.op(C.MaterialExpressionAdd, 6, "macro brightness (1 +/- contrast/2)",
@@ -430,8 +441,7 @@ def build_graph(g, mapping_scale, water_z_cm):
     rock_a = g.op(C.MaterialExpressionMax, 6, "Rock mask (slope or height)", rock_slope, high)
     shore_h = above_m
     if noise is not None:
-        jitter = g.mul(7, "shore jitter (m)", g.op(C.MaterialExpressionSubtract, 7, "noise - 0.5 (shore)", noise,
-                                                   None, const_b=0.5), p_shore_jit)
+        jitter = g.mul(7, "shore jitter (m)", centred, p_shore_jit)
         shore_h = g.op(C.MaterialExpressionAdd, 6, "jittered height above water", above_m, jitter)
     shore_a = g.smoothstep(6, "Shore mask", p_shore_full, p_shore_end, shore_h, invert=True)
 
@@ -581,11 +591,19 @@ def substrate_state():
     return "ON" if on else "off"
 
 
+BLEND_METHOD_LABEL = {"NONE": "No Weight Blending", "FINAL_WEIGHT_BLENDING": "Weight Blending (Legacy)",
+                      "PREMULTIPLIED_ALPHA_BLENDING": "Advanced Weight Blending"}
+
+
 def enum_name(value):
     text = str(value)
     if "." in text:
         text = text.split(".")[-1]
     return text.split(":")[0].strip("<> ")
+
+
+def blend_label(name):
+    return "%s (%s)" % (BLEND_METHOD_LABEL.get(name, name), name)
 
 
 def check_layer_infos(land):
@@ -626,12 +644,12 @@ def check_layer_infos(land):
                 EAL.save_loaded_asset(info, False)
                 label = enum_name(info.get_editor_property("blend_method"))
                 ow.log("Layer Info %-6s: Blend Method was No Weight Blending -> now %s (saved)%s"
-                       % (name, label, place))
+                       % (name, blend_label(label), place))
             elif label == "NONE":
                 problem("Layer Info %s: Blend Method = No Weight Blending. Double-click %s and set Blend Method = "
                         "Weight Blending (Legacy), then save (3.4)." % (name, where))
             else:
-                ow.log("Layer Info %-6s: OK, Blend Method = %s%s" % (name, label, place))
+                ow.log("Layer Info %-6s: OK, Blend Method = %s%s" % (name, blend_label(label), place))
             continue
         try:
             nwb = bool(info.get_editor_property("no_weight_blend"))     # 5.6
@@ -674,7 +692,7 @@ def check_weights(land, fr):
                 best = max(best, float(comp.editor_get_paint_layer_weight_by_name_at_location(loc, layer)))
             except Exception:  # noqa: BLE001
                 pass
-        if best >= 0.9:
+        if best >= 0.8:
             ow.log("weight %-4s at %s = %.2f  OK" % (layer, where, best))
         else:
             ow.warn("weight %-4s at %s = %.2f (expected about 1.0). If you have not done step 3.5 yet this is "
