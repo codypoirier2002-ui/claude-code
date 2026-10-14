@@ -119,14 +119,14 @@ EDGE_BERM_HEIGHT_M = 30.0
 EDGE_BERM_WIDTH_M = 75.0
 PLAYABLE_INSET_M = 45.0               # invisible walls this far inside the edge
 
-# Fence and roadside boulders (placed by place_props.py along the road).
+# Fence and roadside boulders (placed by p7_props.py along the road).
 FENCE_ROAD_RANGE = (0.55, 0.94)       # fraction of the road that gets a fence
 FENCE_SIDE = 1                        # +1 = the +Y side when the road runs along +X (away from the lake), -1 = other side
 FENCE_OFFSET_M = 1.6                  # from road edge
 BOULDER_COUNT = 16
 BOULDER_OFFSET_RANGE_M = (1.5, 6.0)   # from road edge
 
-# Distant mountain ring (place_props.py, Option A: scaled rock meshes).
+# Distant mountain ring (p7_props.py, Option A: scaled rock meshes).
 MOUNTAIN_RING_RADIUS_M = (420.0, 650.0)
 MOUNTAIN_COUNT = 22
 MOUNTAIN_SCALE_RANGE = (18.0, 34.0)

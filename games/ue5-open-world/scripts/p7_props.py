@@ -601,6 +601,9 @@ def main():
         if mode not in MODES:
             ow.error("%s = '%s' - use one of %s" % (name, mode, MODES))
             return
+    if MOUNTAIN_ALIGN not in ("bottom", "pivot"):
+        ow.error("MOUNTAIN_ALIGN = '%s' - use 'bottom' or 'pivot'" % MOUNTAIN_ALIGN)
+        return
     try:
         F = ow.frame()
         L = ow.layout()
