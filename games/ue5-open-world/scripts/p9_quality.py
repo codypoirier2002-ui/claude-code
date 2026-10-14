@@ -1,6 +1,6 @@
 """Phase 9 - Quality presets: Performance / Balanced / Cinematic in one run.
 
-Build-plan step: 9.3 (the presets are explained in 9.2 and 9.3; Part B step 9.6 uses
+Build-plan step: 9.3 (the presets are explained in 9.2 and 9.3; Part B step 9.14 uses
 "cinematic" for screenshots).
 
 How to run (see step 1.5):
@@ -153,7 +153,7 @@ PRESETS = {
             "lumen_max_trace_distance": 40000.0,
             "lumen_scene_lighting_quality": 2.0,
             "lumen_scene_detail": 2.0,
-            "lumen_final_gather_quality": 2.0,           # 4 for a single still (step 9.6)
+            "lumen_final_gather_quality": 2.0,           # 4 for a single still (step 9.14)
             "lumen_reflection_quality": 2.0,
             "lumen_max_roughness_to_trace_reflections": 0.4,
         },

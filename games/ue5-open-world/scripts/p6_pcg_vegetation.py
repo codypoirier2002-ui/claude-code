@@ -87,18 +87,20 @@ LANDSCAPE_TAG = ""                       # "" = sample every landscape. "OW_PCGL
 # extents_cm = Point Extents [cm] (max density = 10000 / (2 * extents)^2 per m2);
 # near_water = (distance [m], keep fraction beyond it): keep 100 % at the lake, falling linearly
 # to that fraction at the distance; cull/wpo distances in cm (0 = never).
+# max_slope_deg: keep every layer at or below 33 deg, where the Phase 3 landscape material starts
+# showing rock (RockSlopeStart_deg). If you change that parameter, change these with it.
 TREES = {"density": 0.06, "extents_cm": 100.0, "max_slope_deg": 30.0, "above_water_cm": 100.0,
          "forest_roll": (0.15, 0.65),    # keep if Forest > random(min, max)
          "spacing_m": 4.0,               # Self Pruning: no two trunks closer than this
          "scale": (0.8, 1.25), "sink_cm": (10.0, 20.0), "upright": True, "seed": 11,
          "start_cull_cm": 0, "end_cull_cm": 0, "wpo_disable_cm": 6000,
          "shadow": True, "collision": True, "ray_tracing": True, "wpo": True}
-BUSHES = {"density": 0.03, "extents_cm": 50.0, "max_slope_deg": 35.0, "above_water_cm": 30.0,
+BUSHES = {"density": 0.03, "extents_cm": 50.0, "max_slope_deg": 33.0, "above_water_cm": 30.0,
           "near_water": (40.0, 0.25),
           "scale": (0.7, 1.3), "sink_cm": (5.0, 10.0), "upright": True, "seed": 22,
           "start_cull_cm": 12000, "end_cull_cm": 15000, "wpo_disable_cm": 4000,
           "shadow": True, "collision": False, "ray_tracing": True, "wpo": True}
-SCATTER = {"density": 0.15, "extents_cm": 10.0, "max_slope_deg": 45.0, "above_water_cm": 30.0,
+SCATTER = {"density": 0.15, "extents_cm": 10.0, "max_slope_deg": 33.0, "above_water_cm": 30.0,
            "forest_roll": (0.4, 0.7),    # forest floor only
            "scale": (0.6, 1.4), "sink_cm": (0.0, 3.0), "upright": False, "seed": 33,
            "start_cull_cm": 1500, "end_cull_cm": 2500, "wpo_disable_cm": 0,
@@ -108,7 +110,7 @@ SHORE = {"density": 1.5, "extents_cm": 10.0, "band_cm": (-40.0, 80.0),   # heigh
          "scale": (0.7, 1.3), "sink_cm": (0.0, 5.0), "upright": True, "seed": 44,
          "start_cull_cm": 3500, "end_cull_cm": 5000, "wpo_disable_cm": 2500,
          "shadow": False, "collision": False, "ray_tracing": False, "wpo": True}
-GRASS = {"density": 3.0, "extents_cm": 10.0, "max_slope_deg": 40.0, "above_water_cm": 30.0,
+GRASS = {"density": 3.0, "extents_cm": 10.0, "max_slope_deg": 33.0, "above_water_cm": 30.0,
          "forest_keep": 0.3,             # fraction of grass kept deep inside the forest
          "near_water": (30.0, 0.6),
          "scale": (0.7, 1.3), "sink_cm": (0.0, 0.0), "upright": False, "seed": 55,

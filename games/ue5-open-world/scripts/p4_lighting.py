@@ -13,7 +13,8 @@ What it creates / changes:
     It spawns only the ones that are missing, so nothing is duplicated. If a class
     appears more than once it configures one and warns about the others.
   * Renames them OW_Sun, OW_SkyAtmosphere, OW_SkyLight, OW_HeightFog, OW_VolumetricCloud,
-    tags them OW_Lighting, and moves them to the Outliner folder OpenWorld/Lighting.
+    tags them OW_Lighting (only that tag, never OW_Managed, so no script deletes them),
+    and moves them to the Outliner folder OpenWorld/Lighting.
   * Spawns one unbound Post Process Volume, OW_PostProcess (tags OW_Managed + OW_Lighting).
   * Creates /Game/OpenWorld/Materials/MI_OW_Clouds (a child of the engine cloud material,
     so the clouds look the same until you change it) and assigns it to the clouds.
@@ -167,8 +168,11 @@ def touch(actor):
 def adopt(actor, key, location):
     """Rename, tag, re-folder and move an actor the script configures."""
     touch(actor)
+    tags = [t for t in actor.tags if str(t) != cfg.TAG_MANAGED]     # lights carry only OW_Lighting
     if not ow.has_tag(actor, cfg.TAG_LIGHTING):
-        setp(actor, "tags", list(actor.tags) + [unreal.Name(cfg.TAG_LIGHTING)], "add the tag OW_Lighting")
+        tags.append(unreal.Name(cfg.TAG_LIGHTING))
+    if len(tags) != len(list(actor.tags)) or not ow.has_tag(actor, cfg.TAG_LIGHTING):
+        setp(actor, "tags", tags, "Details > Actor > Tags: keep OW_Lighting, remove OW_Managed")
     actor.set_actor_label(LABELS[key])
     actor.set_folder_path(FOLDER)
     if location is not None:
@@ -179,6 +183,9 @@ def find_or_spawn(cls, key, location, rotation=None):
     found = [a for a in ow.all_actors() if isinstance(a, cls)]
     if not found:
         actor = ow.spawn(cls, location, rotation, label=LABELS[key], folder=FOLDER, tags=(cfg.TAG_LIGHTING,))
+        # ow.spawn always adds OW_Managed. The five lights carry only OW_Lighting, so no
+        # remove_managed() call in any script can ever delete them (only the PPV is managed).
+        actor.tags = [t for t in actor.tags if str(t) != cfg.TAG_MANAGED]
         return actor, "spawned"
     tagged = [a for a in found if ow.has_tag(a, cfg.TAG_LIGHTING)]
     actor = (tagged or found)[0]
