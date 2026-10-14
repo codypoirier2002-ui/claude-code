@@ -2,13 +2,15 @@
 
 Every script in this folder starts with:
 
-    import os, sys
+    import importlib, os, sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import ow_common as ow
+    importlib.reload(ow)   # the editor caches modules between runs
 
 and then uses ow.cfg (the ow_config module), ow.layout(), ow.frame(), ow.spawn(),
 ow.ground_hit() and friends. API names were checked against the UE 5.6 Python API.
 """
+import importlib
 import json
 import math
 import os
@@ -21,6 +23,10 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 import ow_config as cfg  # noqa: E402
+
+# The editor keeps imported modules cached between script runs; reload so
+# edits to ow_config.py take effect without restarting Unreal.
+cfg = importlib.reload(cfg)
 
 
 # ---------------------------------------------------------------------------
