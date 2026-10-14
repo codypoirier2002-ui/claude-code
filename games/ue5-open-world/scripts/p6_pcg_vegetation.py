@@ -493,6 +493,12 @@ class Builder(object):
         self.wire(src, src_pin, key, "In")
 
     def spawner(self, key, title, pos, meshes, layer, src, src_pin):
+        if layer["end_cull_cm"] > 0 and layer["start_cull_cm"] >= layer["end_cull_cm"]:
+            fixed = int(layer["end_cull_cm"] * 0.7)
+            ow.warn("%s: start_cull_cm (%d) must be below end_cull_cm (%d) - using %d. Lower both together."
+                    % (title, layer["start_cull_cm"], layer["end_cull_cm"], fixed))
+            layer = dict(layer, start_cull_cm=fixed)
+        is_trees = key == "t_spawn"
         ui = ("`Mesh Entries`: one entry per mesh (%s), each `Weight` = 1 and `Descriptor` > "
               "`Instance Start Cull Distance` = %d, `Instance End Cull Distance` = %d, "
               "`World Position Offset Disable Distance` = %d, `Evaluate World Position Offset` = %s, "
@@ -500,7 +506,7 @@ class Builder(object):
               % (", ".join(m.get_name() for m in meshes), layer["start_cull_cm"], layer["end_cull_cm"],
                  layer["wpo_disable_cm"], fmt(layer["wpo"]), fmt(layer["shadow"]), fmt(layer["ray_tracing"]),
                  "`Collision Presets` = BlockAll" if layer["collision"] else "none (default NoCollision)"))
-        if layer is TREES:
+        if is_trees:
             ui += ", `Shadow Cache Invalidation Behavior` = Rigid"
 
         def f(s):
@@ -519,7 +525,7 @@ class Builder(object):
                 d.set_editor_property("evaluate_world_position_offset", bool(layer["wpo"]))
                 d.set_editor_property("cast_shadow", bool(layer["shadow"]))
                 d.set_editor_property("visible_in_ray_tracing", bool(layer["ray_tracing"]))
-                if layer is TREES:
+                if is_trees:
                     d.set_editor_property("shadow_cache_invalidation_behavior",
                                           unreal.ShadowCacheInvalidationBehavior.RIGID)
                 if layer["collision"]:
