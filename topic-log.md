@@ -2,3 +2,4 @@
 - 2026-10-30 | Why astronauts float | Astronauts float because they and the station are in continuous free fall around Earth, not because there is no gravity. | why-astronauts-float.mp4
 - 2026-10-30 | You are looking at the past | Light takes time to travel, so the Sun you see is about 8 minutes old and everything in the sky is seen as it was. | looking-at-the-past.mp4
 - 2026-10-30 | Why you can't nuke a hurricane | A mature hurricane releases heat at the rate of a 10-megaton bomb every 20 minutes, so a nuke would barely register and would spread fallout. | nuke-a-hurricane.mp4
+- 2026-10-30 | Why space is black | Space looks black even in full sunlight because there is almost no air to scatter the light toward your eyes. | space-is-black.mp4
