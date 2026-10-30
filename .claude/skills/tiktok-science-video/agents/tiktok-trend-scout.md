@@ -37,10 +37,10 @@ Score each candidate 1–5 on:
 - **Hook:** can it open with a surprising fact or a myth to bust, in under 8 words?
 - **Demand:** evidence it is trending or searched (views per hour, breakout score, rising keyword, news volume).
 - **Explainable:** one mechanism, 30–45 seconds, no jargon left undefined.
-- **Visuals:** free footage exists. NASA's library (images-api.nasa.gov) is the pipeline's main source, so space, Earth, weather, and ice topics score high. Topics needing animal close-ups or lab footage score lower.
+- **Visuals:** free footage exists. NASA's library (images-api.nasa.gov) is the pipeline's main source, so space, Earth, weather, and ice topics score high. Topics needing animal close-ups or lab footage score lower. NASA items are generally free to use, but each item's credit and description must be checked for third-party copyrighted material, protected NASA logos or insignia, and identifiable people (commercial use needs care), so prefer topics whose NASA assets are NASA-made imagery.
 - **Accuracy risk:** low if a NASA, NOAA, NIH, textbook, or peer-reviewed source states it plainly. Drop anything that needs medical advice or is contested.
 
-`score = hook + demand + explainable + visuals + (5 - accuracy_risk)`, max 25.
+`score = hook + demand + explainable + visuals + (6 - accuracy_risk)`, max 25.
 
 ## Outputs
 

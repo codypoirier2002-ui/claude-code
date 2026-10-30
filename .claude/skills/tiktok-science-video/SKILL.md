@@ -11,7 +11,7 @@ Turn a science topic into a short vertical video: hook, script, captions, source
 
 - `scripts/setup.sh`: one-time. Installs local text-to-speech (Piper plus an English voice, about 65 MB) into `~/.cache/tiktok-science`. Free, offline afterward, no tokens.
 - `scripts/find-asset.js`: finds and downloads reusable footage and images.
-  - NASA (public domain, most reliable): `search "<query>" image|video [n]`, then `get <nasa_id> <out>`.
+  - NASA (most reliable): `search "<query>" image|video [n]`, then `get <nasa_id> <out>`. NASA material is generally free to use, but check each item's credit and description for third-party copyrighted content, NASA logos and insignia are protected, and identifiable people need care in commercial use. `search` marks items that look like a concern with ` [check rights]`.
   - Internet Archive: `archive "<query>" [n]`, then `archive-get <identifier> <out>`. Licenses are mixed: it prints the license when the item has one. Use only public-domain or CC items and credit them.
   - Pixabay: `pixabay "<query>"` and `pixabay-get <url> <out>`. Needs a free `PIXABAY_KEY`. Not tested here.
   - Not usable from this container: Pexels (403) and Wikimedia Commons (rate-limited). Coverr and Mixkit load but have no API.
@@ -69,7 +69,7 @@ Requires `ffmpeg`/`ffprobe`, Node 18+, and Python 3 (setup only). Environment va
 
 ## Research agent (trend scout)
 
-`agents/tiktok-trend-scout.md` defines a research-only agent. It searches vidIQ (TikTok/Reels and Shorts outliers, rising keywords), Firecrawl and web search (science news, Reddit, trend articles), Apify (TikTok hashtag scrapers, only when other sources are thin), and paper feeds. It writes:
+`agents/tiktok-trend-scout.md` defines a research-only agent. It searches vidIQ (TikTok/Reels and Shorts outliers, rising keywords), Firecrawl and web search (science news, Reddit, trend articles), Apify (TikTok hashtag scrapers, only when other sources are thin), and paper feeds. Pass `PROJECT_DIR` in its prompt; it must be the same directory as `TIKTOK_SCIENCE_DIR` (default `~/tiktok-science`), so the scout and `build.js` share one `topic-log.md`. It writes:
 - `PROJECT_DIR/research/<date>-trends.md`: signals with links, breakout patterns, rising niches, and which sources failed.
 - `PROJECT_DIR/topic-queue.json`: 5–10 scored ideas (hook, claim, why now, evidence, sources to cite, visuals, score out of 25, status).
 
@@ -83,7 +83,7 @@ Run this loop to keep the channel going. One cycle is one finished video.
 2. **Pick** the highest-scoring `queued` topic not in `topic-log.md`.
 3. **Verify** each fact against a source you open yourself (`curl` the page and `grep` for the number, or one Firecrawl search). Rewrite or drop any claim you cannot confirm.
 4. **Script** four beats in `PROJECT_DIR/videos/<slug>/script.json`. Keep the hook to about 6 words.
-5. **Visuals**: build a contact sheet of NASA candidates (download the search thumbnails, tile them with PIL) and pick from that one image instead of guessing. For long NASA videos, make a 10-second-interval sheet, cut the useful 4–5 s segments into one small source file, and point clips at offsets in it.
+5. **Visuals**: build a contact sheet of NASA candidates (download the search thumbnails, tile them with PIL) and pick from that one image instead of guessing. Before using a pick, read its credit and description for third-party content; `search` marks suspects with `[check rights]`. For long NASA videos, make a 10-second-interval sheet, cut the useful 4–5 s segments into one small source file, and point clips at offsets in it.
 6. **Narration**: ElevenLabs as above, or local Piper.
 7. **Render, check, look**: run `build.js`, then `check.js` on the MP4, then sample frames (`fps=1/2,tile=9x2`). Fix burned-in labels or timestamps from source footage: move the clip window, change `imageFocus`, or crop the source file.
 8. **Log and hand off**: set the queue entry's `status` to `made`, send the MP4 to the user with its sources and credits, and stop. Never post to TikTok or any platform yourself.
@@ -92,7 +92,7 @@ A cycle costs about 6–10 US cents of ElevenLabs credits, about 15 vidIQ credit
 
 ## Token-saving rules
 
-- Reuse existing material before generating anything: public-domain NASA media via `find-asset.js`, the user's own footage, or Wikimedia Commons (it rate-limits shared IPs, so retry later).
+- Reuse existing material before generating anything: NASA media via `find-asset.js` (generally free to use; check each item's credit and description for third-party content), the user's own footage, or Wikimedia Commons (it rate-limits shared IPs, so retry later).
 - Narrate with the local Piper voice by default. Use ElevenLabs when the user wants a higher-quality voice.
 - To study how a successful video is structured, pull its transcript or metadata (for example vidIQ's outliers and transcript tools, if the account has credits) instead of watching or describing the video. Copy the structure and pacing, never the wording.
 - Keep tool output small: list 5 results, not 50, and download only what you will use.
@@ -100,7 +100,7 @@ A cycle costs about 6–10 US cents of ElevenLabs credits, about 15 vidIQ credit
 ## Workflow
 
 1. **Pin down the claim.** Write the one idea the viewer should remember. Park other ideas for later videos.
-2. **Check the topic log.** Read `~/tiktok-science/topic-log.md` and skip anything already covered.
+2. **Check the topic log.** Read `$TIKTOK_SCIENCE_DIR/topic-log.md` (default `~/tiktok-science/topic-log.md`), the same file `build.js` appends to, and skip anything already covered.
 3. **Source every fact.** Each claim needs a source the user can verify: a peer-reviewed paper, a textbook, or an official agency page. Mark uncertain claims as uncertain. Do not invent statistics, quotes, or study results. Cut what you cannot source.
 4. **Write the hook** for the first 2 seconds: a surprising result, a question the viewer already has, or a visual that needs explaining. No greetings or channel intros.
 5. **Structure the body:** setup (the everyday observation or misconception), mechanism (one idea per beat, plain language), payoff (answer the hook and add one takeaway).
@@ -113,7 +113,7 @@ A cycle costs about 6–10 US cents of ElevenLabs credits, about 15 vidIQ credit
 ## Format defaults
 
 - 9:16 vertical, 1080×1920, 30 fps.
-- 30–60 seconds total. Hook 2 seconds or less.
+- 30–60 seconds total. Spoken hook about 2 seconds; the checker warns above 3 s rendered (the line plus the 0.4 s narration pad).
 - About 2.5 spoken words per second (checker accepts 1.5–3.2).
 - Captions: short lines, 4 or fewer wrapped lines per beat, burned in because many viewers watch muted.
 - Plain language. Define each technical term the first time it appears.
@@ -135,5 +135,5 @@ When asked to review an existing script or video, check in this order and report
 - Medical, nutrition, or safety advice presented as settled without a source and a "talk to a professional" caveat where it matters.
 - Clickbait hooks the video does not deliver on.
 - Trivia lists with no mechanism.
-- Music, footage, or images without rights. Use public-domain or original assets, and keep the credits.
+- Music, footage, or images without rights. Use original assets or ones whose license you have checked (for NASA items, read the credit and description for third-party content, protected logos and insignia, and identifiable people), and keep the credits.
 - Real people quoted without a verified source.
