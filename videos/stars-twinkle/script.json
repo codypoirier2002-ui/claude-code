@@ -1,0 +1,90 @@
+{
+  "topic": "Why stars twinkle but planets don't",
+  "claim": "Stars are point sources, so shifting pockets of air bend their light around and they flicker; planets are tiny discs whose flickers average out.",
+  "accent": "#ffd166",
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 3,
+      "caption": "Stars twinkle. Planets don't.",
+      "vo": "Stars twinkle. Planets don't. Why?",
+      "audio": "assets/vo/hook.mp3",
+      "bg": "#050816",
+      "image": "assets/star-field.jpg",
+      "imageFocus": 0.5
+    },
+    {
+      "id": "setup",
+      "seconds": 11,
+      "caption": "Stars look like single points of light.",
+      "vo": "Stars are so far away that they look like single points of light. Before that light reaches your eye, it has to cross Earth's air, which is full of shifting pockets of different density.",
+      "audio": "assets/vo/setup.mp3",
+      "bg": "#0a1230",
+      "clips": [
+        {
+          "image": "assets/star-field.jpg",
+          "imageFocus": 0.2
+        },
+        {
+          "image": "assets/trails-a.jpg",
+          "imageFocus": 0.5
+        }
+      ]
+    },
+    {
+      "id": "mechanism",
+      "seconds": 11,
+      "caption": "Moving air bends starlight.",
+      "vo": "Each pocket bends the light a little. As the pockets drift across your line of sight, the star's point of light seems to jump around from one second to the next. Your eye reads that as twinkling.",
+      "audio": "assets/vo/mechanism.mp3",
+      "bg": "#0a1230",
+      "clips": [
+        {
+          "image": "assets/trails-b.jpg",
+          "imageFocus": 0.3
+        },
+        {
+          "image": "assets/star-field.jpg",
+          "imageFocus": 0.8
+        }
+      ]
+    },
+    {
+      "id": "payoff",
+      "seconds": 10,
+      "caption": "Planets are tiny discs, so flickers average out.",
+      "vo": "Planets look like points too, but they're really tiny discs. Their light takes many different paths through the air, so the flickers average out, and they shine steady.",
+      "audio": "assets/vo/payoff.mp3",
+      "bg": "#1a1208",
+      "image": "assets/jupiter.jpg",
+      "imageFocus": 0.2
+    },
+    {
+      "id": "loop",
+      "seconds": 5,
+      "caption": "Look low: more air, more twinkle.",
+      "vo": "Tonight, look low near the horizon. More air means more twinkle.",
+      "audio": "assets/vo/loop.mp3",
+      "bg": "#050816",
+      "image": "assets/trails-a.jpg",
+      "imageFocus": 0.7
+    }
+  ],
+  "sources": [
+    {
+      "text": "NASA GSFC, Ask an Astrophysicist: why do stars twinkle but planets don't (Mukai & Masetti), https://imagine.gsfc.nasa.gov/ask_astro/night_sky.html"
+    },
+    {
+      "text": "NASA StarChild: Why do stars twinkle? (stars near the horizon twinkle more), https://starchild.gsfc.nasa.gov/docs/StarChild/questions/question26.html"
+    },
+    {
+      "text": "NASA Science glossary: scintillation, https://science.nasa.gov/universe/glossary/"
+    }
+  ],
+  "credits": [
+    "Star field: NASA/JPL-Caltech/UCLA (PIA13459)",
+    "Jupiter: NASA/New Mexico State Univ. (PIA01262, Hubble)",
+    "Star trails over Earth: NASA Johnson Space Center, ISS Expeditions 30/31",
+    "Voice: ElevenLabs (Liam)"
+  ]
+}
