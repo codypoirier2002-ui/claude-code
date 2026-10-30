@@ -1,0 +1,64 @@
+{
+  "topic": "The Moon is drifting away",
+  "claim": "The Moon moves about 3.8 cm (1.5 inches) farther from Earth every year because Earth's tidal bulge, carried ahead by Earth's faster spin, tugs the Moon forward into a higher orbit.",
+  "accent": "#ffd166",
+  "music": "assets/music.mp3",
+  "musicVolume": 0.12,
+  "transition": { "type": "fade", "seconds": 0.2 },
+  "beats": [
+    {
+      "id": "hook", "seconds": 2,
+      "caption": "The Moon is leaving us",
+      "vo": "The Moon is leaving. Slowly.",
+      "audio": "assets/vo/hook.mp3",
+      "image": "assets/full-moon.jpg"
+    },
+    {
+      "id": "setup", "seconds": 9,
+      "caption": "1.5 inches farther every year",
+      "vo": "Every year it drifts about an inch and a half farther away. We know, because Apollo astronauts left mirrors up there, and we still bounce lasers off them.",
+      "audio": "assets/vo/setup.mp3",
+      "clips": [
+        { "video": "assets/moon-orion.mp4", "videoStart": 0, "videoFocus": 0.7, "seconds": 2.6 },
+        { "image": "assets/aldrin-reflector.jpg", "imageFocus": 0.5, "seconds": 3.2 },
+        { "image": "assets/goddard-laser.jpg", "imageFocus": 0.45, "seconds": 3.3 }
+      ]
+    },
+    {
+      "id": "mechanism", "seconds": 13,
+      "caption": "Blame the tides",
+      "vo": "Blame the tides. The Moon raises a bulge in our oceans, but Earth spins so fast the bulge runs ahead of the Moon. That bulge tugs the Moon forward, and a forward tug lifts it into a higher orbit.",
+      "audio": "assets/vo/mechanism.mp3",
+      "clips": [
+        { "image": "assets/earthset-orion.jpg", "imageFocus": 0.5, "seconds": 3.4 },
+        { "video": "assets/moon-orion.mp4", "videoStart": 6, "videoFocus": 0.7, "seconds": 3 },
+        { "image": "assets/earthrise.jpg", "imageFocus": 0.4, "seconds": 3.4 },
+        { "video": "assets/moon-orion.mp4", "videoStart": 12, "videoFocus": 0.7, "seconds": 3 }
+      ]
+    },
+    {
+      "id": "payoff", "seconds": 14,
+      "caption": "7 feet farther since Apollo 11",
+      "vo": "That same tug slows Earth's spin, so our days get a tiny bit longer too. And since Apollo 11 landed, the Moon has moved about seven feet farther away. So will we ever lose it? Not in your lifetime.",
+      "audio": "assets/vo/payoff.mp3",
+      "clips": [
+        { "video": "assets/moonwalk.mp4", "videoStart": 6, "videoFocus": 0.5, "seconds": 4 },
+        { "image": "assets/aldrin-lm.jpg", "imageFocus": 0.5, "seconds": 3.4 },
+        { "video": "assets/moonwalk.mp4", "videoStart": 0, "videoFocus": 0.5, "seconds": 3 },
+        { "image": "assets/full-moon.jpg", "seconds": 4 }
+      ]
+    }
+  ],
+  "sources": [
+    { "text": "NASA JPL, The Apollo Experiment That Keeps on Giving (July 24, 2019): https://www.jpl.nasa.gov/news/the-apollo-experiment-that-keeps-on-giving/ (3.8 cm per year; tidal bulge pulls the Moon forward and slows Earth's rotation; Apollo 11, 14 and 15 reflectors)" },
+    { "text": "NASA GSFC Eclipse site, Measuring the Moon's Distance (LPI Bulletin 72, 1994): https://eclipse.gsfc.nasa.gov/SEhelp/ApolloLaser.html (Moon receding about 3.8 cm per year; ocean tides influence the Moon's orbit)" },
+    { "text": "NASA Science, Moon Facts: https://science.nasa.gov/moon/facts/ (about an inch farther each year; average distance 238,855 miles)" },
+    { "text": "Arithmetic for 'seven feet': 57 years since July 1969 x 3.8 cm = 217 cm = 7.1 ft" }
+  ],
+  "credits": [
+    "Footage: NASA Johnson Space Center, Artemis I Earthset as Orion Prepares for Outbound Powered Flyby (art001m1013251209); NASA HQ, Apollo 11 moonwalk montage (Apollo_11_moonwalk_montage_720p)",
+    "Images: NASA (as11-40-5942, as11-40-5931, as17-152-23272, art002e021278); NASA Goddard (Full Moon GSFC_20171208_Archive_e000868; Laser Ranging Facility GSFC_20171208_Archive_e001973)",
+    "Narration: ElevenLabs, voice 'Liam - Energetic, Social Media Creator'",
+    "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/"
+  ]
+}
