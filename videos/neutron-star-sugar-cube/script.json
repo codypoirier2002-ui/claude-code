@@ -1,0 +1,101 @@
+{
+  "topic": "A sugar cube of neutron star",
+  "claim": "A sugar-cube-sized piece of neutron star material would weigh about a billion tons on Earth, because a Sun's worth of mass is crushed into a ball about 12 miles across.",
+  "accent": "#8ecbff",
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 2,
+      "caption": "One sugar cube. A billion tons.",
+      "vo": "One sugar cube. A billion tons.",
+      "bg": "#050a18",
+      "clips": [
+        {
+          "video": "assets/pulsar",
+          "videoStart": 4
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "seconds": 8,
+      "caption": "A dying star's core collapses into neutrons.",
+      "vo": "When a massive star runs out of fuel, its core collapses. Protons and electrons get crushed together into neutrons.",
+      "bg": "#0a1230",
+      "clips": [
+        {
+          "image": "assets/crab",
+          "imageFocus": 0.5
+        },
+        {
+          "video": "assets/pulsar",
+          "videoStart": 24
+        }
+      ]
+    },
+    {
+      "id": "mechanism",
+      "seconds": 9,
+      "caption": "A Sun's mass in a city-sized ball.",
+      "vo": "What's left is a neutron star: about the mass of the Sun, squeezed into a ball roughly twelve miles across. That's the size of a city.",
+      "bg": "#0a1230",
+      "clips": [
+        {
+          "video": "assets/pulsar",
+          "videoStart": 18
+        },
+        {
+          "video": "assets/pulsar",
+          "videoStart": 84
+        },
+        {
+          "video": "assets/pulsar",
+          "videoStart": 54
+        }
+      ]
+    },
+    {
+      "id": "dense",
+      "seconds": 4,
+      "caption": "The densest thing we can observe directly.",
+      "vo": "That makes it the densest object astronomers can observe directly.",
+      "bg": "#0a1230",
+      "clips": [
+        {
+          "video": "assets/pulsar",
+          "videoStart": 90
+        },
+        {
+          "video": "assets/pulsar",
+          "videoStart": 36
+        }
+      ]
+    },
+    {
+      "id": "payoff",
+      "seconds": 9,
+      "caption": "A sugar cube would weigh as much as a mountain.",
+      "vo": "So a sugar-cube-sized piece would weigh about a billion tons on Earth. That's roughly as much as a mountain.",
+      "bg": "#050a18",
+      "clips": [
+        {
+          "video": "assets/pulsar",
+          "videoStart": 8
+        },
+        {
+          "image": "assets/crab",
+          "imageFocus": 0.3
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "text": "NASA Goddard, Imagine the Universe: Neutron Stars \u2014 https://imagine.gsfc.nasa.gov/science/objects/neutron_stars1.html"
+    }
+  ],
+  "credits": [
+    "Video: NASA's Goddard Space Flight Center, \"Simulations Create New Insights Into Pulsars\" (Scott Wiessinger), NASA ID GSFC_20181010_FERMI_m13058_Pulsar4K",
+    "Image: Crab Nebula, NASA/ESA/JPL/Arizona State University (Hubble), PIA03606"
+  ]
+}

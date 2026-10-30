@@ -7,3 +7,4 @@
 - 2026-10-30 | The Sun is actually white | The Sun's light is all visible colors mixed, which is white; it looks yellow from the ground because air scatters away some of the blue. | sun-is-white.mp4
 - 2026-10-30 | What makes the northern lights | Auroras are Earth's own upper air glowing: energized electrons, guided by Earth's magnetic field, hit oxygen and nitrogen atoms, which release the energy as light. | northern-lights.mp4
 - 2026-10-30 | Why stars twinkle but planets don't | Stars are point sources, so shifting pockets of air bend their light around and they flicker; planets are tiny discs whose flickers average out. | stars-twinkle.mp4
+- 2026-10-30 | A sugar cube of neutron star | A sugar-cube-sized piece of neutron star material would weigh about a billion tons on Earth, because a Sun's worth of mass is crushed into a ball about 12 miles across. | neutron-star-sugar-cube.mp4
