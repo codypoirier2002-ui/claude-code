@@ -1,166 +1,166 @@
 [
-  {
-    "topic": "You are looking at the past",
-    "hook": "The Sun you see is 8 minutes old.",
-    "claim": "Sunlight takes about 8 minutes 20 seconds to reach Earth, so we see the Sun (and every star) as it was when the light left it.",
-    "why_now": "Light-travel-time Short at 300x breakout, 1.8M views this month",
-    "evidence": [
-      "https://www.youtube.com/watch?v=WLcmwZEQ2SU"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/sun/facts/"
-    ],
-    "visuals": "NASA SDO Sun footage, Hubble deep field, ISS sunrise",
-    "score": 24,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "Why you can't nuke a hurricane",
-    "hook": "A hurricane releases more energy than a nuke. Constantly.",
-    "claim": "A mature hurricane's heat release is like a 10-megaton bomb going off every 20 minutes, so a nuclear blast would not stop it and would spread fallout (NOAA HRD FAQ).",
-    "why_now": "'What if we nuked a hurricane' Short at 23x and 1.3K VPH; rising keyword 'disasters explained' +232%; Typhoon Arnab in NASA EO",
-    "evidence": [
-      "https://www.youtube.com/watch?v=dyFZlc2h3wk",
-      "https://science.nasa.gov/earth/earth-observatory/arnab-strikes-india/"
-    ],
-    "sources_to_cite": [
-      "https://www.aoml.noaa.gov/hrd-faq/"
-    ],
-    "visuals": "NASA ISS and GOES hurricane footage, eye-of-storm flyovers",
-    "score": 23,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "Why space is black",
-    "hook": "Space is full of sunlight. So why is it black?",
-    "claim": "Our sky looks blue because air molecules scatter blue sunlight toward our eyes; in space there is almost no air to scatter light, so the sky looks black even in full sunlight.",
-    "why_now": "'Why is space pitch black?' Short at 41x this week; 'real color of space' cluster breaking out",
-    "evidence": [
-      "https://www.youtube.com/watch?v=sEHSu4zHQ4w"
-    ],
-    "sources_to_cite": [
-      "https://spaceplace.nasa.gov/blue-sky/"
-    ],
-    "visuals": "NASA spacewalk footage against black sky, ISS view of Earth's blue limb",
-    "score": 22,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "The Sun is actually white",
-    "hook": "The Sun isn't yellow. It's white.",
-    "claim": "The Sun emits all visible colors, which combine to white; it looks yellow from the ground because the atmosphere scatters away some blue light.",
-    "why_now": "TikTok on the Sun's real color: 1M views at 34.9x this month",
-    "evidence": [
-      "https://www.tiktok.com/@deepspacefiles5/video/7693225233330867486"
-    ],
-    "sources_to_cite": [
-      "https://solar-center.stanford.edu/SID/activities/GreenSun.html",
-      "https://spaceplace.nasa.gov/blue-sky/"
-    ],
-    "visuals": "ISS photos of the Sun from orbit, NASA SDO, sunset from ISS",
-    "score": 22,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "What makes the northern lights",
-    "hook": "Auroras are the Sun hitting our air.",
-    "claim": "Charged particles from the Sun, steered by Earth's magnetic field, collide with oxygen and nitrogen high in the atmosphere, which then glow green, red, and purple.",
-    "why_now": "Solar Cycle 25 peak; G2 storm watch Oct 8-9 put aurora in reach of up to 22 US states",
-    "evidence": [
-      "https://www.hola.com/us/lifestyle/20261008927945/northern-lights-tonight-22-states/",
-      "https://www.skyatnightmagazine.com/news/aurora-displays-8-11-october-2026"
-    ],
-    "sources_to_cite": [
-      "https://www.swpc.noaa.gov/phenomena/aurora"
-    ],
-    "visuals": "NASA ISS aurora time-lapses, SDO solar flare footage",
-    "score": 22,
-    "added": "2026-10-30",
-    "status": "queued"
-  },
-  {
-    "topic": "The Moon is drifting away",
-    "hook": "The Moon is leaving us. Slowly.",
-    "claim": "The Moon moves about 3.8 cm farther from Earth each year because of tidal interactions.",
-    "why_now": "'What if' niche surging (ifverse +52,580%); 'what would happen if the moon crashed into earth?' +725%",
-    "evidence": [
-      "vidIQ rising keywords 2026-10-30 (see research/2026-10-30-trends.md)"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/moon/facts/"
-    ],
-    "visuals": "NASA LRO Moon footage, Apollo laser retroreflector photos, Earthrise",
-    "score": 22,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "Why stars twinkle but planets don't",
-    "hook": "Stars twinkle. Planets don't. Here's why.",
-    "claim": "Stars are so far away they are point sources, so turbulent air bends their light around and they flicker; planets show a tiny disk whose many points average out.",
-    "why_now": "IG Reel on this exact question: 843.5K views at 35.8x this month",
-    "evidence": [
-      "https://www.instagram.com/reel/DeKHK7ottF_"
-    ],
-    "sources_to_cite": [
-      "https://spaceplace.nasa.gov/twinkling/"
-    ],
-    "visuals": "NASA night-sky footage, ISS photos of atmosphere layer, planets (Jupiter, Venus) imagery",
-    "score": 21,
-    "added": "2026-10-30",
-    "status": "queued"
-  },
-  {
-    "topic": "Mars dust is toxic",
-    "hook": "Martian dirt could poison astronauts.",
-    "claim": "Martian soil contains perchlorates and fine dust that would be hazardous for crews; NASA's Perseverance is gathering data to protect future explorers.",
-    "why_now": "IG Reel 3.4M views; NASA Perseverance dust article published 3 days ago",
-    "evidence": [
-      "https://www.instagram.com/reel/Decs5GLzJ-Y",
-      "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
-    ],
-    "sources_to_cite": [
-      "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
-    ],
-    "visuals": "Perseverance and Curiosity rover imagery, Mars dust storm footage",
-    "score": 21,
-    "added": "2026-10-30",
-    "status": "queued"
-  },
-  {
-    "topic": "A teaspoon of neutron star",
-    "hook": "One teaspoon of this weighs a billion tons.",
-    "claim": "Neutron stars pack more than the Sun's mass into a city-sized ball, so a sugar-cube-sized piece would weigh about a billion tons on Earth.",
-    "why_now": "Pulsar-density Reel: 770K views at 144x this month",
-    "evidence": [
-      "https://www.instagram.com/reel/DeA-k3Jpivz"
-    ],
-    "sources_to_cite": [
-      "https://imagine.gsfc.nasa.gov/science/objects/neutron_stars1.html"
-    ],
-    "visuals": "NASA Goddard SVS pulsar and neutron-star animations, Crab Nebula (Hubble/Chandra)",
-    "score": 21,
-    "added": "2026-10-30",
-    "status": "queued"
-  },
-  {
-    "topic": "Permafrost is a carbon freezer",
-    "hook": "Frozen ground holds more carbon than the sky.",
-    "claim": "Permafrost soils hold roughly twice as much carbon as is currently in the atmosphere; thawing lets microbes release it as CO2 and methane.",
-    "why_now": "Rising keyword 'permafrost' +915% (~931K est. monthly searches)",
-    "evidence": [
-      "vidIQ rising keywords 2026-10-30 (see research/2026-10-30-trends.md)"
-    ],
-    "sources_to_cite": [
-      "https://nsidc.org/learn/parts-cryosphere/frozen-ground-permafrost"
-    ],
-    "visuals": "NASA ABoVE Arctic footage, Landsat thaw-lake imagery, Earth Observatory Arctic images",
-    "score": 20,
-    "added": "2026-10-30",
-    "status": "queued"
-  }
+ {
+  "topic": "You are looking at the past",
+  "hook": "The Sun you see is 8 minutes old.",
+  "claim": "Sunlight takes about 8 minutes 20 seconds to reach Earth, so we see the Sun (and every star) as it was when the light left it.",
+  "why_now": "Light-travel-time Short at 300x breakout, 1.8M views this month",
+  "evidence": [
+   "https://www.youtube.com/watch?v=WLcmwZEQ2SU"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/sun/facts/"
+  ],
+  "visuals": "NASA SDO Sun footage, Hubble deep field, ISS sunrise",
+  "score": 24,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "Why you can't nuke a hurricane",
+  "hook": "A hurricane releases more energy than a nuke. Constantly.",
+  "claim": "A mature hurricane's heat release is like a 10-megaton bomb going off every 20 minutes, so a nuclear blast would not stop it and would spread fallout (NOAA HRD FAQ).",
+  "why_now": "'What if we nuked a hurricane' Short at 23x and 1.3K VPH; rising keyword 'disasters explained' +232%; Typhoon Arnab in NASA EO",
+  "evidence": [
+   "https://www.youtube.com/watch?v=dyFZlc2h3wk",
+   "https://science.nasa.gov/earth/earth-observatory/arnab-strikes-india/"
+  ],
+  "sources_to_cite": [
+   "https://www.aoml.noaa.gov/hrd-faq/"
+  ],
+  "visuals": "NASA ISS and GOES hurricane footage, eye-of-storm flyovers",
+  "score": 23,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "Why space is black",
+  "hook": "Space is full of sunlight. So why is it black?",
+  "claim": "Our sky looks blue because air molecules scatter blue sunlight toward our eyes; in space there is almost no air to scatter light, so the sky looks black even in full sunlight.",
+  "why_now": "'Why is space pitch black?' Short at 41x this week; 'real color of space' cluster breaking out",
+  "evidence": [
+   "https://www.youtube.com/watch?v=sEHSu4zHQ4w"
+  ],
+  "sources_to_cite": [
+   "https://spaceplace.nasa.gov/blue-sky/"
+  ],
+  "visuals": "NASA spacewalk footage against black sky, ISS view of Earth's blue limb",
+  "score": 22,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "The Sun is actually white",
+  "hook": "The Sun isn't yellow. It's white.",
+  "claim": "The Sun emits all visible colors, which combine to white; it looks yellow from the ground because the atmosphere scatters away some blue light.",
+  "why_now": "TikTok on the Sun's real color: 1M views at 34.9x this month",
+  "evidence": [
+   "https://www.tiktok.com/@deepspacefiles5/video/7693225233330867486"
+  ],
+  "sources_to_cite": [
+   "https://solar-center.stanford.edu/SID/activities/GreenSun.html",
+   "https://spaceplace.nasa.gov/blue-sky/"
+  ],
+  "visuals": "ISS photos of the Sun from orbit, NASA SDO, sunset from ISS",
+  "score": 22,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "What makes the northern lights",
+  "hook": "Auroras are the Sun hitting our air.",
+  "claim": "Charged particles from the Sun, steered by Earth's magnetic field, collide with oxygen and nitrogen high in the atmosphere, which then glow green, red, and purple.",
+  "why_now": "Solar Cycle 25 peak; G2 storm watch Oct 8-9 put aurora in reach of up to 22 US states",
+  "evidence": [
+   "https://www.hola.com/us/lifestyle/20261008927945/northern-lights-tonight-22-states/",
+   "https://www.skyatnightmagazine.com/news/aurora-displays-8-11-october-2026"
+  ],
+  "sources_to_cite": [
+   "https://www.swpc.noaa.gov/phenomena/aurora"
+  ],
+  "visuals": "NASA ISS aurora time-lapses, SDO solar flare footage",
+  "score": 22,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "The Moon is drifting away",
+  "hook": "The Moon is leaving us. Slowly.",
+  "claim": "The Moon moves about 3.8 cm farther from Earth each year because of tidal interactions.",
+  "why_now": "'What if' niche surging (ifverse +52,580%); 'what would happen if the moon crashed into earth?' +725%",
+  "evidence": [
+   "vidIQ rising keywords 2026-10-30 (see research/2026-10-30-trends.md)"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/moon/facts/"
+  ],
+  "visuals": "NASA LRO Moon footage, Apollo laser retroreflector photos, Earthrise",
+  "score": 22,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "Why stars twinkle but planets don't",
+  "hook": "Stars twinkle. Planets don't. Here's why.",
+  "claim": "Stars are so far away they are point sources, so turbulent air bends their light around and they flicker; planets show a tiny disk whose many points average out.",
+  "why_now": "IG Reel on this exact question: 843.5K views at 35.8x this month",
+  "evidence": [
+   "https://www.instagram.com/reel/DeKHK7ottF_"
+  ],
+  "sources_to_cite": [
+   "https://spaceplace.nasa.gov/twinkling/"
+  ],
+  "visuals": "NASA night-sky footage, ISS photos of atmosphere layer, planets (Jupiter, Venus) imagery",
+  "score": 21,
+  "added": "2026-10-30",
+  "status": "queued"
+ },
+ {
+  "topic": "Mars dust is toxic",
+  "hook": "Martian dirt could poison astronauts.",
+  "claim": "Martian soil contains perchlorates and fine dust that would be hazardous for crews; NASA's Perseverance is gathering data to protect future explorers.",
+  "why_now": "IG Reel 3.4M views; NASA Perseverance dust article published 3 days ago",
+  "evidence": [
+   "https://www.instagram.com/reel/Decs5GLzJ-Y",
+   "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
+  ],
+  "sources_to_cite": [
+   "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
+  ],
+  "visuals": "Perseverance and Curiosity rover imagery, Mars dust storm footage",
+  "score": 21,
+  "added": "2026-10-30",
+  "status": "queued"
+ },
+ {
+  "topic": "A teaspoon of neutron star",
+  "hook": "One teaspoon of this weighs a billion tons.",
+  "claim": "Neutron stars pack more than the Sun's mass into a city-sized ball, so a sugar-cube-sized piece would weigh about a billion tons on Earth.",
+  "why_now": "Pulsar-density Reel: 770K views at 144x this month",
+  "evidence": [
+   "https://www.instagram.com/reel/DeA-k3Jpivz"
+  ],
+  "sources_to_cite": [
+   "https://imagine.gsfc.nasa.gov/science/objects/neutron_stars1.html"
+  ],
+  "visuals": "NASA Goddard SVS pulsar and neutron-star animations, Crab Nebula (Hubble/Chandra)",
+  "score": 21,
+  "added": "2026-10-30",
+  "status": "queued"
+ },
+ {
+  "topic": "Permafrost is a carbon freezer",
+  "hook": "Frozen ground holds more carbon than the sky.",
+  "claim": "Permafrost soils hold roughly twice as much carbon as is currently in the atmosphere; thawing lets microbes release it as CO2 and methane.",
+  "why_now": "Rising keyword 'permafrost' +915% (~931K est. monthly searches)",
+  "evidence": [
+   "vidIQ rising keywords 2026-10-30 (see research/2026-10-30-trends.md)"
+  ],
+  "sources_to_cite": [
+   "https://nsidc.org/learn/parts-cryosphere/frozen-ground-permafrost"
+  ],
+  "visuals": "NASA ABoVE Arctic footage, Landsat thaw-lake imagery, Earth Observatory Arctic images",
+  "score": 20,
+  "added": "2026-10-30",
+  "status": "queued"
+ }
 ]

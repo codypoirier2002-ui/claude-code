@@ -5,3 +5,4 @@
 - 2026-10-30 | Why space is black | Space looks black even in full sunlight because there is almost no air to scatter the light toward your eyes. | space-is-black.mp4
 - 2026-10-30 | The Moon is drifting away | The Moon moves about 3.8 cm (1.5 inches) farther from Earth every year because Earth's tidal bulge, carried ahead by Earth's faster spin, tugs the Moon forward into a higher orbit. | moon-drifting-away.mp4
 - 2026-10-30 | The Sun is actually white | The Sun's light is all visible colors mixed, which is white; it looks yellow from the ground because air scatters away some of the blue. | sun-is-white.mp4
+- 2026-10-30 | What makes the northern lights | Auroras are Earth's own upper air glowing: energized electrons, guided by Earth's magnetic field, hit oxygen and nitrogen atoms, which release the energy as light. | northern-lights.mp4

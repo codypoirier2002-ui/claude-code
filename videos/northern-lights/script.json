@@ -1,0 +1,19 @@
+{
+  "topic": "What makes the northern lights",
+  "claim": "Auroras are Earth's own upper air glowing: energized electrons, guided by Earth's magnetic field, hit oxygen and nitrogen atoms, which release the energy as light.",
+  "accent": "#7CFFB2",
+  "beats": [
+    {"id": "hook", "seconds": 2.4, "caption": "The northern lights are Earth's own air, glowing.", "vo": "The northern lights are Earth's own air, glowing.", "bg": "#050b14", "image": "assets/iss072e159172.jpg", "imageFocus": 0.5, "audio": "assets/vo/hook.mp3"},
+    {"id": "setup", "seconds": 8, "caption": "Solar energy gets trapped in Earth's magnetic field.", "vo": "Energy and particles from the Sun get trapped in Earth's magnetic field. Some electrons speed up, then follow the field lines down toward the poles.", "bg": "#0a1428", "audio": "assets/vo/setup.mp3",
+      "clips": [{"image": "assets/iss066e146457.jpg", "imageFocus": 0.3}, {"image": "assets/iss062e148363.jpg", "imageFocus": 0.5}]},
+    {"id": "mechanism", "seconds": 10, "caption": "Atoms absorb energy, then release it as light.", "vo": "Up there, they slam into oxygen and nitrogen atoms. The atoms soak up that energy, then release it as light, a bit like a neon sign. Oxygen glows green and red.", "bg": "#0a1f1a", "audio": "assets/vo/mechanism.mp3",
+      "clips": [{"image": "assets/iss030e119777.jpg", "imageFocus": 0.5}, {"image": "assets/iss072e159516.jpg", "imageFocus": 0.5}, {"image": "assets/iss062e148363.jpg", "imageFocus": 0.5}]},
+    {"id": "payoff", "seconds": 10, "caption": "80 to 500 km up. In big storms, far south.", "vo": "The glow happens eighty to five hundred kilometers up. In big storms it reaches far south, even over much of the United States. Same sky, just lit from within.", "bg": "#0a1f1a", "audio": "assets/vo/payoff.mp3",
+      "clips": [{"image": "assets/iss073e0247726.jpg", "imageFocus": 0.3}, {"image": "assets/iss066e146457.jpg", "imageFocus": 0.8}]}
+  ],
+  "sources": [
+    {"text": "NOAA Space Weather Prediction Center, \"Aurora\" (electrons follow Earth's magnetic field and collide with oxygen and nitrogen in the upper atmosphere, then release light like a neon light; aurora forms about 80 to 500 km up; in major geomagnetic storms it can be seen over most of the United States): https://www.swpc.noaa.gov/phenomena/aurora"},
+    {"text": "NASA Space Place, \"What Is an Aurora?\" (solar energy and particles trapped in Earth's magnetic field travel down field lines near the poles; oxygen gives off green and red light): https://spaceplace.nasa.gov/aurora/en/"}
+  ],
+  "credits": ["Images: NASA/JSC ISS crew Earth observation photos iss072e159172, iss072e159516, iss073e0247726, iss030e119777, iss062e148363, iss066e146457 (images.nasa.gov)", "Narration: ElevenLabs (Liam)"]
+}
