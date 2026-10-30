@@ -1,0 +1,118 @@
+{
+  "topic": "Why astronauts float",
+  "claim": "Astronauts float because they and the station are in continuous free fall around Earth, not because there is no gravity.",
+  "accent": "#ffd166",
+  "music": "assets/music.mp3",
+  "musicVolume": 0.12,
+  "transition": {
+    "type": "fade",
+    "seconds": 0.2
+  },
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 2,
+      "caption": "There IS gravity up there",
+      "vo": "Astronauts aren't weightless.",
+      "audio": "assets/vo/hook.mp3",
+      "clips": [
+        {
+          "video": "assets/iss-tour.mp4",
+          "videoStart": 15.5,
+          "videoFocus": 0.5
+        },
+        {
+          "image": "assets/hair.jpg",
+          "imageFocus": 0.45
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "seconds": 8,
+      "caption": "About 90% of Earth's gravity",
+      "vo": "Up on the Space Station, gravity is still about ninety percent as strong as it is down here. The station is only a few hundred miles up.",
+      "audio": "assets/vo/setup.mp3",
+      "clips": [
+        {
+          "video": "assets/iss-tour.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.55,
+          "seconds": 2.1
+        },
+        {
+          "image": "assets/limb-moon.jpg",
+          "seconds": 5.8
+        }
+      ]
+    },
+    {
+      "id": "mechanism",
+      "seconds": 12,
+      "caption": "Always falling, always missing",
+      "vo": "So why do they float? Because they're falling. The station is always falling toward Earth, but it's also flying sideways at five miles every second. So it falls around the planet, and keeps missing.",
+      "audio": "assets/vo/mechanism.mp3",
+      "clips": [
+        {
+          "video": "assets/iss-tour.mp4",
+          "videoStart": 5.4,
+          "videoFocus": 0.5,
+          "seconds": 2.2
+        },
+        {
+          "image": "assets/night-lights.jpg",
+          "seconds": 3.6
+        },
+        {
+          "video": "assets/iss-tour.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.55,
+          "seconds": 2.1
+        },
+        {
+          "image": "assets/aurora.jpg",
+          "seconds": 5.2
+        }
+      ]
+    },
+    {
+      "id": "payoff",
+      "seconds": 10,
+      "caption": "A fall that never ends",
+      "vo": "The astronauts, the water, everything inside falls together, so nothing pushes on anything. Floating is just a fall that never ends. One lap around Earth takes about ninety minutes.",
+      "audio": "assets/vo/payoff.mp3",
+      "clips": [
+        {
+          "video": "assets/iss-tour.mp4",
+          "videoStart": 20,
+          "videoFocus": 0.5
+        },
+        {
+          "image": "assets/water.jpg"
+        },
+        {
+          "image": "assets/arms.jpg"
+        },
+        {
+          "video": "assets/iss-tour.mp4",
+          "videoStart": 12.5,
+          "videoFocus": 0.5
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "text": "NASA, What Is Microgravity? (Grades 5-8): https://www.nasa.gov/learning-resources/for-kids-and-students/what-is-microgravity-grades-5-8/"
+    },
+    {
+      "text": "NASA, Space Station Facts and Figures: https://www.nasa.gov/international-space-station/space-station-facts-and-figures/"
+    }
+  ],
+  "credits": [
+    "Footage: NASA Johnson Space Center, Tour the International Space Station: 25 Years of Humans in Space (jsc2025m000041)",
+    "Images: NASA (iss062e004933, s123e006147, s131e008357, iss040e092688, iss062e148363, iss030e010008)",
+    "Narration: ElevenLabs, voice 'Liam - Energetic, Social Media Creator'",
+    "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/"
+  ]
+}
