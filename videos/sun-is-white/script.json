@@ -1,0 +1,19 @@
+{
+  "topic": "The Sun is actually white",
+  "claim": "The Sun's light is all visible colors mixed, which is white; it looks yellow from the ground because air scatters away some of the blue.",
+  "accent": "#ffd166",
+  "beats": [
+    {"id": "hook", "seconds": 2.4, "caption": "The Sun isn't yellow.", "vo": "The Sun isn't yellow.", "bg": "#0b1020", "image": "assets/sunrise-burst.jpg", "imageFocus": 0.85, "audio": "assets/vo/hook.mp3"},
+    {"id": "setup", "seconds": 7, "caption": "Sunlight is every color. Together: white.", "vo": "Sunlight is every color of the rainbow at once. Mixed together, those colors add up to white.", "bg": "#101a33", "audio": "assets/vo/setup.mp3",
+      "clips": [{"image": "assets/sunrise-limb.jpg", "imageFocus": 0.2}, {"image": "assets/sunrise-burst.jpg", "imageFocus": 0.85}]},
+    {"id": "mechanism", "seconds": 12, "caption": "Air scatters blue light away.", "vo": "Air molecules scatter short blue waves of light much more than long red ones. Some of the Sun's blue gets thrown across the sky, so the light that reaches your eyes looks a little yellow.", "bg": "#12284a", "audio": "assets/vo/mechanism.mp3",
+      "clips": [{"image": "assets/blue-layer.jpg"}, {"image": "assets/glint-clouds.jpg", "imageFocus": 0.6}, {"image": "assets/gulf-glint.jpg", "imageFocus": 0.5}]},
+    {"id": "payoff", "seconds": 11, "caption": "At sunset, even more blue is lost.", "vo": "At sunset, light crosses even more air and loses even more blue, so the Sun turns orange and red. Next sunset, you're watching white light lose its blue.", "bg": "#2a1020", "audio": "assets/vo/payoff.mp3",
+      "clips": [{"image": "assets/sunrise-limb.jpg", "imageFocus": 0.2}, {"image": "assets/sunrise-burst.jpg", "imageFocus": 0.85}]}
+  ],
+  "sources": [
+    {"text": "Stanford Solar Center, \"Is the Sun Green?\" (the Sun is essentially all colors mixed, which look white; sunrise/sunset colors come from scattering): https://solar-center.stanford.edu/SID/activities/GreenSun.html"},
+    {"text": "NASA Space Place, \"Why Is the Sky Blue?\" (sunlight looks white but is made of all colors; blue scatters more than other colors; low Sun gives reds and yellows): https://spaceplace.nasa.gov/blue-sky/"}
+  ],
+  "credits": ["Images: NASA/JSC ISS crew Earth observation photos iss063e058598, iss067e141213, iss070e090453, iss070e127437, iss071e414023 (images.nasa.gov)", "Narration: ElevenLabs (Liam)"]
+}
