@@ -1,0 +1,96 @@
+{
+  "topic": "Why hurricanes spin",
+  "claim": "Earth's rotation deflects air rushing toward a storm's low-pressure center, so hurricanes spin counterclockwise in the Northern Hemisphere and clockwise in the Southern.",
+  "accent": "#ffd166",
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 2,
+      "caption": "Why do hurricanes spin one way?",
+      "vo": "Why do hurricanes spin one way?",
+      "bg": "#0b1d2e",
+      "image": "assets/GSFC_20171208_Archive_e000947.jpg",
+      "imageFocus": 0.8,
+      "audio": "assets/vo/hook.mp3"
+    },
+    {
+      "id": "setup",
+      "seconds": 8,
+      "caption": "North: counterclockwise. South: clockwise.",
+      "vo": "Look down on a Northern Hemisphere hurricane and the winds turn counterclockwise. South of the equator, they turn clockwise.",
+      "bg": "#12324a",
+      "clips": [
+        {
+          "image": "assets/GSFC_20171208_Archive_e000713.jpg",
+          "imageFocus": 0.4
+        },
+        {
+          "image": "assets/iss007e14882.jpg",
+          "imageFocus": 0.5
+        }
+      ],
+      "audio": "assets/vo/setup.mp3"
+    },
+    {
+      "id": "mechanism",
+      "seconds": 13,
+      "caption": "Earth's spin bends the air rushing in.",
+      "vo": "A hurricane is a giant low-pressure zone, so air rushes in toward its center. But Earth is rotating underneath that air, which deflects it sideways. That deflection is called the Coriolis effect, and it twists the inflow into a spiral.",
+      "bg": "#163d5c",
+      "clips": [
+        {
+          "image": "assets/iss007e14741.jpg",
+          "imageFocus": 0.5
+        },
+        {
+          "image": "assets/GSFC_20171208_Archive_e000713.jpg",
+          "imageFocus": 0.55
+        },
+        {
+          "image": "assets/iss007e14882.jpg",
+          "imageFocus": 0.35
+        }
+      ],
+      "audio": "assets/vo/mechanism.mp3"
+    },
+    {
+      "id": "payoff",
+      "seconds": 10,
+      "caption": "No spin near the equator. What if Earth stood still?",
+      "vo": "Near the equator, that deflection is too weak, so hurricanes almost never form within about 200 miles of it. So what would a hurricane do on a planet that did not spin?",
+      "bg": "#0b1d2e",
+      "clips": [
+        {
+          "image": "assets/GSFC_20171208_Archive_e000947.jpg",
+          "imageFocus": 0.75
+        },
+        {
+          "image": "assets/iss007e14741.jpg",
+          "imageFocus": 0.4
+        }
+      ],
+      "audio": "assets/vo/payoff.mp3"
+    }
+  ],
+  "sources": [
+    {
+      "text": "NOAA NESDIS, What Is the Coriolis Effect? https://www.nesdis.noaa.gov/about/k-12-education/atmosphere/what-the-coriolis-effect"
+    },
+    {
+      "text": "NOAA Education, Hurricanes (circulation direction; at least ~200 miles from the equator, with rare exceptions) https://www.noaa.gov/education/resource-collections/weather-atmosphere/hurricanes"
+    },
+    {
+      "text": "NOAA JetStream, Tropical Cyclone Structure https://www.noaa.gov/jetstream/tropical/tropical-cyclone-introduction/tropical-cyclone-structure"
+    }
+  ],
+  "credits": [
+    "Hurricane Gonzalo (GOES-East): NASA/NOAA (GSFC_20171208_Archive_e000947)",
+    "Hurricane Blanca infrared (Suomi NPP VIIRS): NASA/NOAA, Univ. of Wisconsin (GSFC_20171208_Archive_e000713)",
+    "Hurricane Isabel eye from ISS: NASA, Expedition 7 (iss007e14882, iss007e14741)",
+    "Narration: ElevenLabs, voice 'Liam - Energetic, Social Media Creator'"
+  ],
+  "transition": {
+    "type": "fade",
+    "seconds": 0.25
+  }
+}
