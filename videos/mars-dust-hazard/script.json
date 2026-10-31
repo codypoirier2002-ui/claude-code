@@ -1,0 +1,191 @@
+{
+  "topic": "Mars dust is toxic",
+  "claim": "Perseverance found Mars dust grains fine enough to reach deep into human lungs if inhaled; Mars dust is also known to carry perchlorate salts that, in large doses, can disrupt the thyroid, so it could harm crews, depending on how much dust and for how long.",
+  "accent": "#ffb347",
+  "transition": {
+    "type": "fade",
+    "seconds": 0.2
+  },
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 2,
+      "caption": "Could Mars dust harm astronauts?",
+      "vo": "Could Mars dust harm astronauts?",
+      "bg": "#2a0f0a",
+      "bg2": "#7a2e1a",
+      "image": "assets/mars-serpent-devil.jpg",
+      "audio": "assets/vo/hook.mp3"
+    },
+    {
+      "id": "setup",
+      "seconds": 10.5,
+      "caption": "Apollo had a dust problem",
+      "vo": "Moon dust scratched Apollo visors. Some crew reported hay fever-like symptoms. Mars dust is less scratchy. The catch: size and chemistry.",
+      "bg": "#2a0f0a",
+      "bg2": "#7a2e1a",
+      "audio": "assets/vo/setup.mp3",
+      "clips": [
+        {
+          "image": "assets/apollo-visor.jpg",
+          "seconds": 2.45
+        },
+        {
+          "image": "assets/apollo-bootprint.jpg",
+          "seconds": 3.05
+        },
+        {
+          "image": "assets/mars-dune.jpg",
+          "seconds": 2.15
+        },
+        {
+          "image": "assets/curiosity-dusty.jpg",
+          "seconds": 3.02
+        }
+      ],
+      "captionStarts": [
+        0.0,
+        1.24,
+        2.6,
+        3.62,
+        5.37,
+        6.28,
+        7.8,
+        8.73
+      ]
+    },
+    {
+      "id": "mechanism",
+      "seconds": 21.5,
+      "caption": "Tiny grains, perchlorate salts",
+      "vo": "Spacesuit swatches on NASA's Perseverance rover collected grains hundreds of times thinner than a hair, small enough to reach deep into lungs if inhaled. Separately, Mars dust carries perchlorates, salts containing chlorine and oxygen. In large doses, they can disrupt your thyroid gland, whose hormones control your body's energy use.",
+      "bg": "#2a0f0a",
+      "bg2": "#7a2e1a",
+      "audio": "assets/vo/mechanism.mp3",
+      "clips": [
+        {
+          "image": "assets/sherloc-clean.jpg",
+          "seconds": 3.2
+        },
+        {
+          "image": "assets/sherloc-dusty.jpg",
+          "seconds": 3.2
+        },
+        {
+          "image": "assets/mars-dust-devil.jpg",
+          "seconds": 3.5
+        },
+        {
+          "image": "assets/insight-arm-sand.jpg",
+          "seconds": 3.0
+        },
+        {
+          "image": "assets/curiosity-scoop.jpg",
+          "seconds": 3.6
+        },
+        {
+          "image": "assets/thyroid-gray.jpg",
+          "seconds": 2.0
+        },
+        {
+          "image": "assets/mars-astronauts.jpg",
+          "seconds": 3.06
+        }
+      ],
+      "captionStarts": [
+        0.0,
+        1.42,
+        3.08,
+        4.48,
+        5.4,
+        6.7,
+        7.4,
+        8.4,
+        10.06,
+        10.96,
+        12.0,
+        13.08,
+        14.32,
+        15.62,
+        16.68,
+        17.32,
+        18.54,
+        19.66,
+        20.62
+      ]
+    },
+    {
+      "id": "payoff",
+      "seconds": 11.5,
+      "caption": "Risk: how much, how long",
+      "vo": "So yes, it could, depending on how much dust and for how long. One idea: suits attached outside the habitat, so less dust could get in. How would you keep it out?",
+      "bg": "#2a0f0a",
+      "bg2": "#7a2e1a",
+      "audio": "assets/vo/payoff.mp3",
+      "clips": [
+        {
+          "image": "assets/mars-dust-storm.jpg",
+          "seconds": 2.05
+        },
+        {
+          "image": "assets/insight-dusty-panel.jpg",
+          "seconds": 2.95
+        },
+        {
+          "image": "assets/mars-habitat.jpg",
+          "seconds": 4.9
+        },
+        {
+          "image": "assets/hook-rover.jpg",
+          "seconds": 1.65
+        }
+      ],
+      "captionStarts": [
+        0.0,
+        1.1,
+        1.98,
+        2.76,
+        3.76,
+        5.0,
+        6.02,
+        7.3,
+        8.08,
+        8.92,
+        9.9,
+        10.26
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "text": "NASA/JPL, \"NASA’s Perseverance Offers Clues to Protect Crews From Mars Dust\", Oct 26, 2026, https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
+    },
+    {
+      "text": "VanBommel S.J. et al., \"Fine and ultrafine Martian dust presents additional risks for future crewed missions to Mars\", PNAS 123(44) e2620747123 (2026), https://doi.org/10.1073/pnas.2620747123"
+    },
+    {
+      "text": "Archer P.D. Jr. et al., \"Perchlorate on Mars - Overview and Implications\", NASA JSC, Ninth International Conference on Mars (2019), NTRS 20190028297, https://ntrs.nasa.gov/api/citations/20190028297/downloads/20190028297.pdf"
+    },
+    {
+      "text": "NIH MedlinePlus, \"Thyroid Diseases\", https://medlineplus.gov/thyroiddiseases.html"
+    }
+  ],
+  "credits": [
+    "Serpent dust devil seen from orbit (Mars Reconnaissance Orbiter HiRISE, image rotated 90°, blurred fill above): NASA/JPL-Caltech/Univ. of Arizona (PIA15116)",
+    "Apollo 12 astronaut with sample container, visor down: NASA (AS12-49-7278)",
+    "Apollo 11 bootprint in lunar soil: NASA (AS11-40-5878)",
+    "Curiosity at Namib Dune (crop of the self-portrait showing the dune only): NASA/JPL-Caltech/MSSS (PIA20316)",
+    "Curiosity's dusty selfie: NASA/JPL-Caltech/MSSS (PIA22486)",
+    "SHERLOC calibration target with spacesuit materials: NASA/JPL-Caltech (PIA24261)",
+    "SHERLOC calibration target on Mars: NASA/JPL-Caltech/MSSS (PIA26520)",
+    "Mars whirling dust devil (HiRISE, blurred fill above and below): NASA/JPL-Caltech/Univ. of Arizona; animation credit: NASA/JPL-Caltech (PIA15545)",
+    "InSight robotic arm trickling sand over its solar panel: NASA/JPL-Caltech (PIA24664)",
+    "Curiosity's first scoop of Martian soil: NASA/JPL-Caltech/MSSS (PIA16226)",
+    "Thyroid gland and its relations: Henry Gray, Anatomy of the Human Body, 20th ed. (1918), Fig. 1174, public domain; scan via Internet Archive (anatomyofhumanbo1918gray)",
+    "First Humans on Mars (artist's concept; astronaut and habitat shots are two crops of it): NASA (PIA23302)",
+    "Mars before and during the 2018 global dust storm (MRO MARCI, globes stacked vertically): NASA/JPL-Caltech/MSSS (PIA22487)",
+    "InSight's dusty solar panel: NASA/JPL-Caltech (PIA25286)",
+    "Dust Devil Photobombs Perseverance's Selfie (closing crop shows the rover only): NASA/JPL-Caltech/MSSS (PIA26574)",
+    "Narration: ElevenLabs, voice 'Liam - Energetic, Social Media Creator'"
+  ]
+}

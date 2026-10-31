@@ -1,0 +1,147 @@
+{
+  "topic": "Why we only see one side of the Moon",
+  "claim": "The Moon spins exactly once per orbit because, long ago, Earth's gravity braked its spin (tidal locking), so the same side always faces us.",
+  "accent": "#c3b2ff",
+  "transition": {
+    "type": "fade",
+    "seconds": 0.2
+  },
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 2,
+      "caption": "The Moon always faces us. Why?",
+      "vo": "The Moon always faces us. Why?",
+      "audio": "assets/vo/hook-tight.wav",
+      "image": "assets/near-side-full-moon.jpg",
+      "captionStarts": [0.0, 0.77, 1.89]
+    },
+    {
+      "id": "setup",
+      "seconds": 7.5,
+      "caption": "It spins once per orbit",
+      "vo": "You'd think it doesn't spin. It does: exactly once per lap around Earth, about every 27 days.",
+      "audio": "assets/vo/setup.mp3",
+      "transition": false,
+      "clips": [
+        {
+          "video": "assets/tidal-locked-orbit.mp4",
+          "videoStart": 1.3,
+          "seconds": 2.75
+        },
+        {
+          "video": "assets/tidal-locked-orbit-tight.mp4",
+          "videoStart": 4.06,
+          "seconds": 4.73
+        }
+      ],
+      "captionStarts": [0.0, 0.53, 1.91, 2.85, 3.93, 5.22, 5.97]
+    },
+    {
+      "id": "mechanism",
+      "seconds": 17.4,
+      "caption": "Earth's gravity braked its spin",
+      "vo": "The young Moon spun much faster. Earth's gravity stretched it into a football shape. The spin dragged that bulge out of line; Earth kept pulling it back, braking the spin. The flexing shed energy as heat until one spin matched one orbit. That's tidal locking.",
+      "audio": "assets/vo/mechanism.mp3",
+      "clips": [
+        {
+          "video": "assets/pretidal-orbit.mp4",
+          "videoStart": 1.3,
+          "seconds": 2.35
+        },
+        {
+          "video": "assets/pretidal-close-fade.mp4",
+          "videoStart": 1,
+          "seconds": 2.9
+        },
+        {
+          "video": "assets/pretidal-close-fade.mp4",
+          "videoStart": 9,
+          "seconds": 2.6
+        },
+        {
+          "video": "assets/pretidal-orbit.mp4",
+          "videoStart": 6.6,
+          "seconds": 2.9
+        },
+        {
+          "video": "assets/pretidal-close-fade.mp4",
+          "videoStart": 5,
+          "seconds": 1.91
+        },
+        {
+          "video": "assets/posttidal-orbit.mp4",
+          "videoStart": 2,
+          "seconds": 2.69
+        },
+        {
+          "video": "assets/tidal-locked-orbit.mp4",
+          "videoStart": 3.3,
+          "seconds": 2.06
+        }
+      ],
+      "captionStarts": [0.0, 0.49, 2.52, 3.43, 4.11, 5.42, 5.97, 6.97, 7.99, 8.67, 9.43, 10.91, 11.71, 12.61, 13.75, 15.49]
+    },
+    {
+      "id": "payoff",
+      "seconds": 13.7,
+      "caption": "The 'dark side' gets sunlight too",
+      "vo": "Some call the far side, the half we never see from Earth, the 'dark side.' But it has day and night like ours. It just never faces us. Artemis II astronauts flew around it. Could Earth ever lock to the Moon?",
+      "audio": "assets/vo/payoff.mp3",
+      "clips": [
+        {
+          "image": "assets/far-side-lro.jpg",
+          "seconds": 2.3
+        },
+        {
+          "image": "assets/artemis2-moon-limb.jpg",
+          "imageFocus": 0.35,
+          "seconds": 2.55
+        },
+        {
+          "image": "assets/artemis2-orientale-terminator.jpg",
+          "seconds": 2.12
+        },
+        {
+          "video": "assets/tidal-locked-orbit.mp4",
+          "videoStart": 6,
+          "seconds": 1.63
+        },
+        {
+          "image": "assets/artemis2-earthset.jpg",
+          "seconds": 2.55
+        },
+        {
+          "image": "assets/dscovr-far-side-and-earth.jpg",
+          "seconds": 2.57
+        }
+      ],
+      "captionStarts": [0.0, 0.55, 1.62, 2.05, 2.61, 3.31, 5.01, 5.45, 6.07, 7.02, 7.49, 8.77, 9.75, 11.34, 12.03, 12.67]
+    }
+  ],
+  "sources": [
+    {
+      "text": "NASA Science, \"Tidal Locking\": https://science.nasa.gov/moon/tidal-locking/ (Moon spins in exactly the time it takes to orbit; Earth's gravity distorted the young Moon into a football shape; the bulge was pulled back toward alignment; energy released as heat slowed the spin until one spin matched one orbit; Earth would lock to the Moon in about 50 billion years)"
+    },
+    {
+      "text": "NASA Science, \"Earth's Moon: Facts\": https://science.nasa.gov/moon/facts/ (27-day orbit and spin; tidally locked so we see one side; calling the far side the \"dark side\" is misleading; far side gets full sunlight at new moon)"
+    },
+    {
+      "text": "NASA Science, \"Artemis II Preliminary Lunar Science Report\" (October 7, 2026): https://science.nasa.gov/feature/artemis-ii-preliminary-lunar-science-report/ (crew flew around the far side on April 6, 2026)"
+    },
+    {
+      "text": "NASA, \"NASA Releases Artemis II Lunar Science Data, Images\" (October 7, 2026): https://www.nasa.gov/blogs/missions/2026/10/07/nasa-releases-artemis-ii-lunar-science-data-images/"
+    },
+    {
+      "text": "NASA Scientific Visualization Studio, \"Moon Wobble\": https://svs.gsfc.nasa.gov/10836/ (libration lets us see about 59 percent of the surface; for replies)"
+    }
+  ],
+  "credits": [
+    "Near-side full Moon (hook): NASA Goddard Space Flight Center Scientific Visualization Studio, simulated from LRO/LOLA data (GSFC_20171208_Archive_e001861). Reduced on a black 9:16 canvas so the whole disc stays in frame",
+    "Tidal-locking animations: NASA/Vi Nguyen, NASA Goddard Space Flight Center (science.nasa.gov/moon/tidal-locking/). Exaggerated and not to scale; cropped to 9:16, the 'North Pole' label on Earth removed, and the bottom of the close-up faded to black",
+    "Far side of the Moon mosaic: NASA/Goddard/Arizona State University (LRO, GSFC_20171208_Archive_e001939)",
+    "Artemis II crew photos: NASA/JSC (art002e012632 \"Over the Moon, Bea\"; art002e020686 \"Orientale Basin at the Edge of Light\"; art002e021278 \"A Breathtaking Earthset from Orion\"). Cropped to 9:16; the top of the Orientale photo is faded to black behind the headline",
+    "Moon's far side crossing Earth: NASA/NOAA, DSCOVR EPIC camera (GSFC_20171208_Archive_e000670)",
+    "Narration: ElevenLabs, voice 'Liam - Energetic, Social Media Creator'"
+  ]
+}
