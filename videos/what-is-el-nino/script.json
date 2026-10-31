@@ -1,0 +1,19 @@
+{
+  "topic": "What is El Niño",
+  "claim": "El Niño is a periodic warming of the equatorial Pacific, driven by warm-water Kelvin waves and weakened trade winds, that rearranges weather worldwide.",
+  "accent": "#ff7a59",
+  "beats": [
+    {"id":"hook","seconds":2,"caption":"The Pacific is heating up","vo":"The Pacific is heating up.","bg":"#1a0d0a","bg2":"#4a1f14","video":"assets/elnino3d.mp4","videoStart":3,"audio":"assets/vo/hook.mp3"},
+    {"id":"setup","seconds":8,"caption":"El Niño: every 2–7 years","vo":"El Niño is a natural pattern that returns every two to seven years. Parts of the equatorial Pacific turn warmer than normal.","bg":"#1a0d0a","bg2":"#4a1f14",
+     "clips":[{"video":"assets/elnino3d.mp4","videoStart":19},{"video":"assets/elnino3d.mp4","videoStart":22}],"audio":"assets/vo/setup.mp3"},
+    {"id":"mechanism","seconds":10,"caption":"Warm water + weaker trade winds","vo":"A pulse of warm water, called a Kelvin wave, slides east. It weakens the trade winds that normally blow the other way, so even more warm water piles up.","bg":"#1a0d0a","bg2":"#4a1f14",
+     "clips":[{"video":"assets/elnino3d.mp4","videoStart":24},{"video":"assets/elnino3d.mp4","videoStart":36},{"video":"assets/elnino3d.mp4","videoStart":46}],"audio":"assets/vo/mechanism.mp3"},
+    {"id":"payoff","seconds":12,"caption":"2026: strongest since 1950?","vo":"This year, NASA says the eastern Pacific runs about three degrees Fahrenheit above average. NOAA gives 83 percent odds of the strongest El Niño since 1950. Will your winter feel it?","bg":"#1a0d0a","bg2":"#4a1f14",
+     "clips":[{"video":"assets/elnino3d.mp4","videoStart":55},{"video":"assets/elnino3d.mp4","videoStart":60},{"video":"assets/elnino3d.mp4","videoStart":65}],"audio":"assets/vo/payoff.mp3"}
+  ],
+  "sources": [
+    {"text":"NASA Science, \"NASA Satellites Observe Historic 2026 El Niño\": https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/ (2–7 year cycle, Kelvin waves, weakened trade winds, ~3°F eastern Pacific warmth, NOAA 83% chance of strongest El Niño since 1950)"},
+    {"text":"NOAA Climate.gov, El Niño & La Niña (ENSO): https://www.climate.gov/enso (weaker trade winds, 2–7 year shifts)"}
+  ],
+  "credits": ["Footage: NASA Goddard Space Flight Center Scientific Visualization Studio, \"A 3D Look at the 2015 El Niño\" (shows the 2015 event, not 2026). Narration: ElevenLabs."]
+}
