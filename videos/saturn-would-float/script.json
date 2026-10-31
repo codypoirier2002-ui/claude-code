@@ -1,0 +1,104 @@
+{
+ "topic": "Saturn would float in water",
+ "claim": "Saturn's average density, about 687 kg/m3, is less than water's, because it is mostly hydrogen and helium spread over a huge volume.",
+ "accent": "#ffd166",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 2,
+   "caption": "Saturn would float in water",
+   "vo": "Saturn would float in water.",
+   "bg": "#14110a",
+   "bg2": "#3a2e14",
+   "image": "assets/PIA06193.jpg",
+   "audio": "assets/vo/hook.mp3"
+  },
+  {
+   "id": "setup",
+   "seconds": 8,
+   "caption": "95x Earth's mass. Density: 687 kg/m\u00b3.",
+   "vo": "Saturn has about 95 times Earth's mass. But its average density is only 687 kilograms per cubic meter. Water is about 1,000.",
+   "bg": "#14110a",
+   "bg2": "#3a2e14",
+   "clips": [
+    {
+     "image": "assets/PIA12646.jpg",
+     "imageFocus": 0.35
+    },
+    {
+     "image": "assets/PIA11593.jpg",
+     "imageFocus": 1.0
+    }
+   ],
+   "audio": "assets/vo/setup.mp3"
+  },
+  {
+   "id": "mechanism",
+   "seconds": 9,
+   "caption": "Mostly hydrogen and helium",
+   "vo": "Saturn is made mostly of hydrogen and helium, the two lightest elements. And it is huge, with about 760 times Earth's volume. So that mass is spread very thin.",
+   "bg": "#14110a",
+   "bg2": "#3a2e14",
+   "clips": [
+    {
+     "image": "assets/PIA17199.jpg"
+    },
+    {
+     "image": "assets/PIA06193.jpg"
+    },
+    {
+     "image": "assets/PIA12646.jpg",
+     "imageFocus": 0.35
+    }
+   ],
+   "audio": "assets/vo/mechanism.mp3"
+  },
+  {
+   "id": "tub",
+   "seconds": 6,
+   "caption": "About 9x wider than Earth",
+   "vo": "Saturn is about nine times wider than Earth, so you would need a bathtub far bigger than our whole planet.",
+   "bg": "#14110a",
+   "bg2": "#3a2e14",
+   "clips": [
+    {
+     "image": "assets/PIA11593.jpg",
+     "imageFocus": 1.0
+    },
+    {
+     "image": "assets/PIA17199.jpg"
+    }
+   ],
+   "audio": "assets/vo/tub.mp3"
+  },
+  {
+   "id": "payoff",
+   "seconds": 9,
+   "caption": "The only planet less dense than water",
+   "vo": "That makes Saturn the only planet in our solar system less dense than water. In a big enough bathtub, it would float. Which planet would you drop in next?",
+   "bg": "#14110a",
+   "bg2": "#3a2e14",
+   "clips": [
+    {
+     "image": "assets/PIA12646.jpg",
+     "imageFocus": 0.35
+    },
+    {
+     "image": "assets/PIA06193.jpg"
+    }
+   ],
+   "audio": "assets/vo/payoff.mp3"
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Saturn Facts: https://science.nasa.gov/saturn/facts/ (mostly hydrogen and helium; only planet with average density less than water)"
+  },
+  {
+   "text": "NASA NSSDC Saturn Fact Sheet: https://nssdc.gsfc.nasa.gov/planetary/factsheet/saturnfact.html (mean density 687 kg/m3; mass 95.16x Earth; volume 763.59x Earth) Equatorial radius 9.4x Earth's, volumetric mean radius 9.14x."
+  }
+ ],
+ "credits": [
+  "Saturn images: NASA/JPL-Caltech/Space Science Institute (Cassini), via NASA Image and Video Library"
+ ]
+}
