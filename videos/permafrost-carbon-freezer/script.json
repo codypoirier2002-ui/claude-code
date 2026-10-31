@@ -1,0 +1,146 @@
+{
+  "topic": "Permafrost is a carbon freezer",
+  "claim": "Arctic permafrost soils hold roughly twice as much carbon as the atmosphere; as they thaw, microbes release it as carbon dioxide and methane.",
+  "accent": "#7fd1ff",
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 3,
+      "caption": "Frozen ground holds twice the sky's carbon",
+      "vo": "Frozen ground holds twice the sky's carbon.",
+      "bg": "#0b1d2e",
+      "audio": "assets/vo/hook.mp3",
+      "clips": [
+        {
+          "video": "assets/seg/Ta.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.6
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "seconds": 10,
+      "caption": "Permafrost: frozen 2+ years",
+      "vo": "Permafrost is ground frozen for at least two years. Across the Arctic it locks away over a trillion tons of carbon, about twice what's in the air.",
+      "bg": "#12324a",
+      "audio": "assets/vo/setup.mp3",
+      "clips": [
+        {
+          "video": "assets/seg/Tb.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.6
+        },
+        {
+          "video": "assets/seg/Mb.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.5
+        },
+        {
+          "video": "assets/seg/Td.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.5
+        },
+        {
+          "video": "assets/seg/Mc.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.5
+        },
+        {
+          "image": "assets/lena-left.jpg",
+          "imageFocus": 0.5
+        },
+        {
+          "video": "assets/seg/Tc.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.6
+        }
+      ]
+    },
+    {
+      "id": "mechanism",
+      "seconds": 11,
+      "caption": "Thaw wakes microbes. They eat the carbon.",
+      "vo": "That carbon is dead plant matter that froze before it could rot. When the ground thaws, microbes wake up and eat it, and release carbon dioxide and methane.",
+      "bg": "#163d5c",
+      "audio": "assets/vo/mechanism.mp3",
+      "clips": [
+        {
+          "video": "assets/seg/Ma.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.5
+        },
+        {
+          "video": "assets/seg/Md.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.8
+        },
+        {
+          "video": "assets/seg/Ma.mp4",
+          "videoStart": 2.0,
+          "videoFocus": 0.2
+        },
+        {
+          "video": "assets/seg/Me.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.15
+        },
+        {
+          "video": "assets/seg/Ta.mp4",
+          "videoStart": 1.4,
+          "videoFocus": 0.9
+        }
+      ]
+    },
+    {
+      "id": "payoff",
+      "seconds": 10,
+      "caption": "A freezer that is slowly thawing",
+      "vo": "That adds greenhouse gas to a warming planet, which can thaw even more ground. Permafrost is a carbon freezer, and the door is slowly opening.",
+      "bg": "#1b4a6e",
+      "audio": "assets/vo/payoff.mp3",
+      "clips": [
+        {
+          "video": "assets/seg/Tb.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.2
+        },
+        {
+          "video": "assets/seg/Mb.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.2
+        },
+        {
+          "image": "assets/lena-left.jpg",
+          "imageFocus": 0.2
+        },
+        {
+          "video": "assets/seg/Td.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.2
+        },
+        {
+          "video": "assets/seg/Mc.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.8
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "text": "NSIDC, Frozen Ground and Permafrost: permafrost is ground frozen for at least two years. https://nsidc.org/learn/parts-cryosphere/frozen-ground-permafrost"
+    },
+    {
+      "text": "NSIDC, 'Plotting the big thaw' (2011): some 1,672 gigatons of carbon in permafrost, more than twice the carbon in the atmosphere; decay releases carbon dioxide and methane. https://nsidc.org/ru/node/31816"
+    },
+    {
+      "text": "NASA Goddard, 'New Arctic Lakes Could Soon Be a Major Source of Atmospheric Methane': thawing permafrost wakes microbes that consume once-frozen organic material."
+    }
+  ],
+  "credits": [
+    "Video: NASA Goddard Space Flight Center, 'Earth Expedition: Flying Over a Greening Arctic Tundra' (GSFC_20170810_Arctic_m12682_Tundra).",
+    "Video: NASA Goddard Space Flight Center, 'New Arctic Lakes Could Soon Be a Major Source of Atmospheric Methane' (GSFC_20080817_Arctic_m13047_MethaneLakes).",
+    "Image: NASA/GSFC/LaRC/JPL, MISR Team, 'A Summer View of Russia, Lena Delta and Olenek' (PIA04366), Terra spacecraft, July 11, 2004."
+  ]
+}
