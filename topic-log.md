@@ -12,3 +12,4 @@
 - 2026-10-31 | Saturn would float in water | Saturn's average density, about 687 kg/m3, is less than water's, because it is mostly hydrogen and helium spread over a huge volume. | saturn-would-float.mp4
 - 2026-10-31 | What is El Niño | El Niño is a periodic warming of the equatorial Pacific, driven by warm-water Kelvin waves and weakened trade winds, that rearranges weather worldwide. | what-is-el-nino.mp4
 - 2026-10-31 | Why we only see one side of the Moon | The Moon spins once per orbit (tidal locking), so the same face always points at Earth; the far side is not dark, and was first imaged in 1959. | moon-one-side.mp4
+- 2026-10-31 | Mars dust is toxic | Perseverance measured fine and ultrafine dust on Mars; Martian dust carries perchlorates and reactive iron that could harm crews, so NASA is designing ways to keep it out. | mars-dust-toxic.mp4

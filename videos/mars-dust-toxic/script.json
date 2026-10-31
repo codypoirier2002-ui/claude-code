@@ -1,0 +1,22 @@
+{
+  "topic": "Mars dust is toxic",
+  "claim": "Perseverance measured fine and ultrafine dust on Mars; Martian dust carries perchlorates and reactive iron that could harm crews, so NASA is designing ways to keep it out.",
+  "accent": "#ff9f5a",
+  "beats": [
+    { "id": "hook", "seconds": 2, "caption": "Mars dust could harm astronauts", "vo": "Mars dust could harm astronauts.", "bg": "#2a120a", "image": "assets/devil.jpg", "audio": "assets/vo/hook.mp3" },
+    { "id": "setup", "seconds": 8, "caption": "Grains 700x thinner than a hair", "vo": "Perseverance just measured it up close. Some grains are only about 100 nanometers wide, roughly 700 times thinner than a human hair.", "bg": "#3a1a0e", "audio": "assets/vo/setup.mp3",
+      "clips": [ { "image": "assets/selfie.jpg", "imageFocus": 0.75 }, { "image": "assets/curiosity.jpg" } ] },
+    { "id": "mechanism", "seconds": 10, "caption": "Perchlorates + reactive iron", "vo": "On Earth, particles that small can reach deep into your lungs. Martian dust also carries perchlorates, which can disrupt the thyroid, and reactive iron that can damage cells.", "bg": "#4a2412", "audio": "assets/vo/mechanism.mp3",
+      "clips": [ { "image": "assets/devil.jpg", "imageFocus": 0.3 }, { "image": "assets/selfie.jpg", "imageFocus": 0.2 } ] },
+    { "id": "payoff", "seconds": 12, "caption": "Static makes dust cling. Risk depends on exposure.", "vo": "Static electricity makes the finest grains cling to everything, even spacesuit materials. The risk depends on dose and exposure time, so NASA is studying suitports and airlocks that could keep dust out.", "bg": "#2a120a", "audio": "assets/vo/payoff.mp3",
+      "clips": [ { "image": "assets/selfie.jpg", "imageFocus": 0.8 }, { "image": "assets/curiosity.jpg", "imageFocus": 0.2 } ] }
+  ],
+  "sources": [
+    { "text": "NASA, \"NASA's Perseverance Offers Clues to Protect Crews From Mars Dust\" (Oct 2026), https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/" }
+  ],
+  "credits": [
+    "Perseverance selfie (PIA26344): NASA/JPL-Caltech/MSSS",
+    "Mars dust devil (PIA15545): NASA/JPL-Caltech/Univ. of Arizona",
+    "Curiosity on the Naukluft Plateau (PIA20738): NASA/JPL-Caltech/Univ. of Arizona"
+  ]
+}
