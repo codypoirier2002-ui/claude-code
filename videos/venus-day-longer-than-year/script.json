@@ -1,0 +1,87 @@
+{
+ "topic": "Venus day is longer than its year",
+ "claim": "Venus spins once in about 243 Earth days but orbits the Sun in about 225, so its day is longer than its year.",
+ "accent": "#ffb454",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 3,
+   "caption": "A day on Venus outlasts its year",
+   "vo": "A day on Venus outlasts its year.",
+   "bg": "#2b1405",
+   "bg2": "#6b3510",
+   "image": "assets/PIA00478.jpg",
+   "audio": "assets/vo/hook.mp3"
+  },
+  {
+   "id": "setup",
+   "seconds": 8,
+   "caption": "One spin: 243 Earth days. One orbit: 225.",
+   "vo": "Venus spins so slowly that one full turn takes about 243 Earth days. But one trip around the Sun takes only about 225.",
+   "bg": "#2b1405",
+   "bg2": "#6b3510",
+   "clips": [
+    {
+     "image": "assets/PIA00257.jpg"
+    },
+    {
+     "image": "assets/PIA00252.jpg"
+    }
+   ],
+   "audio": "assets/vo/setup.mp3"
+  },
+  {
+   "id": "mechanism",
+   "seconds": 8,
+   "caption": "It also spins backward.",
+   "vo": "It also spins backward compared to Earth. Stand on Venus, and the Sun would rise in the west and set in the east.",
+   "bg": "#2b1405",
+   "bg2": "#6b3510",
+   "clips": [
+    {
+     "image": "assets/S91-50687.jpg",
+     "imageFocus": 0.7
+    },
+    {
+     "image": "assets/PIA00257.jpg"
+    }
+   ],
+   "audio": "assets/vo/mechanism.mp3"
+  },
+  {
+   "id": "heat",
+   "seconds": 7,
+   "caption": "Surface: about 872\u00b0F (467\u00b0C)",
+   "vo": "And you would not enjoy the wait. Its thick atmosphere traps heat, so the surface sits near 872 degrees Fahrenheit, hot enough to melt lead.",
+   "bg": "#2b1405",
+   "bg2": "#6b3510",
+   "image": "assets/PIA00481.jpg",
+   "audio": "assets/vo/heat.mp3"
+  },
+  {
+   "id": "payoff",
+   "seconds": 9,
+   "caption": "Sunrise to sunset: about 117 Earth days",
+   "vo": "Even sunrise to sunset takes about 117 Earth days. So one Venus day really is longer than a Venus year. Would you wait around for sunset?",
+   "bg": "#2b1405",
+   "bg2": "#6b3510",
+   "clips": [
+    {
+     "image": "assets/PIA00478.jpg"
+    },
+    {
+     "image": "assets/PIA00248.jpg"
+    }
+   ],
+   "audio": "assets/vo/payoff.mp3"
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Venus Facts: https://science.nasa.gov/venus/venus-facts/ (243-day rotation, 225-day year, 117 days sunrise to sunset, backward spin)"
+  }
+ ],
+ "credits": [
+  "Venus radar images: NASA/JPL-Caltech (Magellan mission), via NASA Image and Video Library"
+ ]
+}
