@@ -1,0 +1,97 @@
+{
+  "topic": "Shooting stars are dust",
+  "claim": "Shooting stars are meteors: bits of comet or asteroid debris, often a grain of sand to a pea in size, that vaporize in a bright streak as they hit our atmosphere at tens of thousands of miles per hour.",
+  "accent": "#ffd166",
+  "music": "assets/music.mp3",
+  "musicVolume": 0.12,
+  "transition": {
+    "type": "fade",
+    "seconds": 0.2
+  },
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 2.7,
+      "caption": "Not a star at all",
+      "vo": "Shooting stars aren't stars.",
+      "audio": "assets/vo/hook.mp3",
+      "clips": [
+        {
+          "image": "assets/NHQ202108110003.jpg",
+          "imageFocus": 0.4
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "seconds": 9,
+      "caption": "Specks of comet debris",
+      "vo": "They're meteors: bits of space rock, often just a grain of sand to a pea in size, left behind by comets like Halley.",
+      "audio": "assets/vo/setup.mp3",
+      "clips": [
+        {
+          "image": "assets/PIA17485.jpg",
+          "imageFocus": 0.6
+        },
+        {
+          "image": "assets/NHQ202108110001.jpg",
+          "imageFocus": 0.4
+        }
+      ]
+    },
+    {
+      "id": "mechanism",
+      "seconds": 11,
+      "caption": "Tens of thousands of mph",
+      "vo": "They hit our air at tens of thousands of miles per hour and vaporize in a bright streak. About forty-eight tons of this stuff falls toward Earth every single day.",
+      "audio": "assets/vo/mechanism.mp3",
+      "clips": [
+        {
+          "image": "assets/PIA22825.jpg"
+        },
+        {
+          "image": "assets/NHQ202108110005.jpg",
+          "imageFocus": 0.6
+        },
+        {
+          "image": "assets/NHQ202508030001.jpg",
+          "imageFocus": 0.7
+        }
+      ]
+    },
+    {
+      "id": "payoff",
+      "seconds": 9.5,
+      "caption": "Maybe Halley's Comet",
+      "vo": "So that streak could be a piece of Halley's Comet. Its debris is behind the Orionids every October. What's the brightest one you've ever seen?",
+      "audio": "assets/vo/payoff.mp3",
+      "clips": [
+        {
+          "image": "assets/NHQ202508030001.jpg",
+          "imageFocus": 0.7
+        },
+        {
+          "image": "assets/NHQ202108110005.jpg",
+          "imageFocus": 0.6
+        },
+        {
+          "image": "assets/NHQ202108110003.jpg",
+          "imageFocus": 0.4
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "text": "NASA, Meteors and Meteorites Facts (meteoroids range from dust grains to small asteroids; comet debris mostly grain-of-sand to pea size; Orionids linked to comet Halley; tens of thousands of mph): https://science.nasa.gov/solar-system/meteors-meteorites/facts/"
+    },
+    {
+      "text": "NASA, Meteors & Meteorites (about 48.5 tons of meteoritic material falls on Earth each day, almost all vaporized): https://science.nasa.gov/solar-system/meteors-meteorites/"
+    }
+  ],
+  "credits": [
+    "Images: NASA/Bill Ingalls (NHQ202108110001, NHQ202108110003, NHQ202108110005, NHQ202508030001); NASA/ESA/Giotto Project (PIA17485, Halley's nucleus); NASA/GSFC/LaRC/JPL-Caltech, MISR Team (PIA22825, fireball over the Bering Sea)",
+    "Narration: ElevenLabs, voice 'Liam - Energetic, Social Media Creator'",
+    "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/"
+  ]
+}
