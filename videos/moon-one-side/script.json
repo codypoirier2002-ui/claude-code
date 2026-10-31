@@ -1,0 +1,91 @@
+{
+  "topic": "Why we only see one side of the Moon",
+  "claim": "The Moon spins once per orbit (tidal locking), so the same face always points at Earth; the far side is not dark, and was first imaged in 1959.",
+  "accent": "#9ad1ff",
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 2,
+      "caption": "You've never seen half the Moon",
+      "vo": "You have never seen half the Moon.",
+      "bg": "#0a1018",
+      "bg2": "#1c2a40",
+      "image": "assets/GSFC_20171208_Archive_e001939.jpg",
+      "audio": "assets/vo/hook.mp3"
+    },
+    {
+      "id": "setup",
+      "seconds": 9,
+      "caption": "Spin = orbit = 27 days",
+      "vo": "The Moon spins once every 27 days. It also circles Earth once every 27 days. The two match exactly, so the same face always points at us.",
+      "bg": "#0a1018",
+      "bg2": "#1c2a40",
+      "clips": [
+        {
+          "image": "assets/art002e012216.jpg",
+          "imageFocus": 0.5
+        },
+        {
+          "image": "assets/GSFC_20171208_Archive_e001939.jpg"
+        }
+      ],
+      "audio": "assets/vo/setup.mp3"
+    },
+    {
+      "id": "mechanism",
+      "seconds": 11,
+      "caption": "Earth's gravity slowed the spin",
+      "vo": "That match is called tidal locking. Long ago, Earth's gravity stretched the Moon into a football shape. The bulge lagged behind as the Moon spun, and gravity's tug slowed the spin until it matched the orbit.",
+      "bg": "#0a1018",
+      "bg2": "#1c2a40",
+      "clips": [
+        {
+          "image": "assets/as17-152-23272.jpg",
+          "imageFocus": 0.5
+        },
+        {
+          "image": "assets/PIA15515.jpg"
+        },
+        {
+          "image": "assets/GSFC_20171208_Archive_e000496.jpg"
+        }
+      ],
+      "audio": "assets/vo/mechanism.mp3"
+    },
+    {
+      "id": "payoff",
+      "seconds": 11,
+      "caption": "The far side isn't dark",
+      "vo": "People call the hidden side the dark side, but it gets sunlight too. At new moon, it is fully lit. We first saw it in 1959, from a Soviet spacecraft. Next new moon, remember: the far side is in full sunshine.",
+      "bg": "#0a1018",
+      "bg2": "#1c2a40",
+      "clips": [
+        {
+          "image": "assets/GSFC_20171208_Archive_e001939.jpg"
+        },
+        {
+          "image": "assets/art002e012216.jpg",
+          "imageFocus": 0.7
+        }
+      ],
+      "audio": "assets/vo/payoff.mp3"
+    }
+  ],
+  "sources": [
+    {
+      "text": "NASA Science, Moon Facts: https://science.nasa.gov/moon/facts/ (tidally locked; spins and orbits in 27 Earth days; far side is not 'dark'; new moon = far side fully sunlit; far side first seen 1959 by a Soviet spacecraft)"
+    },
+    {
+      "text": "NASA Science, Tidal Locking: https://science.nasa.gov/moon/tidal-locking/ (Earth's gravity distorted the Moon into a football shape; lagging bulge slowed its spin until it matched its orbit)"
+    },
+    {
+      "text": "NASA Goddard/ASU LROC, The Far Side of the Moon: farside first imaged in 1959 by the Soviet Luna 3 spacecraft"
+    }
+  ],
+  "credits": [
+    "Far side mosaic and Earthrise: NASA/Goddard/Arizona State University (LRO)",
+    "Near/far side transition: NASA (Artemis II crew, April 6, 2026)",
+    "Apollo 17 Earthrise: NASA",
+    "Far side crater: NASA/Caltech-JPL/MIT/SRS (GRAIL MoonKAM)"
+  ]
+}
