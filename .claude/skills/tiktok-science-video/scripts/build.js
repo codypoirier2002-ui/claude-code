@@ -3,7 +3,8 @@
 // Renders a 1080x1920 MP4 from a script.json.
 //  - Narration: each beat's "vo" is spoken with local Piper TTS (run scripts/setup.sh once),
 //    or use a beat "audio" file. Beat length = max("seconds", narration + 0.4s).
-//  - Captions: the "vo" text is chunked and shown 2-3 words at a time, timed to the audio.
+//  - Captions: the "vo" text is chunked and shown 2-3 words at a time, timed to the audio
+//    (by character share, or by a beat's optional "captionStarts": one start time per chunk, seconds into its audio).
 //    "caption" is a small headline shown at the top of the beat.
 //  - Visuals per beat: "clips" (a list of short visuals cut together, each {video|image, seconds?}), "video" (clip; optional videoStart, videoFocus), "image" (Ken Burns zoom; optional imageFocus), else an animated gradient from "bg"/"bg2".
 //  - Optional crossfades between a beat's clips ("transition": {type, seconds}, script-wide or per beat).
@@ -19,6 +20,12 @@ const path = require('path');
 const { PROJECT_DIR, TOPIC_LOG, loadScript, wrap } = require('./lib');
 
 const FONT = process.env.TIKTOK_FONT || '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
+// Spoken captions: 12 characters per line at 78 px (89 px during the 0.12 s punch-in) keep each line
+// inside x ≈ 162–918, clear of TikTok's right-side buttons (avatar, like, comment) in the right 15%.
+// A single word longer than the wrap width gets a proportionally smaller font.
+const CAPTION_WRAP = 12;
+const CAPTION_SIZE = 78;
+const CAPTION_PUNCH_SIZE = 89;
 const CACHE = process.env.TIKTOK_CACHE_DIR || path.join(os.homedir(), '.cache', 'tiktok-science');
 const PY = process.env.TTS_PYTHON || path.join(CACHE, 'venv', 'bin', 'python');
 const VOICE = process.env.TTS_MODEL || path.join(CACHE, 'voices', 'en_US-lessac-medium.onnx');
@@ -120,8 +127,12 @@ function visual(item, secs) {
 const segments = script.beats.map((beat, i) => {
   const audio = beat.audio ? path.resolve(dir, beat.audio) : beat.vo ? synth(beat.vo) : null;
   const narration = audio ? duration(audio) : 0;
-  const secs = Math.max(Number(beat.seconds || 0), narration ? narration + 0.4 : 0);
-  const seg = path.join(work, `seg${i}.mp4`);
+  // Rounded up to whole frames: every segment is exactly `frames` frames long, so the joins keep a constant frame rate
+  // and audio and video end together.
+  const frames = Math.ceil(Math.max(Number(beat.seconds || 0), narration ? narration + 0.4 : 0) * FPS - 1e-6);
+  const secs = frames / FPS;
+  // Segments keep PCM audio (no AAC priming or padding per segment); the final pass encodes AAC once.
+  const seg = path.join(work, `seg${i}.mov`);
 
   // Visual input and base filter. "clips" = several short visuals cut together inside the beat.
   let inputs = [];
@@ -151,7 +162,7 @@ const segments = script.beats.map((beat, i) => {
         chain += `${last}[${k}:v]xfade=transition=${tr.type || 'fade'}:duration=${tf.toFixed(3)}:offset=${offset.toFixed(3)}${label};`;
         last = label;
       }
-      ff([...files.flatMap((f) => ['-i', f]), '-filter_complex', chain.slice(0, -1), '-map', '[out]', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'veryfast', '-crf', '20', '-t', secs.toFixed(3), joined]);
+      ff([...files.flatMap((f) => ['-i', f]), '-filter_complex', chain.slice(0, -1), '-map', '[out]', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'veryfast', '-crf', '20', '-frames:v', String(frames), joined]);
     } else {
       const l = path.join(work, `clips${i}.txt`);
       fs.writeFileSync(l, files.map((f) => `file '${f}'`).join('\n'));
@@ -167,30 +178,58 @@ const segments = script.beats.map((beat, i) => {
 
   // Captions: one drawtext per wrapped line so every line is centered.
   const draws = [];
+  // style: a drawtext style string, or a function of the wrapped line that returns one.
   const drawLines = (text, wrapAt, style, yFirst, lineH, enable) => {
     wrap(text, wrapAt).split('\n').forEach((line, k, all) => {
       const f = path.join(work, `t${i}_${draws.length}.txt`);
       fs.writeFileSync(f, line);
       const y = typeof yFirst === 'function' ? yFirst(all.length, k) : yFirst + k * lineH;
+      const st = typeof style === 'function' ? style(line) : style;
       draws.push(
-        `drawtext=fontfile=${FONT}:textfile=${f}:expansion=none:${style}:x=(w-text_w)/2:y=${y}` + (enable ? `:enable='${enable}'` : '')
+        `drawtext=fontfile=${FONT}:textfile=${f}:expansion=none:${st}:x=(w-text_w)/2:y=${y}` + (enable ? `:enable='${enable}'` : '')
       );
     });
   };
   if (beat.caption) {
-    drawLines(beat.caption, 26, `fontcolor=${ACCENT}:fontsize=54:borderw=4:bordercolor=black@0.8`, 230, 70);
+    // Headline: thick border plus a translucent backing box so the accent color reads on pale or orange images.
+    // Balanced wrap: as many lines as a 26-character wrap gives, at the narrowest width that keeps that line count,
+    // so a two-line headline splits evenly instead of leaving one word alone on the second line.
+    const headLines = (w) => wrap(beat.caption, w).split('\n').length;
+    let headWrap = 26;
+    while (headWrap > 1 && headLines(headWrap - 1) === headLines(26)) headWrap--;
+    drawLines(
+      beat.caption,
+      headWrap,
+      `fontcolor=${ACCENT}:fontsize=54:borderw=6:bordercolor=black@0.8:box=1:boxcolor=black@0.4:boxborderw=10`,
+      230,
+      70
+    );
   }
   if (beat.vo || beat.words) {
     const spoken = beat.vo || beat.words;
     const start = audio ? 0.05 : 0.2;
     const end = audio ? narration + 0.05 : secs - 0.2;
-    timings(chunk(spoken), start, end).forEach((c) => {
+    const chunks = chunk(spoken);
+    let timed = timings(chunks, start, end);
+    // Optional "captionStarts": one start time per caption chunk, in seconds into the beat's audio (for example from
+    // word timestamps). Each chunk then stays up until the next one starts. Without it, chunks share the time by length.
+    const cs = beat.captionStarts;
+    if (cs && audio && Array.isArray(cs) && cs.length === chunks.length) {
+      timed = chunks.map((text, k) => ({ text, from: start + cs[k], to: k + 1 < cs.length ? start + cs[k + 1] : end }));
+    } else if (cs) {
+      console.warn(`${beat.id || `beat ${i + 1}`}: ignoring captionStarts (needs an audio file and ${chunks.length} entries)`);
+    }
+    timed.forEach((c) => {
       const t0 = c.from.toFixed(3);
-      const style =
-        `fontcolor=white:fontsize='if(lt(t-${t0},0.12),96,84)':borderw=7:bordercolor=black`;
+      const style = (line) => {
+        const s = line.length > CAPTION_WRAP ? CAPTION_WRAP / line.length : 1;
+        const rest = Math.floor(CAPTION_SIZE * s);
+        const punch = Math.floor(CAPTION_PUNCH_SIZE * s);
+        return `fontcolor=white:fontsize='if(lt(t-${t0},0.12),${punch},${rest})':borderw=7:bordercolor=black`;
+      };
       drawLines(
         c.text.toUpperCase(),
-        14,
+        CAPTION_WRAP,
         style,
         (n, k) => `(h-${n}*100)/2+${k * 100}+120`,
         100,
@@ -198,17 +237,22 @@ const segments = script.beats.map((beat, i) => {
       );
     });
   }
-  const graph = [base, `[bg]${draws.length ? draws.join(',') : 'null'}[v]`];
+  // setsar=1: square pixels (the even-rounded punch-in scale otherwise leaves a sample aspect ratio like 9675:9664).
+  // fps + tpad: constant frame rate, and a visual that ends a frame early is held to the full segment length.
+  const graph = [base, `[bg]${draws.length ? draws.join(',') + ',' : ''}setsar=1,fps=${FPS},tpad=stop_mode=clone:stop=-1[v]`];
 
   // Audio
+  // Audio is cut to the exact sample count of the video frames (apad pads in whole 4096-sample packets, which
+  // otherwise leaves each segment's audio up to ~85 ms longer than its video).
+  const samples = Math.round(secs * 48000);
   let audioArgs;
   if (audio) {
     inputs.push('-i', audio);
-    graph.push(`[1:a]adelay=50|50,apad=whole_dur=${secs},aformat=sample_rates=48000:channel_layouts=stereo[a]`);
+    graph.push(`[1:a]adelay=50|50,apad=whole_dur=${secs},aformat=sample_rates=48000:channel_layouts=stereo,atrim=end_sample=${samples}[a]`);
     audioArgs = [];
   } else {
     inputs.push('-f', 'lavfi', '-i', `anullsrc=r=48000:cl=stereo`);
-    graph.push(`[1:a]atrim=0:${secs}[a]`);
+    graph.push(`[1:a]atrim=end_sample=${samples}[a]`);
     audioArgs = [];
   }
 
@@ -216,8 +260,8 @@ const segments = script.beats.map((beat, i) => {
     ...inputs,
     '-filter_complex', graph.join(';'),
     '-map', '[v]', '-map', '[a]', ...audioArgs,
-    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'medium', '-crf', '20',
-    '-c:a', 'aac', '-b:a', '160k', '-t', secs.toFixed(3), seg,
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'medium', '-crf', '20', '-frames:v', String(frames),
+    '-c:a', 'pcm_s16le', '-ar', '48000', '-t', secs.toFixed(6), seg,
   ]);
   return { seg, secs };
 });
@@ -226,10 +270,12 @@ const total = segments.reduce((a, s) => a + s.secs, 0);
 const list = path.join(work, 'list.txt');
 fs.writeFileSync(list, segments.map((s) => `file '${s.seg}'`).join('\n'));
 fs.mkdirSync(path.dirname(outFile), { recursive: true });
-const joined = path.join(work, 'joined.mp4');
+const joined = path.join(work, 'joined.mov');
 ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', joined]);
 // Final audio pass: optional music bed (faded in/out), then loudness-normalize to about -14 LUFS for short-form platforms.
-const norm = 'loudnorm=I=-14:TP=-1.5:LRA=11';
+// loudnorm works at 192 kHz and can leave a jump in its output timestamps; resampling back to 48 kHz and
+// re-stamping from the sample count keeps the audio gap-free and the same length as the video.
+const norm = 'loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000,asetpts=N/SR/TB';
 if (script.music) {
   ff([
     '-i', joined, '-stream_loop', '-1', '-i', path.resolve(dir, script.music),
