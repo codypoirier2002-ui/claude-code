@@ -1,0 +1,79 @@
+{
+ "topic": "Uranus spins on its side",
+ "claim": "Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball, giving it 21-year stretches of polar daylight and darkness.",
+ "accent": "#7fe3f0",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 2,
+   "caption": "Uranus spins on its side",
+   "vo": "Uranus spins on its side.",
+   "bg": "#06161c",
+   "bg2": "#124250",
+   "image": "assets/PIA18182.jpg",
+   "audio": "assets/vo/hook.mp3"
+  },
+  {
+   "id": "setup",
+   "seconds": 8,
+   "caption": "Tilted 98 degrees",
+   "vo": "Most planets spin upright, like tops. Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball.",
+   "bg": "#06161c",
+   "bg2": "#124250",
+   "clips": [
+    {
+     "image": "assets/PIA18182.jpg"
+    },
+    {
+     "image": "assets/PIA00032.jpg",
+     "imageFocus": 0.85
+    }
+   ],
+   "audio": "assets/vo/setup.mp3"
+  },
+  {
+   "id": "mechanism",
+   "seconds": 9,
+   "caption": "A possible giant collision",
+   "vo": "Scientists think an Earth-sized object may have slammed into it long ago and knocked it over. That is a leading idea, not a proven fact.",
+   "bg": "#06161c",
+   "bg2": "#124250",
+   "clips": [
+    {
+     "image": "assets/PIA01535.jpg"
+    },
+    {
+     "image": "assets/PIA01391.jpg",
+     "imageFocus": 0.2
+    }
+   ],
+   "audio": "assets/vo/mechanism.mp3"
+  },
+  {
+   "id": "payoff",
+   "seconds": 12,
+   "caption": "21 years of day, then 21 of night",
+   "vo": "The tilt gives Uranus the most extreme seasons known. For about 21 years the Sun shines straight down on one pole, while the other half sits in darkness. Would you survive that night?",
+   "bg": "#06161c",
+   "bg2": "#124250",
+   "clips": [
+    {
+     "image": "assets/PIA00032.jpg",
+     "imageFocus": 0.85
+    },
+    {
+     "image": "assets/PIA18182.jpg"
+    }
+   ],
+   "audio": "assets/vo/payoff.mp3"
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Uranus Facts: tilt 97.77 degrees, orbit about 84 Earth years, possible giant-impact origin, most extreme seasons, 21-year dark winter. https://science.nasa.gov/uranus/facts/"
+  }
+ ],
+ "credits": [
+  "Images: NASA/JPL-Caltech (Voyager 2, PIA18182, PIA00032, PIA01391, PIA01535)"
+ ]
+}

@@ -18,3 +18,4 @@
 - 2026-10-31 | Why hurricanes spin | Earth's rotation deflects air rushing toward a storm's low-pressure center, so hurricanes spin counterclockwise in the Northern Hemisphere and clockwise in the Southern. | why-hurricanes-spin.mp4
 - 2026-10-31 | Permafrost is a carbon freezer | Arctic permafrost soils hold roughly twice as much carbon as the atmosphere; as they thaw, microbes release it as carbon dioxide and methane. | permafrost-carbon-freezer.mp4
 - 2026-10-31 | Shooting stars are dust | Shooting stars are meteors: bits of comet or asteroid debris, often a grain of sand to a pea in size, that vaporize in a bright streak as they hit our atmosphere at tens of thousands of miles per hour. | shooting-stars-are-dust.mp4
+- 2026-10-31 | Uranus spins on its side | Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball, giving it 21-year stretches of polar daylight and darkness. | uranus-on-its-side.mp4
