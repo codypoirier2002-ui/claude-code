@@ -1,0 +1,15 @@
+{
+ "topic": "Why Mars is red",
+ "claim": "Mars looks red because iron in its rocks, soil and dust has oxidized (rusted), and wind-lifted dust makes the whole planet look red from afar.",
+ "accent": "#ff7a45",
+ "beats": [
+  {"id":"hook","seconds":2,"caption":"Mars is rusty","vo":"Mars is rusty.","bg":"#1a0a05","bg2":"#4a1c0e","image":"assets/PIA24173.jpg","imageFocus":0.5,"audio":"assets/vo/hook.mp3"},
+  {"id":"setup","seconds":8,"caption":"Brown, gold and tan","vo":"Look closer and Mars isn't one color. NASA says the surface is brown, gold, and tan, not bright red.","bg":"#1a0a05","bg2":"#4a1c0e","clips":[{"image":"assets/PIA23727.jpg","imageFocus":0.3},{"image":"assets/PIA23727.jpg","imageFocus":0.8}],"audio":"assets/vo/setup.mp3"},
+  {"id":"mechanism","seconds":9,"caption":"Iron + oxygen = rust","vo":"The red comes from iron. Iron minerals in Mars's rocks, soil, and dust have oxidized, which means they've rusted, just like an old nail.","bg":"#1a0a05","bg2":"#4a1c0e","clips":[{"image":"assets/PIA24173.jpg","imageFocus":0.5},{"image":"assets/PIA24173.jpg","imageFocus":0.9}],"audio":"assets/vo/mechanism.mp3"},
+  {"id":"payoff","seconds":12,"caption":"Rusty dust paints the planet","vo":"Winds kick that rusty dust into the air, and from far away it makes the whole planet look red. So is Mars really the Red Planet, or the rusty one?","bg":"#1a0a05","bg2":"#4a1c0e","clips":[{"image":"assets/PIA15545.jpg","imageFocus":0.45},{"image":"assets/PIA21457.jpg","imageFocus":0.9}],"audio":"assets/vo/payoff.mp3"}
+ ],
+ "sources": [
+  {"text":"NASA Science, Mars Facts: Mars looks reddish due to oxidization (rusting) of iron in its rocks, regolith and dust; the surface shows brown, gold and tan; dust lifted into the atmosphere makes the planet appear mostly red from a distance. https://science.nasa.gov/mars/facts/"}
+ ],
+ "credits": ["Imagery: NASA/JPL-Caltech/MSSS (PIA24173), NASA/JPL-Caltech/ASU/MSSS (PIA23727), NASA/JPL-Caltech/Univ. of Arizona (PIA15545, PIA21457)","Narration: ElevenLabs"]
+}
