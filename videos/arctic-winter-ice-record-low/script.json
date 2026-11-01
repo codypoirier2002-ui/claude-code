@@ -1,0 +1,20 @@
+{
+  "topic": "Arctic winter ice ties record low",
+  "claim": "NASA and NSIDC report the March 2026 Arctic sea ice maximum, 5.52 million square miles (14.29 million sq km), statistically tied the lowest winter peak since satellite records began in 1979.",
+  "accent": "#7fd6ff",
+  "beats": [
+    {"id":"hook","seconds":2,"caption":"Arctic ice just tied its record low.","vo":"Arctic ice just tied its record low.","bg":"#08202e","audio":"assets/vo/hook.mp3","image":"assets/a1","imageFocus":0.5},
+    {"id":"setup","seconds":8,"caption":"Peak ice: 5.52 million square miles, March 15, 2026.","vo":"Every March, Arctic sea ice reaches its yearly peak. On March 15, 2026, it covered 5.52 million square miles. That statistically ties the lowest winter peak since satellites began watching in 1979.","bg":"#0b2a3d","audio":"assets/vo/setup.mp3","clips":[{"image":"assets/a2"},{"video":"assets/a4","videoStart":41,"seconds":1},{"image":"assets/a1","imageFocus":0.2}]},
+    {"id":"mechanism","seconds":12,"caption":"Last winter matched it. And the ice is thinner.","vo":"Last year's peak was almost identical, so this is the second winter in a row at the bottom. And NASA's ICESat-2 satellite shows much of the ice is thinner, too. It measures how high the ice sits above the water to estimate thickness.","bg":"#0e3550","audio":"assets/vo/mechanism.mp3","clips":[{"image":"assets/a2","imageFocus":0.5},{"video":"assets/a4","videoStart":1,"seconds":1},{"video":"assets/a4","videoStart":14,"seconds":1},{"video":"assets/a4","videoStart":28,"seconds":1}]},
+    {"id":"payoff","seconds":10,"caption":"About half a million square miles below the 1981-2010 average.","vo":"One low year doesn't prove much by itself. But this peak sat about half a million square miles below the 1981 to 2010 average, and that fits the long decline since 1979. So how low can winter go?","bg":"#0b2a3d","audio":"assets/vo/payoff.mp3","clips":[{"video":"assets/a4","videoStart":44,"seconds":1},{"image":"assets/a1","imageFocus":0.8},{"image":"assets/a2","imageFocus":0.5}]}
+  ],
+  "sources": [
+    {"text":"NASA, \"Arctic Winter Sea Ice Ties Record Low, NASA, NSIDC Scientists Find,\" Apr 1, 2026. https://science.nasa.gov/earth/arctic-winter-sea-ice-2026/"},
+    {"text":"NSIDC, Arctic sea ice minimum 2026 news release, Sep 23, 2026 (long-term context). https://nsidc.org/news-analyses/news-stories/arctic-sea-ice-has-reached-minimum-extent-2026-antarctic-sea-ice-maximum-most-likely-reached-well"}
+  ],
+  "credits": [
+    "Footage: NASA's Goddard Space Flight Center, ICESat-2 Measures Sea Ice Thickness (GSFC_20180822_ICESat2_m13049_SEAICE).",
+    "Images: NASA/GSFC (GSFC_20171208_Archive_e001845, ICESCAPE melt pond; GSFC_20171208_Archive_e000643, MODIS/Aqua sea ice off Greenland).",
+    "Narration: ElevenLabs v4, voice Liam."
+  ]
+}

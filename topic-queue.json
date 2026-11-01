@@ -1,383 +1,383 @@
 [
-  {
-    "topic": "You are looking at the past",
-    "hook": "The Sun you see is 8 minutes old.",
-    "claim": "Sunlight takes about 8 minutes 20 seconds to reach Earth, so we see the Sun (and every star) as it was when the light left it.",
-    "why_now": "Light-travel-time Short at 300x breakout, 1.8M views this month",
-    "evidence": [
-      "https://www.youtube.com/watch?v=WLcmwZEQ2SU"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/sun/facts/"
-    ],
-    "visuals": "NASA SDO Sun footage, Hubble deep field, ISS sunrise",
-    "score": 24,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "Why you can't nuke a hurricane",
-    "hook": "A hurricane releases more energy than a nuke. Constantly.",
-    "claim": "A mature hurricane's heat release is like a 10-megaton bomb going off every 20 minutes, so a nuclear blast would not stop it and would spread fallout (NOAA HRD FAQ).",
-    "why_now": "'What if we nuked a hurricane' Short at 23x and 1.3K VPH; rising keyword 'disasters explained' +232%; Typhoon Arnab in NASA EO",
-    "evidence": [
-      "https://www.youtube.com/watch?v=dyFZlc2h3wk",
-      "https://science.nasa.gov/earth/earth-observatory/arnab-strikes-india/"
-    ],
-    "sources_to_cite": [
-      "https://www.aoml.noaa.gov/hrd-faq/"
-    ],
-    "visuals": "NASA ISS and GOES hurricane footage, eye-of-storm flyovers",
-    "score": 23,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "Why space is black",
-    "hook": "Space is full of sunlight. So why is it black?",
-    "claim": "Our sky looks blue because air molecules scatter blue sunlight toward our eyes; in space there is almost no air to scatter light, so the sky looks black even in full sunlight.",
-    "why_now": "'Why is space pitch black?' Short at 41x this week; 'real color of space' cluster breaking out",
-    "evidence": [
-      "https://www.youtube.com/watch?v=sEHSu4zHQ4w"
-    ],
-    "sources_to_cite": [
-      "https://spaceplace.nasa.gov/blue-sky/"
-    ],
-    "visuals": "NASA spacewalk footage against black sky, ISS view of Earth's blue limb",
-    "score": 22,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "The Sun is actually white",
-    "hook": "The Sun isn't yellow. It's white.",
-    "claim": "The Sun emits all visible colors, which combine to white; it looks yellow from the ground because the atmosphere scatters away some blue light.",
-    "why_now": "TikTok on the Sun's real color: 1M views at 34.9x this month",
-    "evidence": [
-      "https://www.tiktok.com/@deepspacefiles5/video/7693225233330867486"
-    ],
-    "sources_to_cite": [
-      "https://solar-center.stanford.edu/SID/activities/GreenSun.html",
-      "https://spaceplace.nasa.gov/blue-sky/"
-    ],
-    "visuals": "ISS photos of the Sun from orbit, NASA SDO, sunset from ISS",
-    "score": 22,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "What makes the northern lights",
-    "hook": "Auroras are the Sun hitting our air.",
-    "claim": "Charged particles from the Sun, steered by Earth's magnetic field, collide with oxygen and nitrogen high in the atmosphere, which then glow green, red, and purple.",
-    "why_now": "Solar Cycle 25 peak; G2 storm watch Oct 8-9 put aurora in reach of up to 22 US states",
-    "evidence": [
-      "https://www.hola.com/us/lifestyle/20261008927945/northern-lights-tonight-22-states/",
-      "https://www.skyatnightmagazine.com/news/aurora-displays-8-11-october-2026"
-    ],
-    "sources_to_cite": [
-      "https://www.swpc.noaa.gov/phenomena/aurora"
-    ],
-    "visuals": "NASA ISS aurora time-lapses, SDO solar flare footage",
-    "score": 22,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "The Moon is drifting away",
-    "hook": "The Moon is leaving us. Slowly.",
-    "claim": "The Moon moves about 3.8 cm farther from Earth each year because of tidal interactions.",
-    "why_now": "'What if' niche surging (ifverse +52,580%); 'what would happen if the moon crashed into earth?' +725%",
-    "evidence": [
-      "vidIQ rising keywords 2026-10-30 (see research/2026-10-30-trends.md)"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/moon/facts/"
-    ],
-    "visuals": "NASA LRO Moon footage, Apollo laser retroreflector photos, Earthrise",
-    "score": 22,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "What is El Ni\u00f1o",
-    "hook": "The Pacific is heating up. Your weather will feel it.",
-    "claim": "El Ni\u00f1o is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
-    "why_now": "NASA says a possibly record El Ni\u00f1o is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
-    "evidence": [
-      "https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/",
-      "https://www.earthdata.nasa.gov/learn/data-in-action/tracking-2026-el-nino-from-open-ocean-coast"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/",
-      "https://www.climate.gov/enso"
-    ],
-    "visuals": "NASA Sentinel-6/SWOT sea-surface-height animations, NASA SVS El Nino visualizations (svs.gsfc.nasa.gov/5683), PACE chlorophyll maps",
-    "score": 22,
-    "added": "2026-10-31",
-    "status": "made"
-  },
-  {
-    "topic": "Why we only see one side of the Moon",
-    "hook": "You've never seen the other side of the Moon.",
-    "claim": "The Moon rotates once per orbit (tidal locking), so the same face always points at Earth; the far side was imaged directly by crews on Artemis II.",
-    "why_now": "NASA released 800+ GB of Artemis II lunar science data and 11,000+ images on Oct 7, 2026",
-    "evidence": [
-      "https://www.nasa.gov/blogs/missions/2026/10/07/nasa-releases-artemis-ii-lunar-science-data-images/"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/moon/facts/",
-      "https://www.nasa.gov/blogs/missions/2026/10/07/nasa-releases-artemis-ii-lunar-science-data-images/"
-    ],
-    "visuals": "NASA LRO far-side imagery, Artemis II flyby gallery (check each item credit), Earthrise",
-    "score": 22,
-    "added": "2026-10-31",
-    "status": "made"
-  },
-  {
-    "topic": "Saturn would float in water",
-    "hook": "Saturn is light enough to float on water.",
-    "claim": "Saturn's average density is about 0.69 g/cm3, less than water at 1.0, because it is mostly hydrogen and helium (it would need an impossibly large ocean).",
-    "why_now": "Saturn reached opposition Oct 4, 2026 (NASA skywatching guide); no direct viral link found, demand score is low",
-    "evidence": [
-      "https://science.nasa.gov/"
-    ],
-    "sources_to_cite": [
-      "https://nssdc.gsfc.nasa.gov/planetary/factsheet/saturnfact.html",
-      "https://science.nasa.gov/saturn/facts/"
-    ],
-    "visuals": "NASA Cassini Saturn imagery and rings, Hubble Saturn portraits",
-    "score": 22,
-    "added": "2026-10-31",
-    "status": "made"
-  },
-  {
-    "topic": "Venus day is longer than its year",
-    "hook": "On Venus, a day lasts longer than a year.",
-    "claim": "Venus rotates once in about 243 Earth days but orbits the Sun in about 225 Earth days.",
-    "why_now": "Evergreen planet-fact format; Uranus facts TikTok at 15x and TOI-700 d Reel at 66x show planet-fact demand (see 2026-10-30 report)",
-    "evidence": [
-      "https://www.tiktok.com/@univers.blackwhol/video/7697990032879127840",
-      "https://www.instagram.com/reel/Dd626HnESlZ"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/venus/venus-facts/"
-    ],
-    "visuals": "NASA Magellan radar globes, Akatsuki/Mariner 10 Venus imagery, Venus animations",
-    "score": 22,
-    "added": "2026-10-31",
-    "status": "made"
-  },
-  {
-    "topic": "Seasons are not caused by distance",
-    "hook": "Summer isn't caused by being closer to the Sun.",
-    "claim": "Earth's axis is tilted 23.4 degrees; the hemisphere leaning toward the Sun gets more direct sunlight and has summer. Distance is not the cause (verify perihelion/aphelion dates and distances on a NASA page before scripting).",
-    "why_now": "Evergreen myth-bust; northern winter approaching, daylight-change questions peak (no direct metric found)",
-    "evidence": [
-      "https://science.nasa.gov/earth/facts/"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/earth/facts/"
-    ],
-    "visuals": "NASA SVS/EPIC Earth-from-space animations, DSCOVR EPIC imagery, NASA Earth tilt diagrams",
-    "score": 22,
-    "added": "2026-11-01",
-    "status": "made"
-  },
-  {
-    "topic": "Why stars twinkle but planets don't",
-    "hook": "Stars twinkle. Planets don't. Here's why.",
-    "claim": "Stars are so far away they are point sources, so turbulent air bends their light around and they flicker; planets show a tiny disk whose many points average out.",
-    "why_now": "IG Reel on this exact question: 843.5K views at 35.8x this month",
-    "evidence": [
-      "https://www.instagram.com/reel/DeKHK7ottF_"
-    ],
-    "sources_to_cite": [
-      "https://spaceplace.nasa.gov/twinkling/"
-    ],
-    "visuals": "NASA night-sky footage, ISS photos of atmosphere layer, planets (Jupiter, Venus) imagery",
-    "score": 21,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "Mars dust is toxic",
-    "hook": "Martian dirt could poison astronauts.",
-    "claim": "Martian soil contains perchlorates and fine dust that would be hazardous for crews; NASA's Perseverance is gathering data to protect future explorers.",
-    "why_now": "IG Reel 3.4M views; NASA Perseverance dust article published 3 days ago",
-    "evidence": [
-      "https://www.instagram.com/reel/Decs5GLzJ-Y",
-      "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
-    ],
-    "sources_to_cite": [
-      "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
-    ],
-    "visuals": "Perseverance and Curiosity rover imagery, Mars dust storm footage",
-    "score": 21,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "A teaspoon of neutron star",
-    "hook": "One teaspoon of this weighs a billion tons.",
-    "claim": "Neutron stars pack more than the Sun's mass into a city-sized ball, so a sugar-cube-sized piece would weigh about a billion tons on Earth.",
-    "why_now": "Pulsar-density Reel: 770K views at 144x this month",
-    "evidence": [
-      "https://www.instagram.com/reel/DeA-k3Jpivz"
-    ],
-    "sources_to_cite": [
-      "https://imagine.gsfc.nasa.gov/science/objects/neutron_stars1.html"
-    ],
-    "visuals": "NASA Goddard SVS pulsar and neutron-star animations, Crab Nebula (Hubble/Chandra)",
-    "score": 21,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "Why Mars is red",
-    "hook": "Mars is red because it is rusty.",
-    "claim": "NASA says Mars looks reddish due to oxidization: iron in its rocks, soil and dust rusts, and dust in the air makes the planet look red.",
-    "why_now": "Follows Mars dust video; planet-fact demand from 2026-10-30 report (Uranus 15x, TOI-700 d 66x)",
-    "evidence": [
-      "https://science.nasa.gov/mars/facts/",
-      "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/mars/facts/"
-    ],
-    "visuals": "NASA Perseverance/Curiosity rover imagery, MRO HiRISE, Viking global mosaics",
-    "score": 21,
-    "added": "2026-11-01",
-    "status": "made"
-  },
-  {
-    "topic": "Permafrost is a carbon freezer",
-    "hook": "Frozen ground holds more carbon than the sky.",
-    "claim": "Permafrost soils hold roughly twice as much carbon as is currently in the atmosphere; thawing lets microbes release it as CO2 and methane.",
-    "why_now": "Rising keyword 'permafrost' +915% (~931K est. monthly searches)",
-    "evidence": [
-      "vidIQ rising keywords 2026-10-30 (see research/2026-10-30-trends.md)"
-    ],
-    "sources_to_cite": [
-      "https://nsidc.org/learn/parts-cryosphere/frozen-ground-permafrost"
-    ],
-    "visuals": "NASA ABoVE Arctic footage, Landsat thaw-lake imagery, Earth Observatory Arctic images",
-    "score": 20,
-    "added": "2026-10-30",
-    "status": "made"
-  },
-  {
-    "topic": "Why hurricanes spin",
-    "hook": "Hurricanes always spin the same way. Here is why.",
-    "claim": "Earth's rotation (the Coriolis effect) deflects air flowing toward a low-pressure center, so storms spin counterclockwise in the Northern Hemisphere and clockwise in the Southern.",
-    "why_now": "Follows the hurricane series after the 'nuke a hurricane' breakout (23x); Hurricane Simon in NASA news feed",
-    "evidence": [
-      "https://www.youtube.com/watch?v=dyFZlc2h3wk"
-    ],
-    "sources_to_cite": [
-      "https://oceanservice.noaa.gov/facts/coriolis.html",
-      "https://www.aoml.noaa.gov/hrd-faq/"
-    ],
-    "visuals": "NASA ISS and GOES hurricane footage, NASA SVS global storm animations",
-    "score": 20,
-    "added": "2026-10-31",
-    "status": "made"
-  },
-  {
-    "topic": "Shooting stars are dust",
-    "hook": "Shooting stars are mostly grains of dust.",
-    "claim": "Most meteors are specks of comet or asteroid debris, many no bigger than a grain of sand, that glow as they hit the atmosphere at high speed; the Orionids come from Halley's Comet debris.",
-    "why_now": "Orionid shower peaked Oct 21-22, 2026 (NASA skywatching); Leonids peak mid-Nov; demand evidence weak",
-    "evidence": [
-      "https://science.nasa.gov/"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/solar-system/meteors-meteorites/facts/"
-    ],
-    "visuals": "NASA all-sky meteor camera clips, ISS meteor footage (check credits)",
-    "score": 20,
-    "added": "2026-10-31",
-    "status": "made"
-  },
-  {
-    "topic": "Leonids: fastest meteors",
-    "hook": "These meteors hit at 43 miles per second.",
-    "claim": "Leonid meteors move about 43.5 mi/s (69.7 km/s) and come from comet 55P/Tempel-Tuttle (33-year orbit); meteor storms of 1,000+ per hour recur about every 33 years, last in 2002. 2026 peak Nov 16-17 but NASA expects under 3/hour. Partly overlaps shooting-stars video; angle is speed and the comet.",
-    "why_now": "Leonids active Nov 6-30, peak Nov 16-17 (NASA); seasonal skywatching interest",
-    "evidence": [
-      "https://science.nasa.gov/solar-system/meteors-meteorites/leonids/"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/solar-system/meteors-meteorites/leonids/"
-    ],
-    "visuals": "NASA all-sky meteor camera clips, ISS meteor footage, Tempel-Tuttle illustrations (check credits)",
-    "score": 20,
-    "added": "2026-11-01",
-    "status": "made"
-  },
-  {
-    "topic": "Great Red Spot is wider than Earth",
-    "hook": "Jupiter has a storm twice as wide as Earth.",
-    "claim": "The Great Red Spot is a swirling oval of clouds about twice as wide as Earth, and astronomers have tracked it for more than three centuries. Do not claim shrinkage without a NASA source.",
-    "why_now": "Evergreen big-numbers format; no direct metric found",
-    "evidence": [
-      "https://science.nasa.gov/jupiter/jupiter-facts/"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/jupiter/jupiter-facts/"
-    ],
-    "visuals": "NASA Juno JunoCam and Voyager/Hubble Jupiter imagery (check credits; JunoCam citizen-processed items need care)",
-    "score": 20,
-    "added": "2026-11-01",
-    "status": "made"
-  },
-  {
-    "topic": "Arctic winter ice ties record low",
-    "hook": "The Arctic's winter ice just tied its record low.",
-    "claim": "NASA and NSIDC report the March 2026 Arctic maximum, about 14.29 million sq km, matched the lowest winter maximum since satellite records began in 1979; the September minimum was only tenth lowest, so avoid implying a straight-line trend.",
-    "why_now": "NASA/NSIDC 2026 sea ice releases; Antarctic ice near record low for date in Oct (NSIDC sources disagree, skip that claim)",
-    "evidence": [
-      "https://science.nasa.gov/earth/arctic-winter-sea-ice-2026/",
-      "https://nsidc.org/news-analyses/news-stories/arctic-sea-ice-has-reached-minimum-extent-2026-antarctic-sea-ice-maximum-most-likely-reached-well"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/earth/arctic-winter-sea-ice-2026/",
-      "https://science.nasa.gov/earth/earth-observatory/arctic-sea-ice-shrinks-to-its-2026-minimum/"
-    ],
-    "visuals": "NASA SVS Arctic sea ice animations (svs.gsfc.nasa.gov/5677), Earth Observatory maps",
-    "score": 20,
-    "added": "2026-11-01",
-    "status": "queued"
-  },
-  {
-    "topic": "Uranus spins on its side",
-    "hook": "Uranus spins on its side.",
-    "claim": "Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball, with 21-year polar day and night.",
-    "why_now": "Uranus facts TikTok at 15x (1.6M views) in 2026-10-30 report; picked directly because queue was empty and research had already run today",
-    "evidence": [
-      "https://www.tiktok.com/@univers.blackwhol/video/7697990032879127840"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/uranus/facts/"
-    ],
-    "visuals": "NASA Voyager 2 images",
-    "score": 19,
-    "added": "2026-10-31",
-    "status": "made"
-  },
-  {
-    "topic": "The Sun's atmosphere is hotter than its surface",
-    "hook": "The Sun's air is hotter than its surface.",
-    "claim": "NASA says the corona is much hotter than the photosphere (surface) and why is an open question Parker Solar Probe is studying. Get the temperature figures (about 1 million C vs about 5,500 C) from a NASA page before scripting; none were confirmed this run.",
-    "why_now": "Parker Solar Probe 2026 close passes in NASA news; Solar Cycle 25 interest",
-    "evidence": [
-      "https://science.nasa.gov/mission/parker-solar-probe/"
-    ],
-    "sources_to_cite": [
-      "https://science.nasa.gov/mission/parker-solar-probe/"
-    ],
-    "visuals": "NASA SDO corona footage, Parker Solar Probe WISPR imagery, eclipse corona images",
-    "score": 18,
-    "added": "2026-11-01",
-    "status": "queued"
-  }
+ {
+  "topic": "You are looking at the past",
+  "hook": "The Sun you see is 8 minutes old.",
+  "claim": "Sunlight takes about 8 minutes 20 seconds to reach Earth, so we see the Sun (and every star) as it was when the light left it.",
+  "why_now": "Light-travel-time Short at 300x breakout, 1.8M views this month",
+  "evidence": [
+   "https://www.youtube.com/watch?v=WLcmwZEQ2SU"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/sun/facts/"
+  ],
+  "visuals": "NASA SDO Sun footage, Hubble deep field, ISS sunrise",
+  "score": 24,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "Why you can't nuke a hurricane",
+  "hook": "A hurricane releases more energy than a nuke. Constantly.",
+  "claim": "A mature hurricane's heat release is like a 10-megaton bomb going off every 20 minutes, so a nuclear blast would not stop it and would spread fallout (NOAA HRD FAQ).",
+  "why_now": "'What if we nuked a hurricane' Short at 23x and 1.3K VPH; rising keyword 'disasters explained' +232%; Typhoon Arnab in NASA EO",
+  "evidence": [
+   "https://www.youtube.com/watch?v=dyFZlc2h3wk",
+   "https://science.nasa.gov/earth/earth-observatory/arnab-strikes-india/"
+  ],
+  "sources_to_cite": [
+   "https://www.aoml.noaa.gov/hrd-faq/"
+  ],
+  "visuals": "NASA ISS and GOES hurricane footage, eye-of-storm flyovers",
+  "score": 23,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "Why space is black",
+  "hook": "Space is full of sunlight. So why is it black?",
+  "claim": "Our sky looks blue because air molecules scatter blue sunlight toward our eyes; in space there is almost no air to scatter light, so the sky looks black even in full sunlight.",
+  "why_now": "'Why is space pitch black?' Short at 41x this week; 'real color of space' cluster breaking out",
+  "evidence": [
+   "https://www.youtube.com/watch?v=sEHSu4zHQ4w"
+  ],
+  "sources_to_cite": [
+   "https://spaceplace.nasa.gov/blue-sky/"
+  ],
+  "visuals": "NASA spacewalk footage against black sky, ISS view of Earth's blue limb",
+  "score": 22,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "The Sun is actually white",
+  "hook": "The Sun isn't yellow. It's white.",
+  "claim": "The Sun emits all visible colors, which combine to white; it looks yellow from the ground because the atmosphere scatters away some blue light.",
+  "why_now": "TikTok on the Sun's real color: 1M views at 34.9x this month",
+  "evidence": [
+   "https://www.tiktok.com/@deepspacefiles5/video/7693225233330867486"
+  ],
+  "sources_to_cite": [
+   "https://solar-center.stanford.edu/SID/activities/GreenSun.html",
+   "https://spaceplace.nasa.gov/blue-sky/"
+  ],
+  "visuals": "ISS photos of the Sun from orbit, NASA SDO, sunset from ISS",
+  "score": 22,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "What makes the northern lights",
+  "hook": "Auroras are the Sun hitting our air.",
+  "claim": "Charged particles from the Sun, steered by Earth's magnetic field, collide with oxygen and nitrogen high in the atmosphere, which then glow green, red, and purple.",
+  "why_now": "Solar Cycle 25 peak; G2 storm watch Oct 8-9 put aurora in reach of up to 22 US states",
+  "evidence": [
+   "https://www.hola.com/us/lifestyle/20261008927945/northern-lights-tonight-22-states/",
+   "https://www.skyatnightmagazine.com/news/aurora-displays-8-11-october-2026"
+  ],
+  "sources_to_cite": [
+   "https://www.swpc.noaa.gov/phenomena/aurora"
+  ],
+  "visuals": "NASA ISS aurora time-lapses, SDO solar flare footage",
+  "score": 22,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "The Moon is drifting away",
+  "hook": "The Moon is leaving us. Slowly.",
+  "claim": "The Moon moves about 3.8 cm farther from Earth each year because of tidal interactions.",
+  "why_now": "'What if' niche surging (ifverse +52,580%); 'what would happen if the moon crashed into earth?' +725%",
+  "evidence": [
+   "vidIQ rising keywords 2026-10-30 (see research/2026-10-30-trends.md)"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/moon/facts/"
+  ],
+  "visuals": "NASA LRO Moon footage, Apollo laser retroreflector photos, Earthrise",
+  "score": 22,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "What is El Niño",
+  "hook": "The Pacific is heating up. Your weather will feel it.",
+  "claim": "El Niño is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
+  "why_now": "NASA says a possibly record El Niño is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
+  "evidence": [
+   "https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/",
+   "https://www.earthdata.nasa.gov/learn/data-in-action/tracking-2026-el-nino-from-open-ocean-coast"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/",
+   "https://www.climate.gov/enso"
+  ],
+  "visuals": "NASA Sentinel-6/SWOT sea-surface-height animations, NASA SVS El Nino visualizations (svs.gsfc.nasa.gov/5683), PACE chlorophyll maps",
+  "score": 22,
+  "added": "2026-10-31",
+  "status": "made"
+ },
+ {
+  "topic": "Why we only see one side of the Moon",
+  "hook": "You've never seen the other side of the Moon.",
+  "claim": "The Moon rotates once per orbit (tidal locking), so the same face always points at Earth; the far side was imaged directly by crews on Artemis II.",
+  "why_now": "NASA released 800+ GB of Artemis II lunar science data and 11,000+ images on Oct 7, 2026",
+  "evidence": [
+   "https://www.nasa.gov/blogs/missions/2026/10/07/nasa-releases-artemis-ii-lunar-science-data-images/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/moon/facts/",
+   "https://www.nasa.gov/blogs/missions/2026/10/07/nasa-releases-artemis-ii-lunar-science-data-images/"
+  ],
+  "visuals": "NASA LRO far-side imagery, Artemis II flyby gallery (check each item credit), Earthrise",
+  "score": 22,
+  "added": "2026-10-31",
+  "status": "made"
+ },
+ {
+  "topic": "Saturn would float in water",
+  "hook": "Saturn is light enough to float on water.",
+  "claim": "Saturn's average density is about 0.69 g/cm3, less than water at 1.0, because it is mostly hydrogen and helium (it would need an impossibly large ocean).",
+  "why_now": "Saturn reached opposition Oct 4, 2026 (NASA skywatching guide); no direct viral link found, demand score is low",
+  "evidence": [
+   "https://science.nasa.gov/"
+  ],
+  "sources_to_cite": [
+   "https://nssdc.gsfc.nasa.gov/planetary/factsheet/saturnfact.html",
+   "https://science.nasa.gov/saturn/facts/"
+  ],
+  "visuals": "NASA Cassini Saturn imagery and rings, Hubble Saturn portraits",
+  "score": 22,
+  "added": "2026-10-31",
+  "status": "made"
+ },
+ {
+  "topic": "Venus day is longer than its year",
+  "hook": "On Venus, a day lasts longer than a year.",
+  "claim": "Venus rotates once in about 243 Earth days but orbits the Sun in about 225 Earth days.",
+  "why_now": "Evergreen planet-fact format; Uranus facts TikTok at 15x and TOI-700 d Reel at 66x show planet-fact demand (see 2026-10-30 report)",
+  "evidence": [
+   "https://www.tiktok.com/@univers.blackwhol/video/7697990032879127840",
+   "https://www.instagram.com/reel/Dd626HnESlZ"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/venus/venus-facts/"
+  ],
+  "visuals": "NASA Magellan radar globes, Akatsuki/Mariner 10 Venus imagery, Venus animations",
+  "score": 22,
+  "added": "2026-10-31",
+  "status": "made"
+ },
+ {
+  "topic": "Seasons are not caused by distance",
+  "hook": "Summer isn't caused by being closer to the Sun.",
+  "claim": "Earth's axis is tilted 23.4 degrees; the hemisphere leaning toward the Sun gets more direct sunlight and has summer. Distance is not the cause (verify perihelion/aphelion dates and distances on a NASA page before scripting).",
+  "why_now": "Evergreen myth-bust; northern winter approaching, daylight-change questions peak (no direct metric found)",
+  "evidence": [
+   "https://science.nasa.gov/earth/facts/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/earth/facts/"
+  ],
+  "visuals": "NASA SVS/EPIC Earth-from-space animations, DSCOVR EPIC imagery, NASA Earth tilt diagrams",
+  "score": 22,
+  "added": "2026-11-01",
+  "status": "made"
+ },
+ {
+  "topic": "Why stars twinkle but planets don't",
+  "hook": "Stars twinkle. Planets don't. Here's why.",
+  "claim": "Stars are so far away they are point sources, so turbulent air bends their light around and they flicker; planets show a tiny disk whose many points average out.",
+  "why_now": "IG Reel on this exact question: 843.5K views at 35.8x this month",
+  "evidence": [
+   "https://www.instagram.com/reel/DeKHK7ottF_"
+  ],
+  "sources_to_cite": [
+   "https://spaceplace.nasa.gov/twinkling/"
+  ],
+  "visuals": "NASA night-sky footage, ISS photos of atmosphere layer, planets (Jupiter, Venus) imagery",
+  "score": 21,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "Mars dust is toxic",
+  "hook": "Martian dirt could poison astronauts.",
+  "claim": "Martian soil contains perchlorates and fine dust that would be hazardous for crews; NASA's Perseverance is gathering data to protect future explorers.",
+  "why_now": "IG Reel 3.4M views; NASA Perseverance dust article published 3 days ago",
+  "evidence": [
+   "https://www.instagram.com/reel/Decs5GLzJ-Y",
+   "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
+  ],
+  "sources_to_cite": [
+   "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
+  ],
+  "visuals": "Perseverance and Curiosity rover imagery, Mars dust storm footage",
+  "score": 21,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "A teaspoon of neutron star",
+  "hook": "One teaspoon of this weighs a billion tons.",
+  "claim": "Neutron stars pack more than the Sun's mass into a city-sized ball, so a sugar-cube-sized piece would weigh about a billion tons on Earth.",
+  "why_now": "Pulsar-density Reel: 770K views at 144x this month",
+  "evidence": [
+   "https://www.instagram.com/reel/DeA-k3Jpivz"
+  ],
+  "sources_to_cite": [
+   "https://imagine.gsfc.nasa.gov/science/objects/neutron_stars1.html"
+  ],
+  "visuals": "NASA Goddard SVS pulsar and neutron-star animations, Crab Nebula (Hubble/Chandra)",
+  "score": 21,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "Why Mars is red",
+  "hook": "Mars is red because it is rusty.",
+  "claim": "NASA says Mars looks reddish due to oxidization: iron in its rocks, soil and dust rusts, and dust in the air makes the planet look red.",
+  "why_now": "Follows Mars dust video; planet-fact demand from 2026-10-30 report (Uranus 15x, TOI-700 d 66x)",
+  "evidence": [
+   "https://science.nasa.gov/mars/facts/",
+   "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/mars/facts/"
+  ],
+  "visuals": "NASA Perseverance/Curiosity rover imagery, MRO HiRISE, Viking global mosaics",
+  "score": 21,
+  "added": "2026-11-01",
+  "status": "made"
+ },
+ {
+  "topic": "Permafrost is a carbon freezer",
+  "hook": "Frozen ground holds more carbon than the sky.",
+  "claim": "Permafrost soils hold roughly twice as much carbon as is currently in the atmosphere; thawing lets microbes release it as CO2 and methane.",
+  "why_now": "Rising keyword 'permafrost' +915% (~931K est. monthly searches)",
+  "evidence": [
+   "vidIQ rising keywords 2026-10-30 (see research/2026-10-30-trends.md)"
+  ],
+  "sources_to_cite": [
+   "https://nsidc.org/learn/parts-cryosphere/frozen-ground-permafrost"
+  ],
+  "visuals": "NASA ABoVE Arctic footage, Landsat thaw-lake imagery, Earth Observatory Arctic images",
+  "score": 20,
+  "added": "2026-10-30",
+  "status": "made"
+ },
+ {
+  "topic": "Why hurricanes spin",
+  "hook": "Hurricanes always spin the same way. Here is why.",
+  "claim": "Earth's rotation (the Coriolis effect) deflects air flowing toward a low-pressure center, so storms spin counterclockwise in the Northern Hemisphere and clockwise in the Southern.",
+  "why_now": "Follows the hurricane series after the 'nuke a hurricane' breakout (23x); Hurricane Simon in NASA news feed",
+  "evidence": [
+   "https://www.youtube.com/watch?v=dyFZlc2h3wk"
+  ],
+  "sources_to_cite": [
+   "https://oceanservice.noaa.gov/facts/coriolis.html",
+   "https://www.aoml.noaa.gov/hrd-faq/"
+  ],
+  "visuals": "NASA ISS and GOES hurricane footage, NASA SVS global storm animations",
+  "score": 20,
+  "added": "2026-10-31",
+  "status": "made"
+ },
+ {
+  "topic": "Shooting stars are dust",
+  "hook": "Shooting stars are mostly grains of dust.",
+  "claim": "Most meteors are specks of comet or asteroid debris, many no bigger than a grain of sand, that glow as they hit the atmosphere at high speed; the Orionids come from Halley's Comet debris.",
+  "why_now": "Orionid shower peaked Oct 21-22, 2026 (NASA skywatching); Leonids peak mid-Nov; demand evidence weak",
+  "evidence": [
+   "https://science.nasa.gov/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/solar-system/meteors-meteorites/facts/"
+  ],
+  "visuals": "NASA all-sky meteor camera clips, ISS meteor footage (check credits)",
+  "score": 20,
+  "added": "2026-10-31",
+  "status": "made"
+ },
+ {
+  "topic": "Leonids: fastest meteors",
+  "hook": "These meteors hit at 43 miles per second.",
+  "claim": "Leonid meteors move about 43.5 mi/s (69.7 km/s) and come from comet 55P/Tempel-Tuttle (33-year orbit); meteor storms of 1,000+ per hour recur about every 33 years, last in 2002. 2026 peak Nov 16-17 but NASA expects under 3/hour. Partly overlaps shooting-stars video; angle is speed and the comet.",
+  "why_now": "Leonids active Nov 6-30, peak Nov 16-17 (NASA); seasonal skywatching interest",
+  "evidence": [
+   "https://science.nasa.gov/solar-system/meteors-meteorites/leonids/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/solar-system/meteors-meteorites/leonids/"
+  ],
+  "visuals": "NASA all-sky meteor camera clips, ISS meteor footage, Tempel-Tuttle illustrations (check credits)",
+  "score": 20,
+  "added": "2026-11-01",
+  "status": "made"
+ },
+ {
+  "topic": "Great Red Spot is wider than Earth",
+  "hook": "Jupiter has a storm twice as wide as Earth.",
+  "claim": "The Great Red Spot is a swirling oval of clouds about twice as wide as Earth, and astronomers have tracked it for more than three centuries. Do not claim shrinkage without a NASA source.",
+  "why_now": "Evergreen big-numbers format; no direct metric found",
+  "evidence": [
+   "https://science.nasa.gov/jupiter/jupiter-facts/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/jupiter/jupiter-facts/"
+  ],
+  "visuals": "NASA Juno JunoCam and Voyager/Hubble Jupiter imagery (check credits; JunoCam citizen-processed items need care)",
+  "score": 20,
+  "added": "2026-11-01",
+  "status": "made"
+ },
+ {
+  "topic": "Arctic winter ice ties record low",
+  "hook": "The Arctic's winter ice just tied its record low.",
+  "claim": "NASA and NSIDC report the March 2026 Arctic maximum, about 14.29 million sq km, matched the lowest winter maximum since satellite records began in 1979; the September minimum was only tenth lowest, so avoid implying a straight-line trend.",
+  "why_now": "NASA/NSIDC 2026 sea ice releases; Antarctic ice near record low for date in Oct (NSIDC sources disagree, skip that claim)",
+  "evidence": [
+   "https://science.nasa.gov/earth/arctic-winter-sea-ice-2026/",
+   "https://nsidc.org/news-analyses/news-stories/arctic-sea-ice-has-reached-minimum-extent-2026-antarctic-sea-ice-maximum-most-likely-reached-well"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/earth/arctic-winter-sea-ice-2026/",
+   "https://science.nasa.gov/earth/earth-observatory/arctic-sea-ice-shrinks-to-its-2026-minimum/"
+  ],
+  "visuals": "NASA SVS Arctic sea ice animations (svs.gsfc.nasa.gov/5677), Earth Observatory maps",
+  "score": 20,
+  "added": "2026-11-01",
+  "status": "made"
+ },
+ {
+  "topic": "Uranus spins on its side",
+  "hook": "Uranus spins on its side.",
+  "claim": "Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball, with 21-year polar day and night.",
+  "why_now": "Uranus facts TikTok at 15x (1.6M views) in 2026-10-30 report; picked directly because queue was empty and research had already run today",
+  "evidence": [
+   "https://www.tiktok.com/@univers.blackwhol/video/7697990032879127840"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/uranus/facts/"
+  ],
+  "visuals": "NASA Voyager 2 images",
+  "score": 19,
+  "added": "2026-10-31",
+  "status": "made"
+ },
+ {
+  "topic": "The Sun's atmosphere is hotter than its surface",
+  "hook": "The Sun's air is hotter than its surface.",
+  "claim": "NASA says the corona is much hotter than the photosphere (surface) and why is an open question Parker Solar Probe is studying. Get the temperature figures (about 1 million C vs about 5,500 C) from a NASA page before scripting; none were confirmed this run.",
+  "why_now": "Parker Solar Probe 2026 close passes in NASA news; Solar Cycle 25 interest",
+  "evidence": [
+   "https://science.nasa.gov/mission/parker-solar-probe/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/mission/parker-solar-probe/"
+  ],
+  "visuals": "NASA SDO corona footage, Parker Solar Probe WISPR imagery, eclipse corona images",
+  "score": 18,
+  "added": "2026-11-01",
+  "status": "queued"
+ }
 ]
