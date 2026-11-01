@@ -1,0 +1,93 @@
+{
+  "topic": "Why ice floats",
+  "claim": "Ice is less dense than liquid water because its hydrogen-bonded lattice holds molecules farther apart.",
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 2,
+      "caption": "Why doesn't ice sink?",
+      "vo": "Why doesn't ice sink?",
+      "bg": "#0b1d2e",
+      "image": "assets/sea-ice.jpg",
+      "audio": "assets/vo/hook.mp3"
+    },
+    {
+      "id": "setup",
+      "seconds": 8,
+      "caption": "Most solids get denser when they freeze.",
+      "vo": "Most solids get denser when they freeze, so their solid form sinks in their own liquid. Water breaks that pattern.",
+      "bg": "#12324a",
+      "audio": "assets/vo/setup.mp3",
+      "clips": [
+        {
+          "image": "assets/iceberg-incubator.jpg"
+        },
+        {
+          "image": "assets/iceberg.jpg",
+          "imageFocus": 0.25
+        }
+      ]
+    },
+    {
+      "id": "mechanism",
+      "seconds": 14,
+      "caption": "Hydrogen bonds hold water in an open lattice.",
+      "vo": "As water cools, hydrogen bonds pull molecules into a hexagonal lattice. That lattice holds them farther apart than in liquid water, so ice takes up more space for the same mass.",
+      "bg": "#163d5c",
+      "audio": "assets/vo/mechanism.mp3",
+      "clips": [
+        {
+          "video": "assets/snowflake.mp4",
+          "videoStart": 0,
+          "videoFocus": 0.3
+        },
+        {
+          "video": "assets/snowflake.mp4",
+          "videoStart": 4,
+          "videoFocus": 0.3
+        },
+        {
+          "video": "assets/snowflake.mp4",
+          "videoStart": 8,
+          "videoFocus": 0.5
+        }
+      ]
+    },
+    {
+      "id": "payoff",
+      "seconds": 10,
+      "caption": "Less dense, so it floats. Lakes freeze from the top.",
+      "vo": "Less dense means ice floats. The layer on top insulates the water below, so lakes freeze from the top down and fish survive winter.",
+      "bg": "#0b1d2e",
+      "audio": "assets/vo/payoff.mp3",
+      "clips": [
+        {
+          "image": "assets/sea-ice.jpg"
+        },
+        {
+          "image": "assets/meltpond.jpg",
+          "seconds": 1.5
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "text": "Eisenberg & Kauzmann, The Structure and Properties of Water (Oxford University Press, 1969)"
+    }
+  ],
+  "credits": [
+    "Sea ice image: NASA Goddard Space Flight Center (GSFC_20171208_Archive_e000190)",
+    "Snowflake model footage: NASA Goddard Scientific Visualization Studio (GSFC_20180329_3DModel_m12908_Snoflake_Melt)",
+    "Narration: ElevenLabs, voice 'Liam - Energetic, Social Media Creator'",
+    "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/",
+    "Iceberg images: NASA (PIA13970; ISS Expedition 47, iss047e022133)",
+    "Frozen melt pond: NASA Goddard Space Flight Center (GSFC_20171208_Archive_e001753)"
+  ],
+  "music": "assets/music.mp3",
+  "musicVolume": 0.12,
+  "transition": {
+    "type": "fade",
+    "seconds": 0.25
+  }
+}
