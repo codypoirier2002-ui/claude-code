@@ -21,3 +21,4 @@
 - 2026-10-31 | Uranus spins on its side | Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball, giving it 21-year stretches of polar daylight and darkness. | uranus-on-its-side.mp4
 - 2026-11-01 | Seasons are not caused by distance | Earth's 23.4-degree axial tilt, not its distance from the Sun, causes the seasons; Earth is closest to the Sun in January. | seasons-not-distance.mp4
 - 2026-11-01 | Why Mars is red | Mars looks red because iron in its rocks, soil and dust has oxidized (rusted), and wind-lifted dust makes the whole planet look red from afar. | why-mars-is-red.mp4
+- 2026-11-01 | Leonids: fastest meteors | Leonid meteors hit at about 43.5 miles per second; they are debris from comet 55P/Tempel-Tuttle (33-year orbit), and storms of 1,000+ per hour recur about every 33 years, last in 2002. | leonids-fastest-meteors.mp4

@@ -1,0 +1,15 @@
+{
+  "topic": "Leonids: fastest meteors",
+  "claim": "Leonid meteors hit at about 43.5 miles per second; they are debris from comet 55P/Tempel-Tuttle (33-year orbit), and storms of 1,000+ per hour recur about every 33 years, last in 2002.",
+  "accent": "#7cc4ff",
+  "beats": [
+    {"id":"hook","seconds":2,"caption":"43 miles per second","vo":"These meteors hit at 43 miles per second.","bg":"#02040a","bg2":"#10203a","image":"assets/NHQ202108110001.jpg","imageFocus":0.55,"audio":"assets/vo/hook.mp3"},
+    {"id":"setup","seconds":7,"caption":"Comet dust","vo":"They're the Leonids: dust and debris shed by comet Tempel-Tuttle, which circles the Sun once every 33 years.","bg":"#02040a","bg2":"#10203a","clips":[{"image":"assets/PIA17485.jpg","imageFocus":0.4},{"image":"assets/NHQ202108110003.jpg","imageFocus":0.3}],"audio":"assets/vo/setup.mp3"},
+    {"id":"mechanism","seconds":10,"caption":"Earth plows through the trail","vo":"Each November, Earth plows through that trail. The grains hit our air at about 43 and a half miles per second, which makes the Leonids some of the fastest meteors we see.","bg":"#02040a","bg2":"#10203a","clips":[{"image":"assets/NHQ202108110005.jpg","imageFocus":0.4},{"image":"assets/NHQ202108100009.jpg","imageFocus":0.35},{"image":"assets/NHQ202108110001.jpg","imageFocus":0.7}],"audio":"assets/vo/mechanism.mp3"},
+    {"id":"payoff","seconds":12,"caption":"Storm every ~33 years","vo":"Every 33 years or so, that can become a storm of over a thousand meteors an hour. The last was in 2002. This year? Fewer than three an hour. Will you still look up on November 16th?","bg":"#02040a","bg2":"#10203a","clips":[{"image":"assets/NHQ202108110003.jpg","imageFocus":0.5},{"image":"assets/NHQ202108100009.jpg","imageFocus":0.6},{"image":"assets/NHQ202108110005.jpg","imageFocus":0.6}],"audio":"assets/vo/payoff.mp3"}
+  ],
+  "sources": [
+    {"text":"NASA Science, Leonids: 43.5 mi (69.7 km) per second; comet 55P/Tempel-Tuttle, 33-year orbit; storm (1,000+/hour) about every 33 years, last in 2002; 2026 active Nov 6-30, peak Nov 16-17, fewer than 3 per hour under dark skies. https://science.nasa.gov/solar-system/meteors-meteorites/leonids/"}
+  ],
+  "credits": ["Meteor photos: NASA/Bill Ingalls (Perseid meteors, 2021; shown as generic meteor streaks)","Comet image: NASA/ESA/Giotto Project (comet Halley, shown as a generic comet)","Narration: ElevenLabs"]
+}
