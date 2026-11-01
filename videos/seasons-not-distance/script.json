@@ -1,0 +1,16 @@
+{
+ "topic": "Seasons are not caused by distance",
+ "claim": "Earth's 23.4-degree axial tilt, not its distance from the Sun, causes the seasons; Earth is closest to the Sun in January.",
+ "accent": "#ffd166",
+ "beats": [
+  {"id":"hook","seconds":2,"caption":"Summer isn't about distance","vo":"Summer isn't about distance.","bg":"#050b1a","bg2":"#10305a","image":"assets/GSFC_20171208_Archive_e001386.jpg","audio":"assets/vo/hook.mp3"},
+  {"id":"setup","seconds":8,"caption":"Closest in January","vo":"Earth is actually closest to the Sun in early January, when it's winter in the Northern Hemisphere. It's farthest away in July.","bg":"#050b1a","bg2":"#10305a","clips":[{"image":"assets/PIA26681c.jpg"},{"image":"assets/GSFC_20171208_Archive_e001155.jpg","imageFocus":0.4}],"audio":"assets/vo/setup.mp3"},
+  {"id":"mechanism","seconds":10,"caption":"The real cause: a 23.4° tilt","vo":"The real cause is tilt. Earth's axis leans 23.4 degrees. The half of Earth tilted toward the Sun gets more direct sunlight, and that's its summer.","bg":"#050b1a","bg2":"#10305a","clips":[{"image":"assets/GSFC_20171208_Archive_e001016.jpg"},{"image":"assets/GSFC_20171208_Archive_e000265.jpg"}],"audio":"assets/vo/mechanism.mp3"},
+  {"id":"payoff","seconds":11,"caption":"Tilt wins","vo":"The distance changes by only about 3 million miles out of 93 million. Too small to matter. Tilt wins. So right now, which half of Earth is leaning toward the Sun?","bg":"#050b1a","bg2":"#10305a","clips":[{"image":"assets/GSFC_20171208_Archive_e001386.jpg"},{"image":"assets/GSFC_20171208_Archive_e001016.jpg"}],"audio":"assets/vo/payoff.mp3"}
+ ],
+ "sources": [
+  {"text":"NASA Science, Earth Facts: axis tilted 23.4 degrees, which causes the seasons; average distance 93 million miles. https://science.nasa.gov/earth/facts/"},
+  {"text":"NASA Space Place, What Causes the Seasons?: perihelion ~91.4 million miles (January), aphelion ~94.5 million miles (July). https://spaceplace.nasa.gov/seasons/en/"}
+ ],
+ "credits": ["Imagery: NASA/NOAA/GSFC (Blue Marble, EPIC/DSCOVR, GOES), NASA/SDO","Narration: ElevenLabs"]
+}

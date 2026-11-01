@@ -19,3 +19,4 @@
 - 2026-10-31 | Permafrost is a carbon freezer | Arctic permafrost soils hold roughly twice as much carbon as the atmosphere; as they thaw, microbes release it as carbon dioxide and methane. | permafrost-carbon-freezer.mp4
 - 2026-10-31 | Shooting stars are dust | Shooting stars are meteors: bits of comet or asteroid debris, often a grain of sand to a pea in size, that vaporize in a bright streak as they hit our atmosphere at tens of thousands of miles per hour. | shooting-stars-are-dust.mp4
 - 2026-10-31 | Uranus spins on its side | Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball, giving it 21-year stretches of polar daylight and darkness. | uranus-on-its-side.mp4
+- 2026-11-01 | Seasons are not caused by distance | Earth's 23.4-degree axial tilt, not its distance from the Sun, causes the seasons; Earth is closest to the Sun in January. | seasons-not-distance.mp4

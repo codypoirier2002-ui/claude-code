@@ -99,10 +99,10 @@
     "status": "made"
   },
   {
-    "topic": "What is El Niño",
+    "topic": "What is El Ni\u00f1o",
     "hook": "The Pacific is heating up. Your weather will feel it.",
-    "claim": "El Niño is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
-    "why_now": "NASA says a possibly record El Niño is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
+    "claim": "El Ni\u00f1o is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
+    "why_now": "NASA says a possibly record El Ni\u00f1o is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
     "evidence": [
       "https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/",
       "https://www.earthdata.nasa.gov/learn/data-in-action/tracking-2026-el-nino-from-open-ocean-coast"
@@ -168,6 +168,22 @@
     "status": "made"
   },
   {
+    "topic": "Seasons are not caused by distance",
+    "hook": "Summer isn't caused by being closer to the Sun.",
+    "claim": "Earth's axis is tilted 23.4 degrees; the hemisphere leaning toward the Sun gets more direct sunlight and has summer. Distance is not the cause (verify perihelion/aphelion dates and distances on a NASA page before scripting).",
+    "why_now": "Evergreen myth-bust; northern winter approaching, daylight-change questions peak (no direct metric found)",
+    "evidence": [
+      "https://science.nasa.gov/earth/facts/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/earth/facts/"
+    ],
+    "visuals": "NASA SVS/EPIC Earth-from-space animations, DSCOVR EPIC imagery, NASA Earth tilt diagrams",
+    "score": 22,
+    "added": "2026-11-01",
+    "status": "made"
+  },
+  {
     "topic": "Why stars twinkle but planets don't",
     "hook": "Stars twinkle. Planets don't. Here's why.",
     "claim": "Stars are so far away they are point sources, so turbulent air bends their light around and they flicker; planets show a tiny disk whose many points average out.",
@@ -215,6 +231,23 @@
     "score": 21,
     "added": "2026-10-30",
     "status": "made"
+  },
+  {
+    "topic": "Why Mars is red",
+    "hook": "Mars is red because it is rusty.",
+    "claim": "NASA says Mars looks reddish due to oxidization: iron in its rocks, soil and dust rusts, and dust in the air makes the planet look red.",
+    "why_now": "Follows Mars dust video; planet-fact demand from 2026-10-30 report (Uranus 15x, TOI-700 d 66x)",
+    "evidence": [
+      "https://science.nasa.gov/mars/facts/",
+      "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-perseverance-offers-clues-to-protect-crews-from-mars-dust/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/mars/facts/"
+    ],
+    "visuals": "NASA Perseverance/Curiosity rover imagery, MRO HiRISE, Viking global mosaics",
+    "score": 21,
+    "added": "2026-11-01",
+    "status": "queued"
   },
   {
     "topic": "Permafrost is a carbon freezer",
@@ -266,6 +299,56 @@
     "status": "made"
   },
   {
+    "topic": "Leonids: fastest meteors",
+    "hook": "These meteors hit at 43 miles per second.",
+    "claim": "Leonid meteors move about 43.5 mi/s (69.7 km/s) and come from comet 55P/Tempel-Tuttle (33-year orbit); meteor storms of 1,000+ per hour recur about every 33 years, last in 2002. 2026 peak Nov 16-17 but NASA expects under 3/hour. Partly overlaps shooting-stars video; angle is speed and the comet.",
+    "why_now": "Leonids active Nov 6-30, peak Nov 16-17 (NASA); seasonal skywatching interest",
+    "evidence": [
+      "https://science.nasa.gov/solar-system/meteors-meteorites/leonids/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/solar-system/meteors-meteorites/leonids/"
+    ],
+    "visuals": "NASA all-sky meteor camera clips, ISS meteor footage, Tempel-Tuttle illustrations (check credits)",
+    "score": 20,
+    "added": "2026-11-01",
+    "status": "queued"
+  },
+  {
+    "topic": "Great Red Spot is wider than Earth",
+    "hook": "Jupiter has a storm twice as wide as Earth.",
+    "claim": "The Great Red Spot is a swirling oval of clouds about twice as wide as Earth, and astronomers have tracked it for more than three centuries. Do not claim shrinkage without a NASA source.",
+    "why_now": "Evergreen big-numbers format; no direct metric found",
+    "evidence": [
+      "https://science.nasa.gov/jupiter/jupiter-facts/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/jupiter/jupiter-facts/"
+    ],
+    "visuals": "NASA Juno JunoCam and Voyager/Hubble Jupiter imagery (check credits; JunoCam citizen-processed items need care)",
+    "score": 20,
+    "added": "2026-11-01",
+    "status": "queued"
+  },
+  {
+    "topic": "Arctic winter ice ties record low",
+    "hook": "The Arctic's winter ice just tied its record low.",
+    "claim": "NASA and NSIDC report the March 2026 Arctic maximum, about 14.29 million sq km, matched the lowest winter maximum since satellite records began in 1979; the September minimum was only tenth lowest, so avoid implying a straight-line trend.",
+    "why_now": "NASA/NSIDC 2026 sea ice releases; Antarctic ice near record low for date in Oct (NSIDC sources disagree, skip that claim)",
+    "evidence": [
+      "https://science.nasa.gov/earth/arctic-winter-sea-ice-2026/",
+      "https://nsidc.org/news-analyses/news-stories/arctic-sea-ice-has-reached-minimum-extent-2026-antarctic-sea-ice-maximum-most-likely-reached-well"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/earth/arctic-winter-sea-ice-2026/",
+      "https://science.nasa.gov/earth/earth-observatory/arctic-sea-ice-shrinks-to-its-2026-minimum/"
+    ],
+    "visuals": "NASA SVS Arctic sea ice animations (svs.gsfc.nasa.gov/5677), Earth Observatory maps",
+    "score": 20,
+    "added": "2026-11-01",
+    "status": "queued"
+  },
+  {
     "topic": "Uranus spins on its side",
     "hook": "Uranus spins on its side.",
     "claim": "Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball, with 21-year polar day and night.",
@@ -280,5 +363,21 @@
     "score": 19,
     "added": "2026-10-31",
     "status": "made"
+  },
+  {
+    "topic": "The Sun's atmosphere is hotter than its surface",
+    "hook": "The Sun's air is hotter than its surface.",
+    "claim": "NASA says the corona is much hotter than the photosphere (surface) and why is an open question Parker Solar Probe is studying. Get the temperature figures (about 1 million C vs about 5,500 C) from a NASA page before scripting; none were confirmed this run.",
+    "why_now": "Parker Solar Probe 2026 close passes in NASA news; Solar Cycle 25 interest",
+    "evidence": [
+      "https://science.nasa.gov/mission/parker-solar-probe/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/mission/parker-solar-probe/"
+    ],
+    "visuals": "NASA SDO corona footage, Parker Solar Probe WISPR imagery, eclipse corona images",
+    "score": 18,
+    "added": "2026-11-01",
+    "status": "queued"
   }
 ]
