@@ -22,3 +22,4 @@
 - 2026-11-01 | Seasons are not caused by distance | Earth's 23.4-degree axial tilt, not its distance from the Sun, causes the seasons; Earth is closest to the Sun in January. | seasons-not-distance.mp4
 - 2026-11-01 | Why Mars is red | Mars looks red because iron in its rocks, soil and dust has oxidized (rusted), and wind-lifted dust makes the whole planet look red from afar. | why-mars-is-red.mp4
 - 2026-11-01 | Leonids: fastest meteors | Leonid meteors hit at about 43.5 miles per second; they are debris from comet 55P/Tempel-Tuttle (33-year orbit), and storms of 1,000+ per hour recur about every 33 years, last in 2002. | leonids-fastest-meteors.mp4
+- 2026-11-01 | Great Red Spot is wider than Earth | Jupiter's Great Red Spot is a swirling oval of clouds about twice as wide as Earth, observed for more than 300 years, and Juno found it reaches about 300 miles below the cloud tops. | great-red-spot.mp4

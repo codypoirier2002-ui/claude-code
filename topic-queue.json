@@ -99,10 +99,10 @@
     "status": "made"
   },
   {
-    "topic": "What is El Niño",
+    "topic": "What is El Ni\u00f1o",
     "hook": "The Pacific is heating up. Your weather will feel it.",
-    "claim": "El Niño is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
-    "why_now": "NASA says a possibly record El Niño is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
+    "claim": "El Ni\u00f1o is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
+    "why_now": "NASA says a possibly record El Ni\u00f1o is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
     "evidence": [
       "https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/",
       "https://www.earthdata.nasa.gov/learn/data-in-action/tracking-2026-el-nino-from-open-ocean-coast"
@@ -328,7 +328,7 @@
     "visuals": "NASA Juno JunoCam and Voyager/Hubble Jupiter imagery (check credits; JunoCam citizen-processed items need care)",
     "score": 20,
     "added": "2026-11-01",
-    "status": "queued"
+    "status": "made"
   },
   {
     "topic": "Arctic winter ice ties record low",

@@ -1,0 +1,106 @@
+{
+ "topic": "Great Red Spot is wider than Earth",
+ "claim": "Jupiter's Great Red Spot is a swirling oval of clouds about twice as wide as Earth, observed for more than 300 years, and Juno found it reaches about 300 miles below the cloud tops.",
+ "accent": "#ff9f43",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 2,
+   "caption": "Twice as wide as Earth",
+   "vo": "This storm is twice as wide as Earth.",
+   "bg": "#0a0503",
+   "bg2": "#3a1a08",
+   "image": "assets/PIA21772.jpg",
+   "imageFocus": 0.5,
+   "audio": "assets/vo/hook.mp3"
+  },
+  {
+   "id": "setup",
+   "seconds": 8,
+   "caption": "Jupiter's Great Red Spot",
+   "vo": "It's Jupiter's Great Red Spot, a swirling oval of clouds. Astronomers have watched it for more than 300 years.",
+   "bg": "#0a0503",
+   "bg2": "#3a1a08",
+   "clips": [
+    {
+     "image": "assets/PIA01262.jpg",
+     "imageFocus": 0.6
+    },
+    {
+     "image": "assets/PIA01370.jpg",
+     "imageFocus": 0.85
+    }
+   ],
+   "audio": "assets/vo/setup.mp3"
+  },
+  {
+   "id": "size",
+   "seconds": 6,
+   "caption": "Jupiter is 11x wider",
+   "vo": "Jupiter itself is 11 times wider than Earth, so there's plenty of room for a storm this big.",
+   "bg": "#0a0503",
+   "bg2": "#3a1a08",
+   "clips": [
+    {
+     "image": "assets/PIA01369.jpg",
+     "imageFocus": 0.5
+    },
+    {
+     "image": "assets/PIA00029.jpg",
+     "imageFocus": 0.5
+    }
+   ],
+   "audio": "assets/vo/size.mp3"
+  },
+  {
+   "id": "mechanism",
+   "seconds": 9,
+   "caption": "About 300 miles deep",
+   "vo": "NASA's Juno spacecraft found it's deep, too. The storm reaches about 300 miles below the cloud tops, in an atmosphere of hydrogen and helium.",
+   "bg": "#0a0503",
+   "bg2": "#3a1a08",
+   "clips": [
+    {
+     "image": "assets/PIA21772.jpg",
+     "imageFocus": 0.5
+    },
+    {
+     "image": "assets/PIA00029.jpg",
+     "imageFocus": 0.5
+    }
+   ],
+   "audio": "assets/vo/mechanism.mp3"
+  },
+  {
+   "id": "payoff",
+   "seconds": 9,
+   "caption": "Centuries, not days",
+   "vo": "A hurricane on Earth fades in days or weeks. This one has lasted centuries. What keeps it going?",
+   "bg": "#0a0503",
+   "bg2": "#3a1a08",
+   "clips": [
+    {
+     "image": "assets/PIA01370.jpg",
+     "imageFocus": 0.85
+    },
+    {
+     "image": "assets/PIA01262.jpg",
+     "imageFocus": 0.6
+    }
+   ],
+   "audio": "assets/vo/payoff.mp3"
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Jupiter Facts: Great Red Spot is a swirling oval of clouds twice as wide as Earth, observed for more than 300 years; Juno gravity data constrain its extent to about 300 miles (500 km) below the cloud tops; atmosphere of hydrogen and helium. https://science.nasa.gov/jupiter/jupiter-facts/ Also: Jupiter is 11 times wider than Earth."
+  }
+ ],
+ "credits": [
+  "Jupiter, Hubble: NASA/New Mexico State Univ. (PIA01262)",
+  "Great Red Spot: NASA/JPL (Voyager, PIA01370); Voyager 1 Jupiter: NASA/JPL (PIA00029)",
+  "Voyager close-up: NASA/JPL (PIA01369)",
+  "JunoCam enhanced-color image: NASA/JPL-Caltech/SwRI/MSSS, processing by citizen scientist Jason Major (PIA21772)",
+  "Narration: ElevenLabs"
+ ]
+}
