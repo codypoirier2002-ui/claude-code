@@ -1,0 +1,134 @@
+{
+ "topic": "Neptune has the fastest winds in the solar system",
+ "claim": "Neptune's winds top 1,200 mph (2,000 km/h), the fastest in the solar system, even though the planet gets very little energy from the Sun.",
+ "accent": "#4fc3ff",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 3.84,
+   "caption": "Fastest winds in space",
+   "vo": "Neptune has the fastest winds in the solar system.",
+   "motion": {
+    "scene": "3d/planet",
+    "params": {
+     "model": "assets/neptune.glb",
+     "tilt": 28,
+     "spin": 14,
+     "atmosphere": "#4f8bff",
+     "startDistance": 10,
+     "endDistance": 7
+    }
+   },
+   "audio": "assets/vo/hook.mp3"
+  },
+  {
+   "id": "far",
+   "seconds": 5.68,
+   "caption": "30x farther than Earth",
+   "vo": "It's over thirty times farther from the Sun than Earth, so it gets very little energy.",
+   "clips": [
+    {
+     "image": "assets/pia02210.jpg"
+    },
+    {
+     "image": "assets/pia02215.jpg",
+     "seconds": 1
+    }
+   ],
+   "audio": "assets/vo/far.mp3"
+  },
+  {
+   "id": "speed",
+   "seconds": 6.96,
+   "caption": "Wind speed, mph",
+   "vo": "Yet its winds top twelve hundred miles per hour. Earth's strongest winds only reach about two hundred fifty.",
+   "motion": {
+    "scene": "2d/bars",
+    "params": {
+     "title": "Fastest winds (mph)",
+     "unit": " mph",
+     "items": [
+      {
+       "label": "Earth",
+       "value": 250,
+       "color": "#7fd1ae",
+       "display": "250"
+      },
+      {
+       "label": "Neptune",
+       "value": 1200,
+       "color": "#4fc3ff",
+       "display": "1,200+"
+      }
+     ],
+     "max": 1300
+    }
+   },
+   "audio": "assets/vo/speed.mp3"
+  },
+  {
+   "id": "jupiter",
+   "seconds": 3.92,
+   "caption": "3x Jupiter's winds",
+   "vo": "That's up to three times faster than the winds on Jupiter.",
+   "motion": {
+    "scene": "2d/counter",
+    "params": {
+     "label": "Neptune wind speed",
+     "from": 0,
+     "to": 2000,
+     "unit": " km/h",
+     "sub": "more than 2,000 km/h (1,200 mph)",
+     "color": "#4fc3ff"
+    }
+   },
+   "audio": "assets/vo/jupiter.mp3"
+  },
+  {
+   "id": "voyager",
+   "seconds": 9.36,
+   "caption": "Voyager 2, 1989",
+   "vo": "Voyager 2 flew past in nineteen eighty-nine, the first spacecraft ever to visit. It spotted a storm big enough to swallow Earth whole.",
+   "motion": {
+    "scene": "3d/orbit",
+    "params": {
+     "model": "assets/neptune.glb",
+     "satellite": "assets/voyager.glb",
+     "satelliteSize": 0.22,
+     "orbitRadius": 1.6,
+     "inclination": 70,
+     "period": 5,
+     "atmosphere": "#4f8bff"
+    }
+   },
+   "audio": "assets/vo/voyager.mp3"
+  },
+  {
+   "id": "payoff",
+   "seconds": 7.28,
+   "caption": "Where does the power come from?",
+   "vo": "Dim sunlight, deep cold, and still the windiest world we know. So what's powering it?",
+   "motion": {
+    "scene": "3d/planet",
+    "params": {
+     "model": "assets/neptune.glb",
+     "tilt": 28,
+     "spin": 20,
+     "atmosphere": "#4f8bff",
+     "startDistance": 7,
+     "endDistance": 9
+    }
+   },
+   "audio": "assets/vo/payoff.mp3"
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Neptune Facts: https://science.nasa.gov/neptune/neptune-facts/ (winds >1,200 mph / 2,000 km/h; Earth's strongest ~250 mph / 400 km/h; >30x Earth's distance from the Sun; Voyager 2 first flyby 1989; Great Dark Spot large enough to contain Earth)"
+  }
+ ],
+ "credits": [
+  "3D models: NASA (Neptune, Voyager)",
+  "Images: NASA/JPL (PIA02210, PIA02215)"
+ ]
+}

@@ -36,3 +36,4 @@
 - 2026-11-02 | Saturn's rings are paper-thin | Saturn's rings reach up to 282,000 km from the planet, yet the main rings are typically only about 10 m (30 ft) thick. | /tmp/saturn.mp4
 - 2026-11-02 | Neptune's moon Triton orbits backwards | Triton orbits Neptune opposite to Neptune's spin, the only large moon to do so, and scientists think it is a captured Kuiper Belt object. | triton-orbits-backwards.mp4
 - 2026-11-02 | A helicopter flew 72 times on Mars | NASA's Ingenuity helicopter was planned for no more than five test flights in 30 days, and flew 72 times over nearly three years. | mars-helicopter.mp4
+- 2026-11-02 | Neptune has the fastest winds in the solar system | Neptune's winds top 1,200 mph (2,000 km/h), the fastest in the solar system, even though the planet gets very little energy from the Sun. | /tmp/neptune.mp4
