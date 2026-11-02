@@ -34,3 +34,4 @@
 - 2026-11-02 | Everest is not the closest point to space | Earth bulges at the equator from its spin, so Ecuador's Chimborazo summit is over 2,072 m farther from Earth's center than Everest's, though Everest is higher above sea level (8,848 m vs 6,268 m). | everest-chimborazo.mp4
 - 2026-11-02 | If the ice sheets melted | Greenland and Antarctica hold over 68% of Earth's fresh water; fully melted, Greenland would raise sea level about 7.4 m (24 ft) and Antarctica about 58 m (190 ft). | ice-sheets-melted.mp4
 - 2026-11-02 | Saturn's rings are paper-thin | Saturn's rings reach up to 282,000 km from the planet, yet the main rings are typically only about 10 m (30 ft) thick. | /tmp/saturn.mp4
+- 2026-11-02 | Neptune's moon Triton orbits backwards | Triton orbits Neptune opposite to Neptune's spin, the only large moon to do so, and scientists think it is a captured Kuiper Belt object. | triton-orbits-backwards.mp4

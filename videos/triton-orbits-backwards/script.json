@@ -1,0 +1,34 @@
+{
+  "topic": "Neptune's moon Triton orbits backwards",
+  "claim": "Triton orbits Neptune opposite to Neptune's spin, the only large moon to do so, and scientists think it is a captured Kuiper Belt object.",
+  "accent": "#5fd0ff",
+  "beats": [
+    {"id":"hook","seconds":2,"caption":"Triton orbits BACKWARDS","vo":"Neptune's biggest moon orbits backwards.","audio":"assets/vo/hook.mp3",
+     "motion":{"scene":"3d/orbit","params":{"model":"assets/neptune.glb","satellite":"assets/triton.glb","satelliteSize":0.22,"orbitRadius":1.6,"inclination":18,"period":5,"spin":-45,"atmosphere":"#3b6cff","distance":9}}},
+    {"id":"setup","seconds":7,"caption":"Opposite to Neptune's spin","vo":"Neptune spins one way. Its moon Triton circles it the other way. Astronomers call that a retrograde orbit.","audio":"assets/vo/setup.mp3",
+     "clips":[
+       {"motion":{"scene":"3d/orbit","params":{"model":"assets/neptune.glb","satellite":"assets/triton.glb","satelliteSize":0.22,"orbitRadius":1.6,"inclination":18,"period":5,"spin":-45,"atmosphere":"#3b6cff","distance":9}},"seconds":2},
+       {"image":"assets/PIA02210.jpg","imageFocus":0.5,"seconds":1.2},
+       {"image":"assets/PIA02215.jpg","seconds":1.2}]},
+    {"id":"only","seconds":3.6,"caption":"The only large moon that does this","vo":"And it's the only large moon in our solar system that does this.","audio":"assets/vo/only.mp3",
+     "motion":{"scene":"3d/planet","params":{"model":"assets/triton.glb","atmosphere":false,"tilt":10,"spin":14,"label":"Triton","startDistance":9,"endDistance":6.5}}},
+    {"id":"why","seconds":11,"caption":"A captured Kuiper Belt object?","vo":"Moons born alongside their planet follow its spin. A backwards one suggests an outsider. Scientists think Triton was a Kuiper Belt object, captured by Neptune's gravity millions of years ago.","audio":"assets/vo/why.mp3",
+     "clips":[
+       {"image":"assets/PIA02246.jpg","seconds":1},
+       {"image":"assets/PIA02247.jpg","seconds":1},
+       {"image":"assets/PIA02210.jpg","seconds":1}]},
+    {"id":"pluto","seconds":11,"caption":"Pluto's cold cousin","vo":"That fits. Triton looks a lot like Pluto: sixteen hundred eighty miles wide, with a frozen nitrogen crust, and a surface around minus three hundred ninety-one degrees Fahrenheit.","audio":"assets/vo/pluto.mp3",
+     "clips":[
+       {"image":"assets/PIA01538.jpg","seconds":1},
+       {"motion":{"scene":"2d/counter","params":{"label":"Triton surface temperature","from":0,"to":-391,"unit":"°F","sub":"Voyager 2 measurement, 1989","color":"#5fd0ff"}},"seconds":1.3}]},
+    {"id":"payoff","seconds":11,"caption":"Captured world. Wrong-way orbit.","vo":"Voyager 2 even caught active geysers there in 1989. So Triton is likely a captured Kuiper Belt world, circling Neptune the wrong way. Where do you think it came from?","audio":"assets/vo/payoff.mp3",
+     "clips":[
+       {"image":"assets/PIA01994.jpg","seconds":1},
+       {"image":"assets/PIA02211.jpg","seconds":1},
+       {"motion":{"scene":"3d/orbit","params":{"model":"assets/neptune.glb","satellite":"assets/triton.glb","satelliteSize":0.22,"orbitRadius":1.6,"inclination":18,"period":5,"spin":-45,"atmosphere":"#3b6cff","distance":9}},"seconds":1.3}]}
+  ],
+  "sources": [
+    {"text":"NASA Science, Triton: https://science.nasa.gov/neptune/moons/triton/ (retrograde orbit, only large moon to do so, captured Kuiper Belt object, 1,680 mi diameter, -391 F surface, Voyager 2 geysers 1989)"}
+  ],
+  "credits": ["3D models: NASA (science.nasa.gov 3D resources, VTAD)", "Images: NASA/JPL (Voyager 2)", "Narration: ElevenLabs"]
+}
