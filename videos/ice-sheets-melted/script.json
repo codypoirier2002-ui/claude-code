@@ -1,0 +1,21 @@
+{
+  "topic": "If the ice sheets melted",
+  "claim": "Greenland and Antarctica hold over 68% of Earth's fresh water; fully melted, Greenland would raise sea level about 7.4 m (24 ft) and Antarctica about 58 m (190 ft).",
+  "accent": "#7fdbff",
+  "music": "assets/music.mp3",
+  "transition": {"type": "fade", "seconds": 0.2},
+  "beats": [
+    {"id": "hook", "seconds": 2, "caption": "190 feet of sea level, frozen.", "vo": "190 feet of sea level, frozen.", "bg": "#0b1d2e", "audio": "assets/vo/hook.mp3",
+     "clips": [{"image": "assets/GSFC_20171208_Archive_e000909.jpg"}, {"image": "assets/GSFC_20171208_Archive_e001453.jpg"}]},
+    {"id": "setup", "seconds": 8, "caption": "Earth has just two ice sheets.", "vo": "Earth has just two ice sheets: Greenland and Antarctica. Together they hold over two-thirds of all the fresh water on Earth.", "bg": "#12324a", "audio": "assets/vo/setup.mp3",
+     "clips": [{"image": "assets/GSFC_20171208_Archive_e000832.jpg"}, {"image": "assets/PIA11991.jpg"}, {"image": "assets/GSFC_20171208_Archive_e000213.jpg", "imageFocus": 0.4}]},
+    {"id": "greenland", "seconds": 4, "caption": "Greenland: about 24 feet", "vo": "Melt all of Greenland, and the sea would rise about 24 feet.", "bg": "#163d5c", "audio": "assets/vo/greenland.mp3",
+     "clips": [{"image": "assets/GSFC_20171208_Archive_e001753.jpg", "imageFocus": 0.3}, {"image": "assets/GSFC_20171208_Archive_e000832.jpg"}]},
+    {"id": "antarctica", "seconds": 9, "caption": "Antarctica: about 190 feet", "vo": "Melt all of Antarctica, and it's about 190 feet. It's far bigger: over five million square miles, and up to three miles thick.", "bg": "#0b1d2e", "audio": "assets/vo/antarctica.mp3",
+     "clips": [{"image": "assets/GSFC_20171208_Archive_e001453.jpg", "imageFocus": 0.3}, {"image": "assets/GSFC_20171208_Archive_e000909.jpg"}, {"image": "assets/200910220008HQ.jpg"}]},
+    {"id": "payoff", "seconds": 10, "caption": "Extreme case, not a forecast.", "vo": "That's the extreme case, not a forecast. But both ice sheets are already losing ice, and it's already raising sea levels. Which coastline would you check first?", "bg": "#12324a", "audio": "assets/vo/payoff.mp3",
+     "clips": [{"image": "assets/GSFC_20171208_Archive_e001753.jpg", "imageFocus": 0.6}, {"image": "assets/GSFC_20171208_Archive_e001488.jpg"}, {"image": "assets/PIA11991.jpg", "imageFocus": 0.6}]}
+  ],
+  "sources": [{"text": "NSIDC, Ice Sheets: https://nsidc.org/learn/parts-cryosphere/ice-sheets (68% of fresh water; Greenland 7.4 m / 24 ft; Antarctica 58 m / 190 ft; Antarctic area ~14 million km2 / 5.4 million mi2, up to ~4.9 km / 3 mi thick)"}],
+  "credits": ["Images: NASA (Operation IceBridge / Jim Yungel, Goddard, Terra ASTER Wilkins Ice Shelf PIA11991, Greenland 3D cutaway)", "Music: Floating Cities by Kevin MacLeod (incompetech.com), CC BY 4.0"]
+}
