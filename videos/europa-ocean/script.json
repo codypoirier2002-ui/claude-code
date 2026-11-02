@@ -1,0 +1,108 @@
+{
+ "topic": "Europa may hold twice Earth's ocean water",
+ "claim": "Under its ice shell, Jupiter's moon Europa likely has a salty ocean holding about twice as much water as all of Earth's oceans.",
+ "accent": "#7fd6ff",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 2,
+   "caption": "Tiny moon, giant ocean",
+   "vo": "A tiny moon may hide twice Earth's ocean water.",
+   "audio": "assets/vo/hook.mp3",
+   "motion": {
+    "scene": "3d/planet",
+    "params": {
+     "model": "assets/europa.glb",
+     "tilt": 3,
+     "spin": 20,
+     "startDistance": 9,
+     "endDistance": 7.5,
+     "elevation": 6
+    }
+   }
+  },
+  {
+   "id": "setup",
+   "seconds": 10,
+   "caption": "Europa: 1/4 Earth's width",
+   "vo": "Europa is only one-fourth as wide as Earth. But under its icy shell, scientists think a salty ocean lies sixty to one hundred fifty kilometers deep.",
+   "audio": "assets/vo/setup.mp3",
+   "clips": [
+    {
+     "image": "assets/PIA19048.jpg",
+     "imageFocus": 0.45,
+     "seconds": 0.6
+    },
+    {
+     "image": "assets/PIA20028.jpg"
+    }
+   ]
+  },
+  {
+   "id": "mechanism",
+   "seconds": 12,
+   "caption": "Ice shell: 15-25 km thick",
+   "vo": "That shell is fifteen to twenty-five kilometers thick. Magnetic readings from NASA's Galileo spacecraft point to salty water underneath. Add it up, and Europa's ocean may hold double all of Earth's oceans.",
+   "audio": "assets/vo/mechanism.mp3",
+   "clips": [
+    {
+     "image": "assets/PIA10131.jpg",
+     "imageFocus": 0.25,
+     "seconds": 1
+    },
+    {
+     "motion": {
+      "scene": "2d/bars",
+      "params": {
+       "title": "Ocean water (Earth = 1)",
+       "items": [
+        {
+         "label": "Earth",
+         "value": 1
+        },
+        {
+         "label": "Europa (estimate)",
+         "value": 2,
+         "color": "#7fd6ff"
+        }
+       ],
+       "decimals": 0
+      }
+     },
+     "seconds": 1.3
+    }
+   ]
+  },
+  {
+   "id": "payoff",
+   "seconds": 7,
+   "caption": "Is anyone home? 3D models: NASA",
+   "vo": "NASA launched Europa Clipper in October 2024 to find out if that ocean could support life. Would you bet on life there?",
+   "audio": "assets/vo/payoff.mp3",
+   "motion": {
+    "scene": "3d/model",
+    "params": {
+     "model": "assets/clipper.glb",
+     "label": "Europa Clipper",
+     "startDistance": 7.5,
+     "endDistance": 6.5,
+     "elevation": 15,
+     "spin": 25
+    }
+   }
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Europa Facts: https://science.nasa.gov/jupiter/jupiter-moons/europa/europa-facts/ (ocean 60-150 km deep, ice shell 15-25 km, one-fourth Earth's diameter, ocean may hold twice Earth's global ocean)"
+  },
+  {
+   "text": "NASA Science, Europa overview: https://science.nasa.gov/jupiter/jupiter-moons/europa/ (Europa Clipper launched Oct. 14, 2024)"
+  }
+ ],
+ "credits": [
+  "3D models: NASA (Europa, Europa Clipper)",
+  "Images: NASA/JPL-Caltech/SETI Institute (PIA19048, PIA20028); NASA/JPL (PIA10131, artist concept)",
+  "Narration: ElevenLabs"
+ ]
+}
