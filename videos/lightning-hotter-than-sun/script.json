@@ -1,0 +1,17 @@
+{
+  "topic": "Lightning is hotter than the Sun's surface",
+  "claim": "Lightning heats the air in its channel to above 50,000 F in a few millionths of a second; the Sun's visible surface is about 10,000 F.",
+  "accent": "#7cc4ff",
+  "beats": [
+    {"id":"hook","seconds":2,"caption":"Lightning is hotter than the Sun","vo":"Lightning is hotter than the Sun.","audio":"assets/vo/hook.mp3","clips":[{"image":"assets/iss073e0330134.jpg","imageFocus":0.55}]},
+    {"id":"sun","seconds":6,"caption":"Sun's surface: about 10,000 °F","vo":"Well, the Sun's visible surface. NASA says that's about ten thousand degrees Fahrenheit.","audio":"assets/vo/sun.mp3","clips":[{"video":"assets/sun-a.mp4","videoFocus":0.5},{"video":"assets/sun-b.mp4","videoFocus":0.5}]},
+    {"id":"bolt","seconds":9,"caption":"Lightning: above 50,000 °F","vo":"But a lightning bolt's huge electric current heats the air around it to above fifty thousand degrees Fahrenheit, in only a few millionths of a second.","audio":"assets/vo/bolt.mp3","clips":[{"image":"assets/ksc-bolt.jpg"},{"image":"assets/iss073e0330134.jpg","imageFocus":0.4}]},
+    {"id":"thunder","seconds":9,"caption":"5x hotter. Shock wave = thunder","vo":"That's five times hotter. The air has no time to expand, so the pressure explodes outward as a shock wave. That becomes thunder.","audio":"assets/vo/thunder.mp3","clips":[{"image":"assets/ksc-bolt.jpg"},{"video":"assets/sun-b.mp4"},{"image":"assets/iss073e0330134.jpg","imageFocus":0.7}]},
+    {"id":"payoff","seconds":7,"caption":"Count the seconds to the boom","vo":"So thunder is the sound of air heated hotter than the Sun's surface. Next storm, count the seconds to the boom.","audio":"assets/vo/payoff.mp3","clips":[{"image":"assets/iss073e0330134.jpg","imageFocus":0.5},{"video":"assets/sun-a.mp4"}]}
+  ],
+  "sources": [
+    {"text":"NOAA NSSL, Severe Weather 101: Lightning FAQ, https://www.nssl.noaa.gov/education/svrwx101/lightning/faq/ (air in the channel heated to above 50,000 F in a few millionths of a second; thunder starts as a shock wave)"},
+    {"text":"NASA Science, Sun Facts, https://science.nasa.gov/sun/facts/ (photosphere about 10,000 F / 5,500 C)"}
+  ],
+  "credits": ["Lightning over Tropical Storm Erick: NASA/ISS (JSC), iss073e0330134, 2025-06-20","Lightning strike at Launch Complex 39B: NASA/KSC, KSC-20190809-PH-NAS01_0001 (cropped)","Sun footage: NASA's Scientific Visualization Studio / Solar Dynamics Observatory, 'Two Weeks in the Life of a Sunspot' (cropped)"]
+}
