@@ -33,6 +33,23 @@
   "status": "made"
  },
  {
+  "topic": "Voyager 1 is one light-day away",
+  "hook": "On Nov 18, a spacecraft hits one light-day away.",
+  "claim": "On Nov. 18, 2026, Voyager 1 becomes the first human-made object one light-day from Earth: 16.094 billion miles (25.902 billion km), so a radio signal takes 24 hours each way.",
+  "why_now": "Milestone on Nov 18, 2026 with a NASA countdown page; Science News trending feature (Oct 14, Nov 1 print issue)",
+  "evidence": [
+   "https://science.nasa.gov/mission/voyager/where-are-voyager-1-and-voyager-2-now/",
+   "https://www.sciencenews.org/article/voyager-1-light-day-exploration"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/mission/voyager/where-are-voyager-1-and-voyager-2-now/"
+  ],
+  "visuals": "NASA Voyager 1 launch 1977, spacecraft renders, Pale Blue Dot, Jupiter/Saturn flyby images (283 NASA library hits)",
+  "score": 23,
+  "added": "2026-11-02",
+  "status": "queued"
+ },
+ {
   "topic": "Why space is black",
   "hook": "Space is full of sunlight. So why is it black?",
   "claim": "Our sky looks blue because air molecules scatter blue sunlight toward our eyes; in space there is almost no air to scatter light, so the sky looks black even in full sunlight.",
@@ -184,6 +201,55 @@
   "status": "made"
  },
  {
+  "topic": "Lightning is hotter than the Sun's surface",
+  "hook": "Lightning is five times hotter than the Sun's surface.",
+  "claim": "A lightning bolt heats the air in its channel to above 50,000 F in a few millionths of a second; the Sun's visible surface (photosphere) is about 10,000 F.",
+  "why_now": "Evergreen 'hotter than the Sun' fact format; strong NASA ISS lightning footage (339 hits)",
+  "evidence": [
+   "https://www.nssl.noaa.gov/education/svrwx101/lightning/faq/"
+  ],
+  "sources_to_cite": [
+   "https://www.nssl.noaa.gov/education/svrwx101/lightning/faq/",
+   "https://science.nasa.gov/sun/facts/"
+  ],
+  "visuals": "NASA lightning seen from the ISS, GOES lightning mapper, SDO Sun footage",
+  "score": 22,
+  "added": "2026-11-02",
+  "status": "queued"
+ },
+ {
+  "topic": "Venus is hotter than Mercury",
+  "hook": "The hottest planet isn't the closest one.",
+  "claim": "Venus's surface is about 872 F (467 C), hotter than Mercury despite being farther from the Sun, because its thick carbon dioxide atmosphere (about 93 times Earth's surface pressure) traps heat in a runaway greenhouse effect.",
+  "why_now": "Myth-bust of a common belief; extends the made Venus-day video into a Venus series",
+  "evidence": [
+   "https://science.nasa.gov/venus/venus-facts/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/venus/venus-facts/"
+  ],
+  "visuals": "NASA Magellan radar globes of Venus (170 hits), Mariner 10/MESSENGER Mercury images, Venus transit SDO footage",
+  "score": 22,
+  "added": "2026-11-02",
+  "status": "queued"
+ },
+ {
+  "topic": "Astronauts see 16 sunrises a day",
+  "hook": "Astronauts see 16 sunrises every day.",
+  "claim": "The International Space Station moves about 5 miles per second and circles Earth 16 times in 24 hours, so the crew passes through 16 sunrises and 16 sunsets a day.",
+  "why_now": "ISS resupply (Northrop Grumman CRS-25) in NASA news this week; evergreen ISS-life demand",
+  "evidence": [
+   "https://www.nasa.gov/2026-news-releases/"
+  ],
+  "sources_to_cite": [
+   "https://www.nasa.gov/international-space-station/space-station-facts-and-figures/"
+  ],
+  "visuals": "NASA ISS crew time-lapses of orbital sunrise/sunset and Earth limb (NASA-made crew Earth observations)",
+  "score": 22,
+  "added": "2026-11-02",
+  "status": "queued"
+ },
+ {
   "topic": "Why stars twinkle but planets don't",
   "hook": "Stars twinkle. Planets don't. Here's why.",
   "claim": "Stars are so far away they are point sources, so turbulent air bends their light around and they flicker; planets show a tiny disk whose many points average out.",
@@ -248,6 +314,38 @@
   "score": 21,
   "added": "2026-11-01",
   "status": "made"
+ },
+ {
+  "topic": "Sunsets on Mars are blue",
+  "hook": "On Mars, the sunset is blue.",
+  "claim": "Fine dust in Mars's air lets blue light pass through more efficiently near the Sun's direction, so sunsets on Mars glow blue; Curiosity's Mastcam photographed one on April 15, 2015 (sol 956).",
+  "why_now": "Mars follow-up to made Mars-red and Mars-dust videos; strong counterintuitive hook",
+  "evidence": [
+   "https://science.nasa.gov/photojournal/sunset-in-mars-gale-crater/"
+  ],
+  "sources_to_cite": [
+   "https://science.nasa.gov/photojournal/sunset-in-mars-gale-crater/"
+  ],
+  "visuals": "NASA/JPL-Caltech/MSSS Curiosity sunset images and time-lapse (check credit: MSSS co-credit)",
+  "score": 21,
+  "added": "2026-11-02",
+  "status": "queued"
+ },
+ {
+  "topic": "Half your oxygen comes from the ocean",
+  "hook": "Every other breath comes from the ocean.",
+  "claim": "About half of Earth's oxygen is made in the ocean, mostly by drifting phytoplankton; one tiny bacterium, Prochlorococcus, makes up to 20% of the biosphere's oxygen.",
+  "why_now": "Myth-bust of 'rainforests are the lungs of the planet'; NASA ocean-color imagery is striking",
+  "evidence": [
+   "https://oceanservice.noaa.gov/facts/ocean-oxygen.html"
+  ],
+  "sources_to_cite": [
+   "https://oceanservice.noaa.gov/facts/ocean-oxygen.html"
+  ],
+  "visuals": "NASA satellite images of phytoplankton blooms (33 hits), PACE/Aqua ocean color",
+  "score": 21,
+  "added": "2026-11-02",
+  "status": "queued"
  },
  {
   "topic": "Permafrost is a carbon freezer",
@@ -349,6 +447,22 @@
   "status": "made"
  },
  {
+  "topic": "If the ice sheets melted",
+  "hook": "Antarctica's ice could raise seas 190 feet.",
+  "claim": "Greenland and Antarctica hold over 68% of Earth's fresh water; fully melted, Greenland would raise sea level about 7.4 m (24 ft) and Antarctica about 58 m (190 ft).",
+  "why_now": "Follows made Arctic-ice and permafrost videos; Antarctic sea ice maximum news (see 2026-11-01 NSIDC link)",
+  "evidence": [
+   "https://nsidc.org/learn/parts-cryosphere/ice-sheets"
+  ],
+  "sources_to_cite": [
+   "https://nsidc.org/learn/parts-cryosphere/ice-sheets"
+  ],
+  "visuals": "NASA Greenland and Antarctic ice sheet imagery and mass-balance visualizations (59 + 35 hits)",
+  "score": 20,
+  "added": "2026-11-02",
+  "status": "queued"
+ },
+ {
   "topic": "Uranus spins on its side",
   "hook": "Uranus spins on its side.",
   "claim": "Uranus is tilted about 98 degrees, so it rolls around the Sun like a ball, with 21-year polar day and night.",
@@ -363,6 +477,22 @@
   "score": 19,
   "added": "2026-10-31",
   "status": "made"
+ },
+ {
+  "topic": "Everest is not the closest point to space",
+  "hook": "Everest isn't the farthest point from Earth's center.",
+  "claim": "Earth bulges at the Equator because of its spin, so Ecuador's Chimborazo, about one degree south of the Equator, has a summit over 2,072 m farther from Earth's center than Everest's, though Everest is higher above sea level (8,848 m vs 6,268 m).",
+  "why_now": "Classic myth-bust format that works in this niche; NOAA states it plainly",
+  "evidence": [
+   "https://oceanservice.noaa.gov/facts/highestpoint.html"
+  ],
+  "sources_to_cite": [
+   "https://oceanservice.noaa.gov/facts/highestpoint.html"
+  ],
+  "visuals": "NASA Everest images (36 hits), Ecuador volcano images (9 hits, no Chimborazo-specific hit), Blue Marble Earth; may need an animated Earth-bulge diagram",
+  "score": 19,
+  "added": "2026-11-02",
+  "status": "queued"
  },
  {
   "topic": "The Sun's atmosphere is hotter than its surface",
