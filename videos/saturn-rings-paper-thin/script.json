@@ -1,0 +1,143 @@
+{
+ "topic": "Saturn's rings are paper-thin",
+ "claim": "Saturn's rings reach up to 282,000 km from the planet, yet the main rings are typically only about 10 m (30 ft) thick.",
+ "accent": "#ffd166",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 3,
+   "caption": "Paper-thin?",
+   "vo": "Saturn's rings are paper-thin.",
+   "audio": "assets/vo/hook.mp3",
+   "motion": {
+    "scene": "3d/planet",
+    "params": {
+     "model": "assets/saturn.glb",
+     "tilt": -20,
+     "startDistance": 8,
+     "endDistance": 6.5,
+     "elevation": 12,
+     "spin": 10,
+     "atmosphere": false
+    }
+   }
+  },
+  {
+   "id": "width",
+   "seconds": 4.8,
+   "caption": "How wide?",
+   "vo": "They reach up to 282,000 kilometers from the planet.",
+   "audio": "assets/vo/width.mp3",
+   "clips": [
+    {
+     "motion": {
+      "scene": "2d/counter",
+      "params": {
+       "label": "Rings reach out to",
+       "from": 0,
+       "to": 282000,
+       "unit": "km",
+       "sub": "from Saturn",
+       "countLen": 2.5
+      }
+     }
+    },
+    {
+     "image": "assets/PIA01969.jpg"
+    }
+   ]
+  },
+  {
+   "id": "thick",
+   "seconds": 4,
+   "caption": "How thick?",
+   "vo": "But the main rings are typically only about 10 meters thick.",
+   "audio": "assets/vo/thick.mp3",
+   "clips": [
+    {
+     "motion": {
+      "scene": "2d/counter",
+      "params": {
+       "label": "Main rings are typically",
+       "from": 0,
+       "to": 10,
+       "unit": "meters thick",
+       "sub": "about 30 feet",
+       "countLen": 1.8
+      }
+     }
+    },
+    {
+     "image": "assets/PIA18337.jpg",
+     "imageFocus": 0.5
+    }
+   ]
+  },
+  {
+   "id": "chunks",
+   "seconds": 7.2,
+   "caption": "Not solid",
+   "vo": "And they're not solid. They're billions of chunks of ice and rock, from dust specks to house-sized boulders.",
+   "audio": "assets/vo/chunks.mp3",
+   "clips": [
+    {
+     "image": "assets/PIA08869.jpg"
+    },
+    {
+     "image": "assets/PIA02269.jpg"
+    }
+   ]
+  },
+  {
+   "id": "edge",
+   "seconds": 4.1,
+   "caption": "Edge-on",
+   "vo": "Turn Saturn edge-on, and the rings nearly vanish.",
+   "audio": "assets/vo/edge.mp3",
+   "motion": {
+    "scene": "3d/model",
+    "params": {
+     "model": "assets/saturn.glb",
+     "elevation": 0,
+     "spin": 0,
+     "startDistance": 7,
+     "endDistance": 6,
+     "label": "Edge-on view"
+    }
+   }
+  },
+  {
+   "id": "scale",
+   "seconds": 5.1,
+   "caption": "Scale it down",
+   "vo": "Shrink the rings to one kilometer wide, and they'd be thinner than a sheet of paper.",
+   "audio": "assets/vo/scale.mp3",
+   "clips": [
+    {
+     "image": "assets/PIA18337.jpg"
+    },
+    {
+     "image": "assets/PIA06425.jpg"
+    }
+   ]
+  },
+  {
+   "id": "end",
+   "seconds": 3.4,
+   "caption": "Wide as a world",
+   "vo": "Wide as a world. Thin as a house.",
+   "audio": "assets/vo/end.mp3",
+   "image": "assets/PIA01969.jpg"
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Saturn Facts: https://science.nasa.gov/saturn/facts/ (ring system extends up to 175,000 mi / 282,000 km; vertical height typically about 30 ft / 10 m in the main rings; ring particles from dust-sized grains to house-sized chunks)"
+  }
+ ],
+ "credits": [
+  "3D models: NASA (science.nasa.gov 3D resources)",
+  "Images: NASA/JPL/Space Science Institute (PIA08869, PIA18337, PIA02269), NASA/JPL (PIA01969), NASA/JPL/GSFC/Ames (PIA06425)",
+  "Voice: ElevenLabs (Liam)"
+ ]
+}
