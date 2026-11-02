@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Shot: the improvised CO2 filter adapter: plastic bag, cardboard and tape join the square canister to the round hole. PARAMS: duration
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 7;
+const k = await story({ sky: ['#1d6f6a', '#0a1030'], bloom: 0.9 });
+k.add(k.stars(300));
+// Round hole.
+const hole = new THREE.Group();
+const ring = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.18, 20, 64), k.toon(PALETTE.coral, { emissive: new THREE.Color('#06d6a0'), emissiveIntensity: 0 }));
+hole.add(ring, new THREE.Mesh(new THREE.CircleGeometry(0.95, 48), new THREE.MeshBasicMaterial({ color: new THREE.Color('#0b0d24') })));
+hole.children[1].position.z = -0.05;
+k.add(hole, [0, 1.2, 0]);
+const OK = 3.9; // seconds: everything is in place, the light turns green
+k.every((t) => { ring.material.emissiveIntensity = t > OK ? 1.1 : 0; ring.material.color.set(t > OK ? '#06d6a0' : PALETTE.coral); });
+// Adapter parts, flying in one by one.
+const cardboard = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 1.1, 1.0, 32, 1, true), k.toon('#c8955a', { side: THREE.DoubleSide }));
+cardboard.rotation.x = Math.PI / 2;
+const cb = new THREE.Group(); cb.add(cardboard);
+const bag = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 1.18, 0.9, 32, 1, true), new THREE.MeshToonMaterial({ color: new THREE.Color('#dff4ff'), transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
+bag.rotation.x = Math.PI / 2;
+const bg = new THREE.Group(); bg.add(bag);
+const tape = new THREE.Group();
+for (const z of [-0.3, 0.3]) { const r = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.07, 10, 40), k.toon('#9aa4b5')); r.position.z = z; tape.add(r); }
+const can = k.box({ size: [1.6, 1.6, 0.7], color: PALETTE.mint, radius: 0.1 });
+for (const g of [cb, bg, tape, can]) k.add(g);
+const finalCB = [0, 1.2, 0.5], finalBG = [0, 1.2, 0.55], finalTape = [0, 1.2, 0.65], finalCan = [0, 1.2, 1.45];
+k.keys(cb.position, [[0, [-6, 5, 3]], [0.5, [-6, 5, 3]], [1.3, finalCB]]);
+k.keys(cb.rotation, [[0.5, [1, 2, 0.5]], [1.3, [0, 0, 0]]]);
+k.keys(bg.position, [[0, [6, 5, 3]], [1.3, [6, 5, 3]], [2.0, finalBG]]);
+k.keys(bg.rotation, [[1.3, [-1, 1.5, 0.4]], [2.0, [0, 0, 0]]]);
+k.keys(tape.position, [[0, [0, -14, 3]], [2.0, [0, -14, 3]], [2.7, finalTape]]);
+k.keys(tape.rotation, [[2.0, [1, 0, 0.5]], [2.7, [0, 0, 0]]]);
+k.keys(can.position, [[0, [-7, 1.2, 3]], [2.7, [-7, 1.2, 3]], [3.3, [0, 1.2, 3]], [3.8, finalCan]]);
+k.keys(can.rotation, [[2.7, [0.3, 0.8, 0.2]], [3.3, [0, 0.1, 0]], [3.8, [0, 0, 0]]]);
+const mk = (txt, c, x, y, t0, t1) => { const l = k.add(k.label(txt, { color: c, size: 0.34 }), [0, y - 0.5, 2.4]); k.show(l, t0, t1); return l; };
+mk('PLASTIC BAG', '#bfe9ff', -1.6, 3.7, 1.1, 2.0);
+mk('CARDBOARD', '#f0b673', -1.6, 3.7, 0.5, 1.2);
+mk('TAPE', '#d9dfeb', 1.5, 3.7, 2.1, 2.9);
+mk('SQUARE PEG', PALETTE.mint, -1.5, 3.7, 3.0, OK);
+const fit = mk('IT FITS!', '#7dffd0', 0, 3.8, OK);
+k.flash(OK, 0.4);
+k.burst([0, 1.2, 1.5], OK, { count: 150, colors: [PALETTE.mint, PALETTE.sun, '#ffffff', PALETTE.sky], speed: 3.6, life: 1.7, size: 0.1 });
+k.shake(OK, OK + 0.4, 0.08);
+k.camera([[0, { pos: [6, 3, 12], look: [0, 1.2, 0.5] }], [OK, { pos: [5, 2.4, 9.5], look: [0, 1.2, 0.8] }], [D, { pos: [4.2, 2.2, 8.6], look: [0, 1.2, 0.8] }]]);
+k.badge(P.year || '1970', 0.2, P.sub || 'Apollo 13');
+k.done();
+</script></body></html>

@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Shot: the carbon dioxide warning light in the lunar module. PARAMS: duration
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 4;
+const k = await story({ sky: ['#4a1040', '#0c0518'], bloom: 1.0, bloomThreshold: 0.6 });
+// Instrument panel with a pulsing red warning light.
+const panel = k.box({ size: [4.2, 3.0, 0.5], color: '#2a2f55', radius: 0.2 });
+k.add(panel, [0, 1.2, 0]);
+const lights = [];
+[[-1.3, 0.8, '#06d6a0'], [1.3, 0.8, '#ffd166'], [-1.3, -0.45, '#4cc9f0']].forEach(([x, y, c]) => {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 14), k.toon(c, { emissive: new THREE.Color(c), emissiveIntensity: 0.5 }));
+  m.position.set(x, 1.2 + y, 0.35); k.add(m);
+});
+const red = new THREE.Mesh(new THREE.SphereGeometry(0.62, 28, 20), k.toon('#ff2d4f', { emissive: new THREE.Color('#ff2d4f'), emissiveIntensity: 1 }));
+k.add(red, [0.4, 1.0, 0.45]);
+const rim = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.1, 12, 40), k.toon('#aab3c8')); k.add(rim, [0.4, 1.0, 0.4]);
+k.every((t) => { const p = 0.5 + 0.5 * Math.sin(t * 9); red.material.emissiveIntensity = 0.5 + p * 1.3; red.scale.setScalar(1 + p * 0.06); });
+// Drifting CO2 puffs.
+for (let i = 0; i < 9; i++) {
+  const c = k.add(k.cloud({ color: '#9ba8ff', scale: 0.35 + k.rng() * 0.3 }), [(k.rng() - 0.5) * 5, 2.4 + k.rng() * 2.4, 1 + k.rng()]);
+  c.traverse((o) => { if (o.material) { o.material.transparent = true; o.material.opacity = 0.55; } });
+  const ox = c.position.x, oy = c.position.y, ph = k.rng() * 6;
+  k.every((t) => { c.position.x = ox + Math.sin(t * 0.7 + ph) * 0.5; c.position.y = oy + Math.cos(t * 0.5 + ph) * 0.3 + t * 0.05; });
+}
+const lb = k.add(k.label('CO2 LEVEL: DANGEROUS', { color: '#ff7d92', size: 0.42 }), [0, 3.4, 1.5]);
+k.show(lb, 0.6);
+const lb2 = k.add(k.label('AFTER ~1.5 DAYS IN THE LM', { color: PALETTE.sun, size: 0.32 }), [0, 2.85, 1.5]);
+k.show(lb2, 0.3);
+k.shake(0.6, 1.0, 0.07);
+k.camera([[0, { pos: [0, 1.5, 15], look: [0, 1.3, 0] }], [D, { pos: [0.2, 1.4, 13], look: [0.3, 1.1, 0] }]]);
+k.badge(P.year || '1970', 0.2, P.sub || 'Apollo 13');
+k.done();
+</script></body></html>

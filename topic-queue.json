@@ -116,10 +116,10 @@
     "status": "made"
   },
   {
-    "topic": "What is El Ni\u00f1o",
+    "topic": "What is El Niño",
     "hook": "The Pacific is heating up. Your weather will feel it.",
-    "claim": "El Ni\u00f1o is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
-    "why_now": "NASA says a possibly record El Ni\u00f1o is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
+    "claim": "El Niño is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
+    "why_now": "NASA says a possibly record El Niño is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
     "evidence": [
       "https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/",
       "https://www.earthdata.nasa.gov/learn/data-in-action/tracking-2026-el-nino-from-open-ocean-coast"
@@ -674,5 +674,22 @@
     "added": "2026-11-02",
     "status": "made",
     "format": "history"
+  },
+  {
+    "topic": "Apollo 13: the square peg in a round hole",
+    "format": "history",
+    "hook": "A square filter. A round hole.",
+    "claim": "After the Apollo 13 explosion in 1970, engineers fitted square command-module CO2 filters to the lunar module's round openings using plastic bags, cardboard and tape, and all three astronauts came home.",
+    "why_now": "Chosen by the run: well-documented NASA story with a clear hook, turning point and payoff.",
+    "evidence": [],
+    "sources_to_cite": [
+      "https://www.nasa.gov/missions/apollo/apollo-13-mission-details/",
+      "https://www.nasa.gov/missions/apollo/apollo-13-the-successful-failure/",
+      "https://www.nasa.gov/history/50-years-ago-apollo-13-review-board-report/"
+    ],
+    "visuals": "Stylized 3D reenactment shots",
+    "score": 21,
+    "added": "2026-11-02",
+    "status": "made"
   }
 ]

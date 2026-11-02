@@ -1,0 +1,116 @@
+{
+ "topic": "Apollo 13: the square peg in a round hole",
+ "claim": "After the Apollo 13 explosion in 1970, engineers fitted square command-module CO2 filters to the lunar module's round openings using plastic bags, cardboard and tape, and all three astronauts came home.",
+ "accent": "#ffd166",
+ "music": "assets/music.mp3",
+ "musicVolume": 0.1,
+ "transition": {
+  "type": "fade",
+  "seconds": 0.25
+ },
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 2,
+   "vo": "A square filter. A round hole.",
+   "audio": "assets/vo/hook.mp3",
+   "motion": {
+    "scene": "shots/squareround.html",
+    "params": {
+     "frameY": 0.38
+    }
+   }
+  },
+  {
+   "id": "bang",
+   "seconds": 8,
+   "vo": "April thirteenth, nineteen seventy. Apollo 13 is about two hundred thousand miles from Earth when an oxygen tank explodes.",
+   "audio": "assets/vo/bang.mp3",
+   "motion": {
+    "scene": "shots/bang.html",
+    "params": {
+     "frameY": 0.38
+    }
+   }
+  },
+  {
+   "id": "lifeboat",
+   "seconds": 9,
+   "vo": "The three astronauts crowd into the lunar module, Aquarius. It was built for two men for two days. Now it must keep three alive for about four.",
+   "audio": "assets/vo/lifeboat.mp3",
+   "motion": {
+    "scene": "shots/lifeboat.html",
+    "params": {
+     "frameY": 0.38
+    }
+   }
+  },
+  {
+   "id": "problem",
+   "seconds": 8,
+   "vo": "After a day and a half, a warning light shows carbon dioxide at dangerous levels. The spare filters are square. The openings are round.",
+   "audio": "assets/vo/problem.mp3",
+   "clips": [
+    {
+     "motion": {
+      "scene": "shots/co2.html",
+      "params": {
+       "frameY": 0.38
+      }
+     },
+     "seconds": 1.1
+    },
+    {
+     "motion": {
+      "scene": "shots/squareround.html",
+      "params": {
+       "badge": false,
+       "frameY": 0.38
+      }
+     },
+     "seconds": 1
+    }
+   ]
+  },
+  {
+   "id": "fix",
+   "seconds": 7,
+   "vo": "Engineers in Houston devise a fix from plastic bags, cardboard, and tape. A square peg, in a round hole.",
+   "audio": "assets/vo/fix.mp3",
+   "motion": {
+    "scene": "shots/adapter.html",
+    "params": {
+     "frameY": 0.38
+    }
+   }
+  },
+  {
+   "id": "payoff",
+   "seconds": 7,
+   "vo": "On April seventeenth, all three astronauts splash down safely in the Pacific. NASA calls it a successful failure.",
+   "audio": "assets/vo/payoff.mp3",
+   "motion": {
+    "scene": "shots/splash.html",
+    "params": {
+     "frameY": 0.38
+    }
+   }
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA, Apollo 13: Mission Details. https://www.nasa.gov/missions/apollo/apollo-13-mission-details/"
+  },
+  {
+   "text": "NASA, Apollo 13: The Successful Failure (2020). https://www.nasa.gov/missions/apollo/apollo-13-the-successful-failure/"
+  },
+  {
+   "text": "NASA, 50 Years Ago: Apollo 13 Review Board Report (2020). https://www.nasa.gov/history/50-years-ago-apollo-13-review-board-report/"
+  }
+ ],
+ "credits": [
+  "Artist's reenactment: stylized 3D animation, not footage.",
+  "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/",
+  "Narration: ElevenLabs (Liam)."
+ ]
+}
