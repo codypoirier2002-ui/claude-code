@@ -35,3 +35,4 @@
 - 2026-11-02 | If the ice sheets melted | Greenland and Antarctica hold over 68% of Earth's fresh water; fully melted, Greenland would raise sea level about 7.4 m (24 ft) and Antarctica about 58 m (190 ft). | ice-sheets-melted.mp4
 - 2026-11-02 | Saturn's rings are paper-thin | Saturn's rings reach up to 282,000 km from the planet, yet the main rings are typically only about 10 m (30 ft) thick. | /tmp/saturn.mp4
 - 2026-11-02 | Neptune's moon Triton orbits backwards | Triton orbits Neptune opposite to Neptune's spin, the only large moon to do so, and scientists think it is a captured Kuiper Belt object. | triton-orbits-backwards.mp4
+- 2026-11-02 | A helicopter flew 72 times on Mars | NASA's Ingenuity helicopter was planned for no more than five test flights in 30 days, and flew 72 times over nearly three years. | mars-helicopter.mp4

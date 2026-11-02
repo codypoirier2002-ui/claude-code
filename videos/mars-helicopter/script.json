@@ -1,0 +1,23 @@
+{
+  "topic": "A helicopter flew 72 times on Mars",
+  "claim": "NASA's Ingenuity helicopter was planned for no more than five test flights in 30 days, and flew 72 times over nearly three years.",
+  "accent": "#ff9f5a",
+  "beats": [
+    {"id":"hook","seconds":2,"caption":"Built for 5 flights. It flew 72.","vo":"Built for five flights. It flew seventy-two.","audio":"assets/vo/hook.mp3","bg":"#2a0f08",
+     "motion":{"scene":"3d/model","params":{"model":"assets/mars-ingenuity-helicopter-3d-model.glb","label":"Ingenuity","spin":60,"startDistance":3.2,"endDistance":2.4}}},
+    {"id":"setup","seconds":8,"caption":"Planned: 5 flights in 30 days","vo":"Ingenuity was a tech test. NASA planned no more than five flights in thirty days, on a planet where the air is less than one percent as dense as Earth's.","audio":"assets/vo/setup.mp3","bg":"#2a0f08",
+     "clips":[
+      {"motion":{"scene":"2d/bars","params":{"title":"Ingenuity flights","unit":"","items":[{"label":"Planned (max)","value":5,"color":"#8899aa"},{"label":"Flown","value":72,"color":"#ff9f5a"}]}}},
+      {"motion":{"scene":"3d/planet","params":{"model":"assets/planet-mars-3d-model.glb","tilt":25,"spin":20,"atmosphere":"#ff9f7a","startDistance":3.6,"endDistance":2.8}}}]},
+    {"id":"mechanism","seconds":9,"caption":"April 2021 to January 2024","vo":"It took off on April nineteenth, twenty twenty-one, the first powered flight on another planet. Its last flight was January eighteenth, twenty twenty-four.","audio":"assets/vo/mechanism.mp3","bg":"#2a0f08",
+     "clips":[{"video":"assets/first.mp4","videoStart":0},{"image":"assets/shadow.jpg"},{"image":"assets/seitah.jpg","imageFocus":0.6}]},
+    {"id":"data","seconds":8,"caption":"128.8 minutes in the air","vo":"In all, it spent one hundred twenty-eight point eight minutes flying, covering seventeen kilometers.","audio":"assets/vo/data.mp3","bg":"#2a0f08",
+     "clips":[
+      {"motion":{"scene":"2d/counter","params":{"label":"minutes in flight","from":0,"to":128.8,"decimals":1,"sub":"17.0 km covered","color":"#ff9f5a"}}},
+      {"motion":{"scene":"3d/model","params":{"model":"assets/mars-ingenuity-helicopter-3d-model.glb","spin":-50,"elevation":15,"startDistance":2.4,"endDistance":3.2}}}]},
+    {"id":"payoff","seconds":9,"caption":"72 flights. Planned: 5.","vo":"It scouted terrain for the Perseverance rover and paved the way for future aerial explorers. A five-flight plan, seventy-two flights. What should fly on Mars next?","audio":"assets/vo/payoff.mp3","bg":"#2a0f08",
+     "clips":[{"image":"assets/seitah.jpg","imageFocus":0.3},{"motion":{"scene":"3d/model","params":{"model":"assets/mars-perseverance-rover-3d-model.glb","label":"Perseverance","spin":40,"startDistance":4,"endDistance":3}}}]}
+  ],
+  "sources":[{"text":"NASA, Ingenuity Mars Helicopter, https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/"}],
+  "credits":["3D models: NASA","Video and images: NASA/JPL-Caltech"]
+}
