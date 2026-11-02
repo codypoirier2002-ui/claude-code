@@ -1,0 +1,89 @@
+{
+ "topic": "Sunsets on Mars are blue",
+ "claim": "Fine dust in Mars's air lets blue light pass through more efficiently near the Sun's direction, so sunsets on Mars glow blue.",
+ "accent": "#7fb7ff",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 2,
+   "caption": "MARS SUNSET",
+   "vo": "On Mars, the sunset is blue.",
+   "image": "assets/PIA19400.jpg",
+   "imageFocus": 0.5,
+   "audio": "assets/vo/hook.mp3"
+  },
+  {
+   "id": "setup",
+   "seconds": 5,
+   "caption": "Earth's are red",
+   "vo": "On Earth, sunsets glow red and orange. NASA's Curiosity rover caught the opposite, from Gale Crater, in April 2015.",
+   "clips": [
+    {
+     "bg": "#ff7a2f",
+     "bg2": "#3a1208"
+    },
+    {
+     "image": "assets/PIA19401.jpg"
+    }
+   ],
+   "audio": "assets/vo/setup.mp3"
+  },
+  {
+   "id": "dust",
+   "seconds": 7,
+   "caption": "Fine dust",
+   "vo": "Mars's air is full of fine dust. Those tiny grains let blue light pass through more efficiently than longer wavelengths, like yellow and red.",
+   "clips": [
+    {
+     "image": "assets/PIA19400.jpg",
+     "imageFocus": 0.6
+    },
+    {
+     "image": "assets/PIA25739.jpg",
+     "imageFocus": 0.5
+    }
+   ],
+   "audio": "assets/vo/dust.mp3"
+  },
+  {
+   "id": "path",
+   "seconds": 7,
+   "caption": "Blue stays near the Sun",
+   "vo": "So the blue light stays close to the Sun, while yellow and red scatter wider across the sky. It is strongest at sunset, when sunlight takes the longest path.",
+   "image": "assets/PIA19401.jpg",
+   "imageFocus": 0.45,
+   "audio": "assets/vo/path.mp3"
+  },
+  {
+   "id": "dusty",
+   "seconds": 5,
+   "caption": "Less dust, less blue",
+   "vo": "In 2021, Perseverance saw a muted sunset. Less dust in the air meant less color.",
+   "image": "assets/PIA24935.jpg",
+   "imageFocus": 0.45,
+   "audio": "assets/vo/dusty.mp3"
+  },
+  {
+   "id": "payoff",
+   "seconds": 5,
+   "caption": "Dust flips the sunset",
+   "vo": "Same Sun, different sky. On Mars, dust turns the sunset blue. Would you watch one?",
+   "image": "assets/PIA19400.jpg",
+   "imageFocus": 0.5,
+   "audio": "assets/vo/payoff.mp3"
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Photojournal PIA19400, Sunset in Mars' Gale Crater (sol 956, April 15, 2015): https://science.nasa.gov/photojournal/sunset-in-mars-gale-crater/"
+  },
+  {
+   "text": "NASA Photojournal PIA24935, Mastcam-Z's First Martian Sunset (Nov. 9, 2021): https://science.nasa.gov/photojournal/mastcam-zs-first-martian-sunset/"
+  }
+ ],
+ "credits": [
+  "Curiosity sunset images: NASA/JPL-Caltech/MSSS/Texas A&M Univ.",
+  "Perseverance sunset: NASA/JPL-Caltech/ASU/MSSS",
+  "Sun rays image PIA25739: NASA/JPL-Caltech/MSSS/SSI"
+ ]
+}
