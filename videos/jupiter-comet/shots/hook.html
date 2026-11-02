@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script></head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE, jupiter, fragment } from "/base/shots/jup.js";
+const D = P.duration || 6;
+const sky = ["#1a0b3d", "#05030f"];
+// HOOK: a train of 21 fragments streams toward Jupiter.
+const k = await story({ fov: 62, sky, bloom: 0.9 });
+k.add(k.stars(600));
+const J = k.add(jupiter(k, 2.1), [2.8, -1.4, 0]);
+k.every((t) => { J.userData.ball.rotation.y = t * 0.12; });
+const frags = [];
+for (let i = 0; i < 21; i++) {
+  const f = k.add(fragment(k, 0.2 + (i % 3) * 0.04, 1.6));
+  frags.push(f);
+}
+k.every((t) => {
+  frags.forEach((f, i) => {
+    const x = -9 - i * 0.95 + t * 4.4;
+    f.position.set(x, -1.4 + 0.45 * (2.8 - x) + Math.sin(i * 2.1 + t * 3) * 0.12, 0.2 * Math.sin(i));
+    f.rotation.set(t * 2 + i, t, 0);
+  });
+});
+k.camera([[0, { pos: [-1, 1, 15], look: [0.5, 0.5, 0] }], [D, { pos: [1.5, 0.3, 11.5], look: [1, -0.2, 0] }]]);
+k.badge("1994", 0.15, "Comet Shoemaker-Levy 9");
+k.done();
+</script></body></html>

@@ -1,0 +1,86 @@
+{
+ "topic": "A comet smashed into Jupiter (1994)",
+ "claim": "In July 1994 the torn-apart comet Shoemaker-Levy 9 hit Jupiter; for the first time NASA had spacecraft in place to watch two solar system bodies collide.",
+ "accent": "#ffd166",
+ "music": "assets/music.mp3",
+ "musicVolume": 0.1,
+ "transition": {
+  "type": "fade",
+  "seconds": 0.25
+ },
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 4.9,
+   "caption": "A COMET VS JUPITER",
+   "vo": "A comet was torn into a line of pieces, all aimed at Jupiter.",
+   "audio": "assets/vo/hook.mp3",
+   "motion": {
+    "scene": "shots/hook.html"
+   }
+  },
+  {
+   "id": "split",
+   "seconds": 6,
+   "caption": "RIPPED APART",
+   "vo": "In July 1992 it flew so close that Jupiter's gravity ripped it apart.",
+   "audio": "assets/vo/split.mp3",
+   "motion": {
+    "scene": "shots/split.html"
+   }
+  },
+  {
+   "id": "freight",
+   "seconds": 7.7,
+   "caption": "A FREIGHT TRAIN OF COMET",
+   "vo": "Astronomers found it in 1993: more than twenty pieces, labeled A through W, like a freight train.",
+   "audio": "assets/vo/freight.mp3",
+   "motion": {
+    "scene": "shots/freight.html"
+   }
+  },
+  {
+   "id": "impact",
+   "seconds": 11.5,
+   "caption": "FIRST TIME EVER WATCHED",
+   "vo": "From July 16 to 22, 1994, the pieces hit. For the first time, NASA had spacecraft in place to watch two bodies in the solar system collide.",
+   "audio": "assets/vo/impact.mp3",
+   "motion": {
+    "scene": "shots/impact.html"
+   }
+  },
+  {
+   "id": "plumes",
+   "seconds": 7.8,
+   "caption": "300 MILLION ATOMIC BOMBS",
+   "vo": "The blasts threw plumes up to 3,000 kilometers high, with the force of 300 million atomic bombs.",
+   "audio": "assets/vo/plumes.mp3",
+   "motion": {
+    "scene": "shots/plumes.html"
+   }
+  },
+  {
+   "id": "scars",
+   "seconds": 7.4,
+   "caption": "THE SCARS FADED",
+   "vo": "Jupiter's winds erased the scars. But the dust let scientists track its high-altitude winds for the first time.",
+   "audio": "assets/vo/scars.mp3",
+   "motion": {
+    "scene": "shots/scars.html"
+   }
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Comet P/Shoemaker-Levy 9: https://science.nasa.gov/solar-system/comets/p-shoemaker-levy-9/"
+  },
+  {
+   "text": "NASA Science, Galileo mission: https://science.nasa.gov/mission/galileo/"
+  }
+ ],
+ "credits": [
+  "Artist's reenactment: stylized, not to scale.",
+  "Music: Floating Cities by Kevin MacLeod (incompetech.com), CC BY 4.0",
+  "Narration: ElevenLabs (Liam)"
+ ]
+}

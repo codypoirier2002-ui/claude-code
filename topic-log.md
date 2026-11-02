@@ -39,3 +39,4 @@
 - 2026-11-02 | Neptune has the fastest winds in the solar system | Neptune's winds top 1,200 mph (2,000 km/h), the fastest in the solar system, even though the planet gets very little energy from the Sun. | /tmp/neptune.mp4
 - 2026-11-02 | Europa may hold twice Earth's ocean water | Under its ice shell, Jupiter's moon Europa likely has a salty ocean holding about twice as much water as all of Earth's oceans. | /tmp/europa.mp4
 - 2026-11-02 | The bridge that danced itself apart (1940) | The Tacoma Narrows Bridge twisted itself apart in the wind on Nov. 7, 1940, four months after opening, through aeroelastic flutter. | /tmp/tiktok-state/videos/tacoma-narrows-bridge/out.mp4
+- 2026-11-02 | A comet smashed into Jupiter (1994) | In July 1994 the torn-apart comet Shoemaker-Levy 9 hit Jupiter; for the first time NASA had spacecraft in place to watch two solar system bodies collide. | /tmp/t/jupiter-comet.mp4

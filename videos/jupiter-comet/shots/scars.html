@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script></head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE, jupiter, fragment } from "/base/shots/jup.js";
+const D = P.duration || 6;
+const sky = ["#1a0b3d", "#05030f"];
+// Aftermath: dark ringed scars appear, then Jupiter's winds erase them; dust traces the winds.
+const k = await story({ fov: 62, sky: ["#10204d", "#05030f"], bloom: 0.8 });
+k.add(k.stars(600));
+const J = k.add(jupiter(k, 2.7), [0, -0.3, 0]);
+const ball = J.userData.ball;
+const r = k.rng;
+const scars = [];
+for (let i = 0; i < 7; i++) {
+  const nn = new THREE.Vector3(-0.2 + (r() - 0.5) * 0.9, -0.55 + (r() - 0.5) * 0.15, 0.8).normalize();
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CircleGeometry(0.36, 20), new THREE.MeshBasicMaterial({ color: "#1d0f06", transparent: true, side: THREE.DoubleSide, depthTest: false })));
+  g.add(new THREE.Mesh(new THREE.RingGeometry(0.4, 0.55, 28), new THREE.MeshBasicMaterial({ color: "#6b3a1c", transparent: true, side: THREE.DoubleSide })));
+  g.position.copy(nn).multiplyScalar(2.7 * 1.01); g.lookAt(nn.clone().multiplyScalar(5));
+  ball.add(g); scars.push(g);
+}
+const fadeStart = D * 0.45;
+k.every((t) => {
+  ball.rotation.y = -0.15 + t * 0.05;
+  scars.forEach((g, i) => {
+    const a = Math.min(1, Math.max(0, (t - 0.2 - i * 0.1) / 0.4)) * (1 - Math.min(1, Math.max(0, (t - fadeStart - i * 0.15) / (D * 0.35))));
+    g.children.forEach((c) => (c.material.opacity = a)); g.visible = a > 0.01;
+  });
+});
+// Wind streaks sweep in as the scars fade.
+const streaks = [];
+for (let i = 0; i < 5; i++) {
+  const s = new THREE.Mesh(new THREE.TorusGeometry(2.8, 0.04, 8, 90, Math.PI * 1.1), new THREE.MeshBasicMaterial({ color: "#fff4e0", transparent: true, opacity: 0 }));
+  s.rotation.set(Math.PI / 2 + (i - 2) * 0.06, 0, i); s.position.y = -0.3 + (i - 2) * 0.5; s.scale.set(1, 1, 1);
+  k.add(s); streaks.push(s);
+}
+k.every((t) => streaks.forEach((s, i) => { s.rotation.z = i + t * (0.6 + i * 0.1); s.material.opacity = 0.5 * Math.min(1, Math.max(0, (t - fadeStart) / 1.2)); }));
+const l1 = k.add(k.label("WINDS ERASED THE SCARS", { color: PALETTE.sun, size: 0.7 }), [0, 3.1, 0]); k.show(l1, fadeStart + 0.2);
+k.camera([[0, { pos: [-1.5, 0.5, 11], look: [-0.5, -0.8, 0] }], [D, { pos: [0.5, 0.8, 12.5], look: [0, -0.5, 0] }]]);
+k.badge("1994", 0.15, "Scars fade, science stays");
+k.done();
+</script></body></html>

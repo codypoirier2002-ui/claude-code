@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script></head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE, jupiter, fragment } from "/base/shots/jup.js";
+const D = P.duration || 6;
+const sky = ["#1a0b3d", "#05030f"];
+// 1993: discovered as a string of 21 pieces, labelled A through W.
+const k = await story({ fov: 62, sky: ["#0e1b4d", "#05030f"], bloom: 0.9 });
+k.add(k.stars(700));
+const J = k.add(jupiter(k, 3.4), [12, -3.5, -6]);
+k.every((t) => { J.userData.ball.rotation.y = t * 0.1; });
+const N = 21, pts = [];
+for (let i = 0; i < N; i++) {
+  const x = -9 + i * 0.95;
+  const f = k.add(fragment(k, 0.2 + (i % 3) * 0.04, 1.5), [x, 0.4 + x * 0.1, 0]);
+  pts.push(f);
+  k.show(f, 0.2 + i * 0.08, Infinity, 0.2);
+}
+k.every((t) => pts.forEach((f, i) => { f.position.y += Math.sin(t * 2.5 + i) * 0.004; f.rotation.set(t + i, t * 1.3, 0); }));
+const la = k.add(k.label("A", { color: PALETTE.sun, size: 1.1 }), [pts[0].position.x, pts[0].position.y + 1.1, 0]);
+const lw = k.add(k.label("W", { color: PALETTE.sun, size: 1.1 }), [pts[N - 1].position.x, pts[N - 1].position.y + 1.1, 0]);
+k.show(la, 0.6); k.show(lw, 2.6);
+const lm = k.add(k.label("21 PIECES", { color: PALETTE.mint, size: 0.95 }), [0, 3.4, 0]);
+k.show(lm, 3.2);
+k.camera([[0, { pos: [-8, 1, 8], look: [-8, 0, 0] }], [D * 0.55, { pos: [0, 1.5, 11], look: [0, 0.5, 0] }], [D, { pos: [5, 1.5, 13], look: [4, 0.8, 0] }]]);
+k.badge("1993", 0.15, "Fragments A to W");
+k.done();
+</script></body></html>
