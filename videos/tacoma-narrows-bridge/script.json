@@ -1,0 +1,23 @@
+{
+  "topic": "The bridge that danced itself apart (1940)",
+  "claim": "The Tacoma Narrows Bridge twisted itself apart in the wind on Nov. 7, 1940, four months after opening, through aeroelastic flutter.",
+  "accent": "#ffd166",
+  "music": "assets/music.mp3",
+  "musicVolume": 0.1,
+  "transition": {"type": "fade", "seconds": 0.25},
+  "beats": [
+    {"id": "hook", "seconds": 3, "caption": "THE BRIDGE THAT DANCED", "vo": "This bridge danced itself to pieces.", "audio": "assets/vo/hook.mp3", "motion": {"scene": "shots/hook.html"}},
+    {"id": "open", "seconds": 6, "caption": "OPENED JULY 1940", "vo": "In July 1940, the Tacoma Narrows Bridge opened as the third longest suspension span in the world.", "audio": "assets/vo/open.mp3", "motion": {"scene": "shots/open.html"}},
+    {"id": "gertie", "seconds": 4, "caption": "GALLOPING GERTIE", "vo": "Its nickname was Galloping Gertie, because the deck bounced in the wind.", "audio": "assets/vo/gertie.mp3", "motion": {"scene": "shots/gertie.html"}},
+    {"id": "twist", "seconds": 7, "caption": "NOVEMBER 7, 1940", "vo": "On November seventh, just four months later, the wind set the deck twisting, and every twist fed the next.", "audio": "assets/vo/twist.mp3", "motion": {"scene": "shots/twist.html"}},
+    {"id": "fall", "seconds": 6, "caption": "AEROELASTIC FLUTTER", "vo": "Engineers call it aeroelastic flutter. The slim deck could not stop it, and it tore apart.", "audio": "assets/vo/fall.mp3", "motion": {"scene": "shots/fall.html"}},
+    {"id": "end", "seconds": 5, "caption": "NOW BRIDGES DON'T DANCE", "vo": "Since then, suspension bridges are stiffened and streamlined, so they can't dance.", "audio": "assets/vo/end.mp3", "motion": {"scene": "shots/end.html"}}
+  ],
+  "sources": [
+    {"text": "WSDOT, Tacoma Narrows Bridge history: https://www.wsdot.wa.gov/tnbhistory/ (opened July 1, 1940; third longest suspension span; collapsed Nov. 7, 1940)"},
+    {"text": "WSDOT, Lessons from failure: https://wsdot.wa.gov/tnbhistory/bridges-failure.htm (torsional flutter; self-excited twisting; stiffened/streamlined designs since)"},
+    {"text": "APS News, Nov. 7, 1940: Collapse of the Tacoma Narrows Bridge: https://www.aps.org/apsnews/2016/11/collapse-of-tacoma-narrows-bridge (deck moved vertically in moderate wind; resonance explanation rejected)"},
+    {"text": "Billah & Scanlan (1991), Am. J. Physics 59:118-124, 'Resonance, Tacoma Narrows Bridge failure, and undergraduate physics textbooks'"}
+  ],
+  "credits": ["Artist's reenactment: stylized 3D animation, not to scale.", "Music: Marty Gots a Plan by Kevin MacLeod (incompetech.com), CC BY 4.0", "Narration: ElevenLabs (Liam)"]
+}
