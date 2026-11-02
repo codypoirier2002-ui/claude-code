@@ -1,0 +1,114 @@
+{
+ "topic": "Voyager 1 is one light-day away",
+ "claim": "On Nov. 18, 2026, Voyager 1 becomes the first human-made object one light-day from Earth: 16.094 billion miles (25.902 billion km), so a radio signal takes 24 hours each way.",
+ "accent": "#ffd166",
+ "music": "assets/music.mp3",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 3,
+   "caption": "Voyager 1 is almost one light-day away",
+   "vo": "Voyager 1 is almost one light-day away.",
+   "image": "assets/PIA21747.jpg",
+   "imageFocus": 0.5
+  },
+  {
+   "id": "setup",
+   "seconds": 8,
+   "caption": "Launched 1977. Still flying.",
+   "vo": "It launched in 1977, and it is still flying outward. On November eighteenth, it will be sixteen billion miles from Earth.",
+   "clips": [
+    {
+     "image": "assets/PIA14111.jpg",
+     "imageFocus": 0.45
+    },
+    {
+     "image": "assets/PIA04495.jpg",
+     "imageFocus": 0.55,
+     "seconds": 1.2
+    },
+    {
+     "image": "assets/PIA00454.jpg"
+    }
+   ]
+  },
+  {
+   "id": "mechanism",
+   "seconds": 10,
+   "caption": "One light-day = how far light travels in 24 hours",
+   "vo": "A light-day is the distance light travels in twenty-four hours. Radio signals travel at that same speed, so that is the fastest any message can go.",
+   "clips": [
+    {
+     "image": "assets/PIA00452.jpg"
+    },
+    {
+     "image": "assets/PIA14111.jpg",
+     "imageFocus": 0.5
+    },
+    {
+     "image": "assets/PIA04495.jpg",
+     "imageFocus": 0.6
+    }
+   ]
+  },
+  {
+   "id": "scale",
+   "seconds": 9,
+   "caption": "4x the Sun-to-Pluto distance",
+   "vo": "That is more than four times the distance from the Sun to Pluto. And it will be the first human-made object to get that far.",
+   "clips": [
+    {
+     "image": "assets/PIA01364.jpg",
+     "imageFocus": 0.5
+    },
+    {
+     "image": "assets/PIA00454.jpg"
+    },
+    {
+     "image": "assets/PIA23681.jpg",
+     "imageFocus": 0.3
+    }
+   ]
+  },
+  {
+   "id": "payoff",
+   "seconds": 9,
+   "caption": "Send a command. Wait a day. Wait another for the reply.",
+   "vo": "So a command from Earth takes a full day to reach it. Its reply takes another day. Ask one question, then wait two days.",
+   "clips": [
+    {
+     "image": "assets/PIA21739.jpg"
+    },
+    {
+     "image": "assets/PIA04495.jpg",
+     "imageFocus": 0.4
+    },
+    {
+     "image": "assets/PIA14111.jpg",
+     "imageFocus": 0.6
+    }
+   ]
+  },
+  {
+   "id": "loop",
+   "seconds": 3,
+   "caption": "Would you wait 2 days for a reply?",
+   "vo": "Would you wait two days for a reply?",
+   "image": "assets/PIA21747.jpg",
+   "imageFocus": 0.5
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, \"Where Are Voyager 1 and Voyager 2 Now?\" (Nov. 18, 2026, 2:16:07 a.m. PST; 16.094 billion miles / 25.902 billion km; first human-made object at this distance) https://science.nasa.gov/mission/voyager/where-are-voyager-1-and-voyager-2-now/"
+  },
+  {
+   "text": "Science News, \"Voyager 1 is nearly one light-day from Earth. What's out there?\" (Oct. 14, 2026): signals from Earth take a full day to reach Voyager 1 https://www.sciencenews.org/article/voyager-1-light-day-exploration"
+  }
+ ],
+ "credits": [
+  "Images: NASA/JPL-Caltech/KSC (PIA21747, PIA21739), NASA/JPL-Caltech (PIA14111), NASA/JPL (PIA04495, PIA00452, PIA00454, PIA01364), NASA/JPL-Caltech (PIA23681)",
+  "Narration: ElevenLabs, voice 'Liam - Energetic, Social Media Creator'",
+  "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/"
+ ]
+}

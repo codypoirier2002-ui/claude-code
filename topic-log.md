@@ -26,3 +26,4 @@
 - 2026-11-01 | Arctic winter ice ties record low | NASA and NSIDC report the March 2026 Arctic sea ice maximum, 5.52 million square miles (14.29 million sq km), statistically tied the lowest winter peak since satellite records began in 1979. | arctic-winter-ice-record-low.mp4
 - 2026-11-02 | Sunsets on Mars are blue | Fine dust in Mars's air lets blue light pass through more efficiently near the Sun's direction, so sunsets on Mars glow blue. | /tmp/w/mars-blue-sunset.mp4
 - 2026-11-02 | Astronauts see 16 sunrises a day | The ISS circles Earth about every 90 minutes at 5 miles per second, so its crew passes through 16 sunrises and 16 sunsets every 24 hours. | 16-sunrises.mp4
+- 2026-11-02 | Voyager 1 is one light-day away | On Nov. 18, 2026, Voyager 1 becomes the first human-made object one light-day from Earth: 16.094 billion miles (25.902 billion km), so a radio signal takes 24 hours each way. | voyager-one-light-day.mp4
