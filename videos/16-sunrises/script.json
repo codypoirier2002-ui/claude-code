@@ -1,0 +1,22 @@
+{
+  "topic": "Astronauts see 16 sunrises a day",
+  "claim": "The ISS circles Earth about every 90 minutes at 5 miles per second, so its crew passes through 16 sunrises and 16 sunsets every 24 hours.",
+  "accent": "#ffb347",
+  "beats": [
+    {"id":"hook","seconds":2,"caption":"16 sunrises. Every day.","vo":"Astronauts see sixteen sunrises every single day.","audio":"assets/vo/hook.mp3","bg":"#05060d",
+     "clips":[{"image":"assets/iss072e487315.jpg","imageFocus":0.7},{"image":"assets/iss073e0988954.jpg","imageFocus":0.5}]},
+    {"id":"speed","seconds":8,"caption":"5 miles per second","vo":"The International Space Station flies at five miles per second. That is fast enough to circle the whole Earth about every ninety minutes.","audio":"assets/vo/speed.mp3","bg":"#05060d",
+     "clips":[{"image":"assets/iss074e0037338.jpg","imageFocus":0.5},{"image":"assets/iss072e340644.jpg","imageFocus":0.5},{"image":"assets/iss073e0982783.jpg","imageFocus":0.3}]},
+    {"id":"lap","seconds":8,"caption":"Light, shadow, light again","vo":"Every lap, it slides out of daylight into Earth's shadow, and then back into the light. Each time it comes back, the sun rises.","audio":"assets/vo/lap.mp3","bg":"#05060d",
+     "clips":[{"image":"assets/iss074e0556690.jpg","imageFocus":0.5},{"image":"assets/iss073e0028091.jpg","imageFocus":0.5},{"image":"assets/iss071e439624.jpg","imageFocus":0.5}]},
+    {"id":"count","seconds":7,"caption":"16 laps = 16 sunrises + 16 sunsets","vo":"Sixteen laps in twenty four hours means sixteen sunrises, and sixteen sunsets, every day.","audio":"assets/vo/count.mp3","bg":"#05060d",
+     "clips":[{"image":"assets/iss073e0988954.jpg","imageFocus":0.5},{"image":"assets/iss074e0795348.jpg","imageFocus":0.5},{"image":"assets/iss072e487315.jpg","imageFocus":0.7}]},
+    {"id":"payoff","seconds":7,"caption":"~3,000 sunrises in 6 months","vo":"Stay up there for six months, and you will watch close to three thousand sunrises. Would you ever get tired of one?","audio":"assets/vo/payoff.mp3","bg":"#05060d",
+     "clips":[{"image":"assets/iss072e340644.jpg","imageFocus":0.5},{"image":"assets/iss071e439624.jpg","imageFocus":0.5},{"image":"assets/iss074e0556690.jpg","imageFocus":0.5}]}
+  ],
+  "sources": [
+    {"text":"NASA, International Space Station Facts and Figures: 5 miles per second, orbit about every 90 minutes, 16 orbits and 16 sunrises and sunsets in 24 hours. https://www.nasa.gov/international-space-station/space-station-facts-and-figures/"},
+    {"text":"Six-month figure is simple arithmetic: 16 sunrises x about 180 days = about 2,900."}
+  ],
+  "credits": ["Images: NASA/JSC ISS crew Earth observations (iss072e487315, iss073e0988954, iss074e0037338, iss072e340644, iss073e0982783, iss074e0556690, iss073e0028091, iss071e439624, iss074e0795348), images.nasa.gov"]
+}
