@@ -1,0 +1,22 @@
+{
+  "topic": "Half your oxygen comes from the ocean",
+  "claim": "About half of Earth's oxygen production comes from the ocean, mostly from tiny drifting plankton; one bacterium, Prochlorococcus, makes up to 20% of the biosphere's oxygen.",
+  "accent": "#4cc9f0",
+  "punch": 0.1,
+  "beats": [
+    {"id":"hook","seconds":2,"caption":"HALF OF EARTH'S OXYGEN","vo":"Half of Earth's oxygen comes from the ocean.","image":"assets/bloom_e001502.jpg","imageFocus":0.5},
+    {"id":"who","seconds":6,"caption":"BUT NOT FROM SEAWEED","vo":"Not from whales, not from seaweed. From plankton, drifting plants and algae too small to see.","clips":[{"image":"assets/bloom_e002019.jpg"},{"image":"assets/bloom_e001997.jpg","imageFocus":0.4},{"image":"assets/bloom_e001794.jpg"}]},
+    {"id":"how","seconds":6,"caption":"PHOTOSYNTHESIS, AT SEA","vo":"Just like leaves, they soak up sunlight and carbon dioxide, and release oxygen. And blooms of them are so big, satellites can see them from space.","clips":[{"image":"assets/bloom_e001018.jpg","imageFocus":0.3},{"image":"assets/pia25033.jpg","imageFocus":0.35},{"image":"assets/bloom_e001512.jpg"}]},
+    {"id":"star","seconds":6,"caption":"PROCHLOROCOCCUS","vo":"One bacterium, Prochlorococcus, the smallest photosynthesizer on Earth, makes up to twenty percent of the oxygen in our whole biosphere.","clips":[{"image":"assets/bloom_e001418.jpg"},{"image":"assets/bloom_e001272.jpg","imageFocus":0.3}]},
+    {"id":"twist","seconds":6,"caption":"THE CATCH","vo":"The catch: marine life uses up about as much oxygen as the ocean makes. Most of the air you breathe was stored in the atmosphere over hundreds of millions of years.","clips":[{"video":"assets/ocean.mp4","videoStart":0,"seconds":1},{"video":"assets/ocean.mp4","videoStart":3,"videoFocus":0.5,"seconds":1}]},
+    {"id":"end","seconds":4,"caption":"PROTECT THE PLANKTON","vo":"So the ocean doesn't just touch your breath. It helped build the air you breathe.","clips":[{"image":"assets/bloom_e001502.jpg","imageFocus":0.5},{"image":"assets/bloom_e002019.jpg"}]}
+  ],
+  "sources": [
+    {"text":"NOAA National Ocean Service, How much oxygen comes from the ocean? https://oceanservice.noaa.gov/facts/ocean-oxygen.html"}
+  ],
+  "credits": [
+    "Phytoplankton bloom images: NASA Goddard Space Flight Center / NASA Earth Observatory (MODIS)",
+    "PIA25033: NASA OBPG OB.DAAC/GSFC/Landsat",
+    "Ocean footage: NASA PACE-PAX documentation video (GSFC)"
+  ]
+}
