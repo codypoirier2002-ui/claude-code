@@ -1,0 +1,113 @@
+{
+ "topic": "Everest is not the closest point to space",
+ "claim": "Earth bulges at the equator from its spin, so Ecuador's Chimborazo summit is over 2,072 m farther from Earth's center than Everest's, though Everest is higher above sea level (8,848 m vs 6,268 m).",
+ "accent": "#ffd166",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 2,
+   "caption": "Everest isn't closest to space",
+   "vo": "Everest isn't the closest point to space.",
+   "image": "assets/GSFC_20171208_Archive_e001386.jpg",
+   "audio": "assets/vo/hook.mp3"
+  },
+  {
+   "id": "setup",
+   "seconds": 4,
+   "caption": "Highest above sea level: 8,848 m",
+   "vo": "Sure, it's the highest mountain above sea level, at 8,848 meters.",
+   "audio": "assets/vo/setup.mp3",
+   "clips": [
+    {
+     "image": "assets/iss069e003192.jpg",
+     "imageFocus": 0.5
+    },
+    {
+     "image": "assets/STS066-124-059.jpg"
+    }
+   ]
+  },
+  {
+   "id": "bulge",
+   "seconds": 5,
+   "caption": "Earth's spin makes it bulge",
+   "vo": "But Earth isn't a perfect ball. Its spin makes it bulge around the equator.",
+   "audio": "assets/vo/bulge.mp3",
+   "clips": [
+    {
+     "image": "assets/PIA18033.jpg"
+    },
+    {
+     "image": "assets/diagram.png"
+    }
+   ]
+  },
+  {
+   "id": "chimb",
+   "seconds": 5,
+   "caption": "Ecuador, on the equator",
+   "vo": "Ecuador's Chimborazo sits one degree south of the equator, right on that bulge.",
+   "audio": "assets/vo/chimb.mp3",
+   "clips": [
+    {
+     "image": "assets/PIA15151.jpg"
+    },
+    {
+     "image": "assets/iss068e025399.jpg",
+     "imageFocus": 0.3
+    }
+   ]
+  },
+  {
+   "id": "payoff",
+   "seconds": 7,
+   "caption": "6,268 m up, 2,072 m farther out",
+   "vo": "Its summit is only 6,268 meters above sea level, yet over 2,000 meters farther from Earth's center than Everest's peak.",
+   "audio": "assets/vo/payoff.mp3",
+   "clips": [
+    {
+     "image": "assets/diagram.png"
+    }
+   ]
+  },
+  {
+   "id": "noaa",
+   "seconds": 5,
+   "caption": "Farthest from Earth's center",
+   "vo": "NOAA confirms it: Chimborazo's peak is the farthest point on Earth from the planet's center.",
+   "audio": "assets/vo/noaa.mp3",
+   "clips": [
+    {
+     "image": "assets/iss068e025399.jpg",
+     "imageFocus": 0.7
+    },
+    {
+     "image": "assets/diagram.png"
+    }
+   ]
+  },
+  {
+   "id": "end",
+   "seconds": 6,
+   "caption": "Highest vs. farthest: which counts?",
+   "vo": "So Everest is highest above sea level, but Chimborazo's peak is closest to the stars. Which one should count?",
+   "audio": "assets/vo/end.mp3",
+   "clips": [
+    {
+     "image": "assets/GSFC_20171208_Archive_e001386.jpg"
+    },
+    {
+     "image": "assets/iss069e003192.jpg"
+    }
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "text": "NOAA National Ocean Service, What is the highest point on Earth as measured from Earth's center? https://oceanservice.noaa.gov/facts/highestpoint.html"
+  }
+ ],
+ "credits": [
+  "Images: NASA (Blue Marble/GSFC; ISS photo iss069e003192; STS-66 STS066-124-059; Terra/ASTER PIA15151 NASA/GSFC/METI/ERSDAC/JAROS and U.S./Japan ASTER Science Team; ISS iss068e025399). Diagram: original, not to scale."
+ ]
+}
