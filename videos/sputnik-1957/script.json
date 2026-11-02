@@ -1,0 +1,91 @@
+{
+ "topic": "Sputnik's beep started the space age (1957)",
+ "claim": "On Oct. 4, 1957 the Soviet Union launched Sputnik 1, a 184-pound aluminum sphere whose radio beeps could be heard around the world, opening the Space Age.",
+ "accent": "#ffd166",
+ "music": "assets/music.mp3",
+ "musicVolume": 0.1,
+ "transition": {
+  "type": "fade",
+  "seconds": 0.25
+ },
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 3,
+   "caption": "BEEP. BEEP.",
+   "vo": "One tiny beeping ball changed the world.",
+   "audio": "assets/vo/hook.mp3",
+   "motion": {
+    "scene": "shots/hook.html"
+   }
+  },
+  {
+   "id": "launch",
+   "seconds": 6,
+   "caption": "OCTOBER 4, 1957",
+   "vo": "On October fourth, nineteen fifty-seven, the Soviet Union launched Sputnik One into orbit.",
+   "audio": "assets/vo/launch.mp3",
+   "motion": {
+    "scene": "shots/launch.html"
+   }
+  },
+  {
+   "id": "orbit",
+   "seconds": 6,
+   "caption": "184 POUNDS",
+   "vo": "A shiny aluminum sphere, a hundred and eighty-four pounds, circling Earth every ninety minutes.",
+   "audio": "assets/vo/orbit.mp3",
+   "motion": {
+    "scene": "shots/orbit.html"
+   }
+  },
+  {
+   "id": "listen",
+   "seconds": 6,
+   "caption": "THE WORLD LISTENS",
+   "vo": "Its only job was a radio beep that amateur radio operators everywhere could hear.",
+   "audio": "assets/vo/listen.mp3",
+   "motion": {
+    "scene": "shots/listen.html"
+   }
+  },
+  {
+   "id": "fellow",
+   "seconds": 5,
+   "caption": "FELLOW TRAVELER",
+   "vo": "The word Sputnik means fellow traveler.",
+   "audio": "assets/vo/fellow.mp3",
+   "motion": {
+    "scene": "shots/fellow.html"
+   }
+  },
+  {
+   "id": "payoff",
+   "seconds": 7,
+   "caption": "THE SPACE AGE BEGINS",
+   "vo": "The world was shocked. The Space Age had begun. Beep.",
+   "audio": "assets/vo/payoff.mp3",
+   "motion": {
+    "scene": "shots/payoff.html"
+   }
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA, Sputnik 1 (image article): https://www.nasa.gov/image-article/sputnik-1/"
+  },
+  {
+   "text": "NASA History, 65 Years Ago: Sputnik Ushers in the Space Age (184 pounds, orbit about every 90 minutes, beep signal): https://www.nasa.gov/history/65-years-ago-sputnik-ushers-in-the-space-age/"
+  },
+  {
+   "text": "NASA History, Sputnik and the Origins of the Space Age (launched from near Tyuratam, radio beacon): https://www.nasa.gov/history/sputnik/sputorig.html"
+  },
+  {
+   "text": "NASA, Sputnik 1: the word 'Sputnik' originally meant 'fellow traveler' (https://www.nasa.gov/image-article/sputnik-1/)"
+  }
+ ],
+ "credits": [
+  "Artist's reenactment: stylized 3D animation, not archival footage.",
+  "\"Floating Cities\" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/"
+ ]
+}
