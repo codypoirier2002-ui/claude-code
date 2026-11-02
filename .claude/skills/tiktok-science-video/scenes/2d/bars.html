@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8"><title>scene</title></head><body><script type="module">
+// Horizontal bars that grow in turn, with labels and counting values. Good for comparisons (Venus vs Mercury).
+// PARAMS: title, items [{label, value, color?, display?}], unit, decimals (0), max (largest value), stagger (0.35), growLen (1.1)
+import { P, W, ZONE, ACCENT, backdrop, canvas2d, text, prog, easeOutCubic, fmt, roundRect, ready } from '/scenes/common.js';
+const ctx = canvas2d();
+const items = P.items || [{ label: 'A', value: 40 }, { label: 'B', value: 100 }];
+const max = P.max || Math.max(...items.map((i) => Math.abs(i.value)));
+const palette = [ACCENT, '#6ec3ff', '#ff7a59', '#9be564', '#c792ea'];
+const x0 = 110, maxW = 690, barH = 74, rowH = 160;
+// Rows go in the top zone first, then continue in the low zone, skipping the caption band.
+const rows = items.map((_, i) => {
+  const topRows = Math.floor((ZONE.top[1] - ZONE.top[0] - 160) / rowH);
+  return i < topRows ? ZONE.top[0] + 180 + i * rowH : ZONE.low[0] + 40 + (i - topRows) * rowH;
+});
+window.renderFrame = (t) => {
+  backdrop(ctx, t);
+  text(ctx, P.title, W / 2, ZONE.top[0] + 20, { size: 54, color: '#cfe3ff', alpha: prog(t, 0, 0.4) });
+  items.forEach((it, i) => {
+    const start = 0.25 + i * (P.stagger ?? 0.35);
+    const k = prog(t, start, P.growLen ?? 1.1, easeOutCubic);
+    const y = rows[i];
+    const c = it.color || palette[i % palette.length];
+    text(ctx, it.label, x0, y - 52, { size: 46, align: 'left', alpha: prog(t, start - 0.15, 0.3), color: '#ffffff' });
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    roundRect(ctx, x0, y - 10, maxW, barH, 18);
+    ctx.fill();
+    const w = (maxW * Math.abs(it.value) * k) / max;
+    const g = ctx.createLinearGradient(x0, 0, x0 + maxW, 0);
+    g.addColorStop(0, c);
+    g.addColorStop(1, '#ffffff');
+    ctx.save();
+    ctx.shadowColor = c;
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = g;
+    roundRect(ctx, x0, y - 10, w, barH, 18);
+    ctx.fill();
+    ctx.restore();
+    const label = it.display && k >= 1 ? it.display : fmt(it.value * k, P.decimals || 0) + (P.unit ? ' ' + P.unit : '');
+    text(ctx, label, Math.min(x0 + w + 20, x0 + maxW - 10), y + barH / 2 - 10, { size: 44, align: x0 + w + 20 > x0 + maxW - 260 ? 'right' : 'left', alpha: k > 0 ? 1 : 0, color: '#ffffff' });
+  });
+};
+ready();
+</script></body></html>
