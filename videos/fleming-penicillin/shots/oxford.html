@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><title>oxford</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Reenactment shot: Fleming and the moldy dish (1928). Artist's reenactment, stylized.
+import { P, rng } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+const R = rng(P.seed || 7);
+
+const k = await story({ sky: ['#ff9a5a', '#1d2a6b'], bloom: 0.3 });
+k.add(k.ground({color:'#3b3f5c'}),[0,-1.4,0]);
+const MAT=(c,o={})=>new THREE.MeshToonMaterial({color:new THREE.Color(c),...o});
+function vessel(kind,x,t0){const g=new THREE.Group();
+ if(kind==='churn'){const b=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.62,1.6,20),MAT('#c9d6ea'));b.position.y=0.8;g.add(b);const l=new THREE.Mesh(new THREE.CylinderGeometry(0.38,0.38,0.2,20),MAT('#8da2c0'));l.position.y=1.7;g.add(l);}
+ if(kind==='tin'){const b=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.55,0.9,20),MAT('#ff8c42'));b.position.y=0.45;g.add(b);}
+ if(kind==='bath'){const b=k.box({size:[2.0,0.8,1.0],color:'#e9f0f7',radius:0.15});b.position.y=0.4;g.add(b);}
+ const m=new THREE.Mesh(new THREE.SphereGeometry(0.28,14,10),MAT('#9ccdb0',{emissive:new THREE.Color('#2f7a5a'),emissiveIntensity:0.5}));m.scale.y=0.5;
+ m.position.y=kind==='churn'?1.85:kind==='tin'?0.95:0.85;g.add(m);
+ g.position.set(x,-1.4,0.5);k.add(g);k.show(g,t0);return g;}
+vessel('churn',-3.4,0.5);vessel('tin',-1.6,0.9);vessel('bath',0.4,1.3);vessel('tin',2.4,1.7);vessel('churn',3.8,2.1);
+const fl=k.add(k.figure({coat:true,scale:1.5,color:'#7b5cff'}),[-1.2,-1.4,2.4]);
+const ch=k.add(k.figure({coat:true,scale:1.5,color:'#06d6a0'}),[1.2,-1.4,2.4]);
+fl.rotation.y=0.25;ch.rotation.y=-0.25;
+k.every(t=>{fl.position.y=-1.4+Math.abs(Math.sin(t*5))*0.08;ch.position.y=-1.4+Math.abs(Math.sin(t*5+1.5))*0.08;});
+const lf=k.add(k.label('FLOREY',{color:PALETTE.sun,size:0.45}),[-1.2,1.2,2.4]);k.show(lf,0.4);
+const lc=k.add(k.label('CHAIN',{color:PALETTE.mint,size:0.45}),[1.2,1.2,2.4]);k.show(lc,0.6);
+const lo=k.add(k.label('OXFORD LAB',{color:PALETTE.cream,size:0.45}),[0,3.8,0]);k.show(lo,0.2);
+const lt=k.add(k.label('baths · milk churns · tins',{color:PALETTE.sky,size:0.34}),[0,3.0,0]);k.show(lt,1.2);
+k.camera([[0,{pos:[0,1.8,21],look:[0,-1.2,0]}],[D,{pos:[0.4,1.8,16.5],look:[0,-1.0,0]}]]);
+k.badge('1941',0.3,'Oxford, UK');
+k.done();
+</script></body></html>

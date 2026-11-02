@@ -1,0 +1,21 @@
+{
+  "topic": "Fleming's moldy dish led to penicillin (1928)",
+  "claim": "In 1928 Fleming noticed a mold clearing bacteria from a dish; Oxford's team turned it into the first antibiotic drug.",
+  "accent": "#06d6a0",
+  "music": "assets/music.mp3",
+  "musicVolume": 0.1,
+  "transition": {"type": "fade", "seconds": 0.25},
+  "beats": [
+    {"id": "hook", "seconds": 2.5, "caption": "One moldy dish", "vo": "This moldy dish changed medicine forever.", "motion": {"scene": "shots/hook.html", "params": {"year": "1928"}}},
+    {"id": "return", "seconds": 5, "caption": "Sept. 3, 1928", "vo": "September third, 1928. Alexander Fleming returns from holiday to a stack of staph dishes.", "motion": {"scene": "shots/return.html"}},
+    {"id": "clear", "seconds": 5, "caption": "The bacteria are gone", "vo": "One dish has mold. And around it, the bacteria are gone.", "motion": {"scene": "shots/clear.html"}},
+    {"id": "juice", "seconds": 6, "caption": "Mold juice", "vo": "He grows the mold alone. Its juice kills strep, meningococcus, even diphtheria.", "motion": {"scene": "shots/juice.html"}},
+    {"id": "oxford", "seconds": 6, "caption": "Oxford, 1941", "vo": "But it's unstable. Oxford's Florey and Chain turn it into medicine by 1941.", "motion": {"scene": "shots/oxford.html"}},
+    {"id": "payoff", "seconds": 6, "caption": "Nobel Prize, 1945", "vo": "In 1945, Fleming, Florey and Chain share the Nobel Prize. One moldy dish began the antibiotic age.", "motion": {"scene": "shots/payoff.html"}}
+  ],
+  "sources": [
+    {"text": "ACS International Historic Chemical Landmark: Discovery and Development of Penicillin, https://www.acs.org/education/whatischemistry/landmarks/flemingpenicillin.html"},
+    {"text": "A. Fleming, Nobel Lecture 'Penicillin', 11 Dec 1945, https://www.nobelprize.org/prizes/medicine/1945/fleming/lecture/"}
+  ],
+  "credits": ["Artist's reenactment: stylized cartoon figures, not real footage.", "\"Floating Cities\" Kevin MacLeod (incompetech.com), CC BY 4.0, http://creativecommons.org/licenses/by/4.0/"]
+}

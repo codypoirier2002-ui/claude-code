@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><title>payoff</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Reenactment shot: Fleming and the moldy dish (1928). Artist's reenactment, stylized.
+import { P, rng } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+const R = rng(P.seed || 7);
+
+const k = await story({ sky: ['#ffcf5a', '#3a1c71'], bloom: 0.4 });
+k.add(k.stars(500));
+
+const MAT=(c,o={})=>new THREE.MeshToonMaterial({color:new THREE.Color(c),...o});
+// Petri dish: glass rim + amber agar + staph colonies (cream-yellow) + optional mold (grey-green) with a clear zone.
+function dish(k,{r=2.2,mold=true,clearR=0.95,moldAt=[0.7,0.55],colonies=46,fade=null}={}){
+  const g=new THREE.Group();
+  const glass=new THREE.Mesh(new THREE.CylinderGeometry(r*1.06,r*1.06,0.34,48,1,true),new THREE.MeshPhysicalMaterial({color:0xcfefff,transparent:true,opacity:0.35,roughness:0.05,side:THREE.DoubleSide}));
+  glass.position.y=0.17;g.add(glass);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(r*1.06,0.045,10,64),MAT('#e9f8ff'));rim.rotation.x=Math.PI/2;rim.position.y=0.34;g.add(rim);
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(r*1.04,r*1.04,0.08,48),MAT('#bfe6ff',{transparent:true,opacity:0.6}));g.add(base);
+  const agar=new THREE.Mesh(new THREE.CylinderGeometry(r,r,0.16,48),MAT('#ffb454'));agar.position.y=0.12;g.add(agar);
+  const cols=[];const mx=moldAt[0],mz=moldAt[1];
+  let n=0,tries=0;
+  while(n<colonies&&tries<4000){tries++;
+    const a=R()*Math.PI*2,d=Math.sqrt(R())*(r-0.2);const x=Math.cos(a)*d,z=Math.sin(a)*d;
+    const dm=Math.hypot(x-mx,z-mz);
+    const near=dm<clearR;
+    if(!mold&&false)continue;
+    if(dm<0.45)continue;
+    const s=0.1+R()*0.12;
+    const m=new THREE.Mesh(new THREE.SphereGeometry(s,14,10),MAT(near?'#fff0a6':'#fff3b0',{emissive:new THREE.Color('#ffd84a'),emissiveIntensity:0.08}));
+    m.scale.y=0.55;m.position.set(x,0.24,z);g.add(m);cols.push({m,near,dm,s});n++;}
+  const moldG=new THREE.Group();
+  const moldBlobs=[];
+  for(let i=0;i<9;i++){const a=i/9*Math.PI*2,rr=i?0.22+R()*0.12:0;
+    const b=new THREE.Mesh(new THREE.SphereGeometry(0.2+R()*0.1,16,12),MAT(i%2?'#6fb08a':'#9ccdb0',{emissive:new THREE.Color('#2f7a5a'),emissiveIntensity:0.15}));
+    b.scale.y=0.7;b.position.set(Math.cos(a)*rr,0.28,Math.sin(a)*rr);moldG.add(b);moldBlobs.push(b);}
+  moldG.position.set(mx,0,mz);moldG.visible=mold;g.add(moldG);
+  const halo=new THREE.Mesh(new THREE.RingGeometry(clearR-0.05,clearR+0.04,64),new THREE.MeshBasicMaterial({color:new THREE.Color('#06d6a0'),transparent:true,opacity:0.9,side:THREE.DoubleSide}));
+  halo.rotation.x=-Math.PI/2;halo.position.set(mx,0.3,mz);halo.visible=false;g.add(halo);
+  return {g,cols,moldG,halo,mx,mz,clearR,agar};
+}
+
+const d=dish(k,{colonies:50});d.cols.forEach(c=>{if(c.near)c.m.visible=false;});k.add(d.g,[0,-0.4,2.4]);d.g.scale.setScalar(0.9);
+d.halo.visible=true;
+k.every(t=>{d.halo.material.opacity=0.7+0.3*Math.sin(t*6);d.g.rotation.y=t*0.3;});
+const cols=['#7b5cff','#06d6a0','#ff5d73'];const xs=[-3.0,0,3.0];const nm=['FLEMING','FLOREY','CHAIN'];
+xs.forEach((x,i)=>{const f=k.add(k.figure({coat:true,scale:1.6,color:cols[i]}),[x,-1.4,-0.4]);k.wave(f,0.8,Infinity,9);
+ k.every(t=>{f.position.y=-1.4+(t>0.8?Math.abs(Math.sin(t*9+i))*0.2:0);});
+ const l=k.add(k.label(nm[i],{color:'#fff4e0',size:0.36}),[x,1.5,-0.4]);k.show(l,1.0+i*0.15);});
+const nb=k.add(k.label('NOBEL PRIZE',{color:PALETTE.sun,size:0.6}),[0,4.0,0]);k.show(nb,0.3);
+k.flash(0.3);k.burst([0,2,0],0.3,{count:150,speed:3.5});k.burst([0,2,0],2.2,{count:120,speed:3});
+const end=k.add(k.label('ANTIBIOTIC AGE',{color:PALETTE.mint,size:0.3}),[0,0.3,2.4]);k.show(end,3.2);
+k.camera([[0,{pos:[0,2.5,19],look:[0,-0.8,0]}],[3.0,{pos:[0,2.8,17],look:[0,-0.8,0.4]}],[D,{pos:[0.2,6.5,13],look:[0,-1.8,2.4]}]]);
+k.badge('1945',0.2,'Nobel Prize in Medicine');
+k.done();
+</script></body></html>

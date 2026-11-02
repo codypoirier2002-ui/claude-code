@@ -40,3 +40,4 @@
 - 2026-11-02 | Europa may hold twice Earth's ocean water | Under its ice shell, Jupiter's moon Europa likely has a salty ocean holding about twice as much water as all of Earth's oceans. | /tmp/europa.mp4
 - 2026-11-02 | The bridge that danced itself apart (1940) | The Tacoma Narrows Bridge twisted itself apart in the wind on Nov. 7, 1940, four months after opening, through aeroelastic flutter. | /tmp/tiktok-state/videos/tacoma-narrows-bridge/out.mp4
 - 2026-11-02 | A comet smashed into Jupiter (1994) | In July 1994 the torn-apart comet Shoemaker-Levy 9 hit Jupiter; for the first time NASA had spacecraft in place to watch two solar system bodies collide. | /tmp/t/jupiter-comet.mp4
+- 2026-11-02 | Fleming's moldy dish led to penicillin (1928) | In 1928 Fleming noticed a mold clearing bacteria from a dish; Oxford's team turned it into the first antibiotic drug. | /tmp/prev/fleming.mp4
