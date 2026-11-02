@@ -41,3 +41,4 @@
 - 2026-11-02 | The bridge that danced itself apart (1940) | The Tacoma Narrows Bridge twisted itself apart in the wind on Nov. 7, 1940, four months after opening, through aeroelastic flutter. | /tmp/tiktok-state/videos/tacoma-narrows-bridge/out.mp4
 - 2026-11-02 | A comet smashed into Jupiter (1994) | In July 1994 the torn-apart comet Shoemaker-Levy 9 hit Jupiter; for the first time NASA had spacecraft in place to watch two solar system bodies collide. | /tmp/t/jupiter-comet.mp4
 - 2026-11-02 | Fleming's moldy dish led to penicillin (1928) | In 1928 Fleming noticed a mold clearing bacteria from a dish; Oxford's team turned it into the first antibiotic drug. | /tmp/prev/fleming.mp4
+- 2026-11-02 | Hubble launched with a blurry mirror (1990) | Hubble's mirror was ~2.2 microns (about 1/50 hair) too flat at its edge; corrective optics installed Dec 1993. | hubble-blurry-mirror.mp4

@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><title>cause</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Artist's reenactment shot: 3-cause
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+
+function hubble(k, scale = 1) {
+  const g = new THREE.Group(), T = k.toon;
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 2.4, 28), T('#cfd6e6')); tube.rotation.x = Math.PI / 2; g.add(tube);
+  const gold = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.9, 28), T('#ffc93c')); gold.rotation.x = Math.PI / 2; gold.position.z = -1.4; g.add(gold);
+  const door = new THREE.Mesh(new THREE.CylinderGeometry(0.57, 0.57, 0.12, 28), T('#1b1f3b')); door.rotation.x = Math.PI / 2; door.position.z = 1.25; g.add(door);
+  for (const s of [-1, 1]) { const p = k.box({ size: [1.9, 0.04, 0.8], color: '#2f5bff', radius: 0.01 }); p.position.set(s * 1.7, 0, -0.9); g.add(p);
+    const a = k.box({ size: [0.5, 0.06, 0.06], color: '#c9d6ea' }); a.position.set(s * 0.75, 0, -0.9); g.add(a); }
+  g.scale.setScalar(scale); return g;
+}
+const seg = (a, b, color, w = 0.04) => { const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b); const m = new THREE.Mesh(new THREE.CylinderGeometry(w, w, A.distanceTo(B), 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(color) })); m.position.copy(A.clone().add(B).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()); return m; };
+const halo = (rad, color, op) => new THREE.Mesh(new THREE.CircleGeometry(rad, 48), new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity: op, depthWrite: false, blending: THREE.AdditiveBlending }));
+
+const k = await story({ sky: ['#ff9a3c', '#3a1457'], bloom: 0.8 });
+k.add(k.ground({ color: '#4a2a6e', size: 40 }), [0, -2, 0]);
+const rail = k.box({ size: [7, 0.2, 0.6], color: '#c9d6ea' }); k.add(rail, [0, -0.6, 0]);
+const lens = (x, c) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.25, 40), k.toon(c, { })); m.rotation.z = Math.PI / 2; k.add(m, [x, 0.6, 0]); return m; };
+lens(-2.2, PALETTE.sky); const l2 = lens(0.2, PALETTE.sky); lens(2.6, PALETTE.sky);
+k.keys(l2.position, [[0, [0.2, 0.6, 0]], [3.4, [0.2, 0.6, 0]], [4.2, [0.75, 0.6, 0]]]);
+const gap = k.add(seg([0.2, -0.1, 0.8], [0.75, -0.1, 0.8], PALETTE.coral, 0.07), [0, 0, 0]); k.show(gap, 4.2);
+const lg = k.add(k.label('OFF BY 1.3 mm', { color: PALETTE.coral, size: 0.5 }), [0.5, 1.3, 0.8]); k.show(lg, 4.4);
+k.flash(4.2); k.shake(4.2, 4.8, 0.15); k.burst([0.5, 0.6, 0.5], 4.2, { count: 90, speed: 3 });
+k.camera([[0, { pos: [0, 1.6, 17], look: [0, 0.8, 0] }], [3.6, { pos: [0, 1.2, 14], look: [0.4, 0.6, 0] }], [D, { pos: [0.8, 0.8, 10], look: [0.5, 0.4, 0] }]]);
+k.badge('TEST', 0.15, 'Building the mirror');
+k.done();
+</script></body></html>

@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><title>payoff</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Artist's reenactment shot: 6-payoff
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+
+function hubble(k, scale = 1) {
+  const g = new THREE.Group(), T = k.toon;
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 2.4, 28), T('#cfd6e6')); tube.rotation.x = Math.PI / 2; g.add(tube);
+  const gold = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.9, 28), T('#ffc93c')); gold.rotation.x = Math.PI / 2; gold.position.z = -1.4; g.add(gold);
+  const door = new THREE.Mesh(new THREE.CylinderGeometry(0.57, 0.57, 0.12, 28), T('#1b1f3b')); door.rotation.x = Math.PI / 2; door.position.z = 1.25; g.add(door);
+  for (const s of [-1, 1]) { const p = k.box({ size: [1.9, 0.04, 0.8], color: '#2f5bff', radius: 0.01 }); p.position.set(s * 1.7, 0, -0.9); g.add(p);
+    const a = k.box({ size: [0.5, 0.06, 0.06], color: '#c9d6ea' }); a.position.set(s * 0.75, 0, -0.9); g.add(a); }
+  g.scale.setScalar(scale); return g;
+}
+const seg = (a, b, color, w = 0.04) => { const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b); const m = new THREE.Mesh(new THREE.CylinderGeometry(w, w, A.distanceTo(B), 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(color) })); m.position.copy(A.clone().add(B).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()); return m; };
+const halo = (rad, color, op) => new THREE.Mesh(new THREE.CircleGeometry(rad, 48), new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity: op, depthWrite: false, blending: THREE.AdditiveBlending }));
+
+const k = await story({ sky: ['#3b1f9a', '#06031a'], bloom: 1.4 });
+k.add(k.stars(800));
+const core = k.add(halo(0.14, '#ffffff', 1), [0, 2.4, 0]);
+const outer = halo(0.5, '#9ac4ff', 0.35); const mid = halo(0.26, '#cfe3ff', 0.5); core.add(outer); core.add(mid);
+const spikes = new THREE.Group(); [0, Math.PI / 2].forEach((a) => { const s = halo(0.05, '#ffffff', 0.9); s.scale.set(26, 1, 1); s.rotation.z = a; spikes.add(s); }); core.add(spikes);
+const snap = 1.6;
+k.every((t) => { const u = Math.max(0, Math.min(1, (t - snap) / 0.25)); const s = (1 - u) * 3.2 + u * 0.4; outer.scale.setScalar(s); mid.scale.setScalar(1 + (s - 1) * 0.6); spikes.scale.setScalar(u); });
+k.flash(snap); k.burst([0, 2.4, 0.5], snap, { count: 140, speed: 3.6, colors: ['#ffffff', PALETTE.sun, PALETTE.sky] }); k.shake(snap, snap + 0.4, 0.1);
+const l = k.add(k.label('SHARP.', { color: PALETTE.mint, size: 1.0 }), [0, 4.6, 0.5]); k.show(l, snap + 0.2);
+const h = k.add(hubble(k, 0.7), [0, -0.2, 0]); h.rotation.set(0.2, -0.7, 0);
+k.every((t) => { h.rotation.y = -0.7 + Math.sin(t * 0.6) * 0.2; });
+k.camera([[0, { pos: [0, 2.2, 10], look: [0, 1.8, 0] }], [D, { pos: [0, 2.2, 8], look: [0, 1.8, 0] }]]);
+k.badge('NOW', 0.1, 'Still seeing sharp');
+k.done();
+</script></body></html>

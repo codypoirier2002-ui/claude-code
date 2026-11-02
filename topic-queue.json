@@ -592,7 +592,7 @@
   },
   {
     "topic": "Hubble launched with a blurry mirror (1990)",
-    "hook": "",
+    "hook": "Hubble launched with a blurry mirror.",
     "claim": "Hubble's main mirror was ground to the wrong shape by a tiny fraction of a hair's width; astronauts installed corrective optics in December 1993 (verify figures and dates).",
     "why_now": "history reenactment batch",
     "evidence": [
@@ -604,7 +604,7 @@
     "visuals": "story-kit reenactment",
     "score": 21,
     "added": "2026-11-02",
-    "status": "assigned",
+    "status": "made",
     "format": "history"
   },
   {

@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><title>size</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Artist's reenactment shot: 2-size
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+
+function hubble(k, scale = 1) {
+  const g = new THREE.Group(), T = k.toon;
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 2.4, 28), T('#cfd6e6')); tube.rotation.x = Math.PI / 2; g.add(tube);
+  const gold = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.9, 28), T('#ffc93c')); gold.rotation.x = Math.PI / 2; gold.position.z = -1.4; g.add(gold);
+  const door = new THREE.Mesh(new THREE.CylinderGeometry(0.57, 0.57, 0.12, 28), T('#1b1f3b')); door.rotation.x = Math.PI / 2; door.position.z = 1.25; g.add(door);
+  for (const s of [-1, 1]) { const p = k.box({ size: [1.9, 0.04, 0.8], color: '#2f5bff', radius: 0.01 }); p.position.set(s * 1.7, 0, -0.9); g.add(p);
+    const a = k.box({ size: [0.5, 0.06, 0.06], color: '#c9d6ea' }); a.position.set(s * 0.75, 0, -0.9); g.add(a); }
+  g.scale.setScalar(scale); return g;
+}
+const seg = (a, b, color, w = 0.04) => { const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b); const m = new THREE.Mesh(new THREE.CylinderGeometry(w, w, A.distanceTo(B), 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(color) })); m.position.copy(A.clone().add(B).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()); return m; };
+const halo = (rad, color, op) => new THREE.Mesh(new THREE.CircleGeometry(rad, 48), new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity: op, depthWrite: false, blending: THREE.AdditiveBlending }));
+
+const k = await story({ sky: ['#10206b', '#050818'], bloom: 0.8 });
+const f = 3, prof = (x, flaw) => x * x / (4 * f) - (flaw ? Math.max(0, Math.abs(x) - 1.3) ** 2 * 0.07 : 0);
+const pts = Array.from({ length: 41 }, (_, i) => { const x = -2.8 + 5.6 * i / 40; return new THREE.Vector3(x, prof(x, true) - 1.2, 0); });
+k.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 80, 0.12, 10), k.toon('#cfd6e6')));
+const top = 6;
+const fy = f - 1.2, fyBad = fy - 0.9;
+const cs = [-0.7, 0.7], os = [-2.5, -2.0, 2.0, 2.5];
+const mk = (x, bad, t0) => {
+  const y = prof(x, bad) - 1.2, tgt = bad ? fyBad : fy;
+  const col = bad ? PALETTE.coral : PALETTE.mint;
+  const g = new THREE.Group(); g.add(seg([x, top, 0], [x, y, 0], '#fff4e0', 0.035)); g.add(seg([x, y, 0], [0, bad ? (x > 0 ? 1 : 1) * tgt : fy, 0], col, 0.05));
+  k.add(g); k.show(g, t0, Infinity, 0.3);
+};
+cs.forEach((x) => mk(x, false, 0.6));
+os.forEach((x, i) => mk(x, true, 2.2 + i * 0.25));
+k.flash(2.2);
+k.camera([[0, { pos: [0, 2.6, 19], look: [0, 0.9, 0] }], [D, { pos: [0, 2.4, 16], look: [0, 0.9, 0] }]]);
+k.badge('1990', 0.15, 'The mirror error');
+k.done();
+</script></body></html>
