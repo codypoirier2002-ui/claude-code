@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><title>scene</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// A planet: textured sphere (or a .glb) with axial tilt, spin, terminator lighting, atmosphere glow and optional rings.
+// PARAMS: texture (equirectangular image) | model (.glb) | color, tilt (deg, 23.4), spin (deg/s, 12), atmosphere (color or false),
+//         atmosphereStrength (1), rings {inner: 1.3, outer: 2.2, color: '#d8c8a8', opacity: 0.7}, sunDir,
+//         startDistance (13.5), endDistance (11), elevation (deg, 8), frameY (0.3), label, labelY
+import { P, ZONE, prog, easeInOutCubic } from '/scenes/common.js';
+import { THREE, setup, stars, lights, loadModel, loadTexture, atmosphere, label } from '/scenes/three-common.js';
+const { renderer, scene, camera } = setup();
+stars(scene);
+lights(scene);
+const tiltGroup = new THREE.Group();
+tiltGroup.rotation.z = THREE.MathUtils.degToRad(P.tilt ?? 23.4);
+scene.add(tiltGroup);
+const body = new THREE.Group();
+tiltGroup.add(body);
+if (P.model) {
+  body.add((await loadModel(P.model)).object);
+} else {
+  const mat = new THREE.MeshStandardMaterial({ color: P.texture ? 0xffffff : new THREE.Color(P.color || '#c1440e'), roughness: 0.95, metalness: 0 });
+  if (P.texture) mat.map = await loadTexture(P.texture);
+  body.add(new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), mat));
+}
+if (P.atmosphere !== false) scene.add(atmosphere(1, P.atmosphere || '#5fb8ff'));
+if (P.rings) {
+  const r = P.rings;
+  const geo = new THREE.RingGeometry(r.inner || 1.3, r.outer || 2.2, 180, 1);
+  const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color(r.color || '#d8c8a8'), transparent: true, opacity: r.opacity ?? 0.7, side: THREE.DoubleSide }));
+  ring.rotation.x = Math.PI / 2;
+  tiltGroup.add(ring);
+}
+const lab = label(P.label, P.labelY || ZONE.low[0] + 80);
+const el = THREE.MathUtils.degToRad(P.elevation ?? 8);
+window.renderFrame = (t) => {
+  body.rotation.y = THREE.MathUtils.degToRad((P.startAngle || 0) + (P.spin ?? 12) * t);
+  const d = THREE.MathUtils.lerp(P.startDistance ?? 13.5, P.endDistance ?? 11, easeInOutCubic(Math.min(1, t / (P.duration || 5))));
+  camera.position.set(0, Math.sin(el) * d, Math.cos(el) * d);
+  camera.lookAt(0, 0, 0);
+  if (lab) lab.style.opacity = prog(t, 0.4, 0.5);
+  renderer.render(scene, camera);
+};
+window.renderFrame(0);
+window.sceneReady = true;
+</script></body></html>

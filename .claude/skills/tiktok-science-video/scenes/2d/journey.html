@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8"><title>scene</title></head><body><script type="module">
+// A pulse of light (or a craft) travels from one point to another while a counter runs below.
+// PARAMS: fromLabel, toLabel, travel (seconds, default duration-0.6), color, counter {label, from, to, decimals, unit}, note
+import { P, W, ZONE, ACCENT, backdrop, canvas2d, text, prog, easeInOutCubic, fmt, ready } from '/scenes/common.js';
+const ctx = canvas2d();
+const color = P.color || ACCENT;
+const y = (ZONE.top[0] + ZONE.top[1]) / 2 + 40;
+const xa = 150, xb = W - 230;
+const travel = P.travel ?? Math.max(1, (P.duration || 5) - 0.8);
+function node(x, label, a, c) {
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.fillStyle = c;
+  ctx.shadowColor = c;
+  ctx.shadowBlur = 30;
+  ctx.beginPath();
+  ctx.arc(x, y, 26, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  text(ctx, label, x, y - 90, { size: 48, alpha: a, maxWidth: 360 });
+}
+window.renderFrame = (t) => {
+  backdrop(ctx, t);
+  const a = prog(t, 0, 0.4);
+  // Dashed track.
+  ctx.save();
+  ctx.globalAlpha = 0.5 * a;
+  ctx.strokeStyle = '#9fb8e8';
+  ctx.setLineDash([14, 16]);
+  ctx.lineDashOffset = -t * 40;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(xa, y);
+  ctx.lineTo(xb, y);
+  ctx.stroke();
+  ctx.restore();
+  node(xa, P.fromLabel || 'Earth', a, '#6ec3ff');
+  node(xb, P.toLabel || 'Destination', a, '#ffb38a');
+  const k = prog(t, 0.4, travel, easeInOutCubic);
+  const x = xa + (xb - xa) * k;
+  // Glowing pulse with a fading trail.
+  for (let i = 12; i >= 0; i--) {
+    const tx = x - i * 16 * Math.min(1, k * 8);
+    if (tx < xa) continue;
+    ctx.save();
+    ctx.globalAlpha = (1 - i / 13) * (k > 0 ? 1 : 0);
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 40;
+    ctx.beginPath();
+    ctx.arc(tx, y, 16 - i * 0.9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  const c = P.counter;
+  if (c) {
+    text(ctx, c.label, W / 2, ZONE.low[0] + 20, { size: 44, color: '#cfe3ff', alpha: a, weight: '600' });
+    text(ctx, fmt((c.from || 0) + ((c.to || 0) - (c.from || 0)) * k, c.decimals || 0) + (c.unit ? ' ' + c.unit : ''), W / 2, ZONE.low[0] + 120, { size: 110, color, glow: color, alpha: a });
+  }
+  text(ctx, P.note, W / 2, ZONE.low[0] + 230, { size: 40, alpha: prog(t, 0.4 + travel, 0.5), color: '#ffffff', weight: '600' });
+};
+ready();
+</script></body></html>

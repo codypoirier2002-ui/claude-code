@@ -6,7 +6,9 @@
 //  - Captions: the "vo" text is chunked and shown 2-3 words at a time, timed to the audio
 //    (by character share, or by a beat's optional "captionStarts": one start time per chunk, seconds into its audio).
 //    "caption" is a small headline shown at the top of the beat.
-//  - Visuals per beat: "clips" (a list of short visuals cut together, each {video|image, seconds?}), "video" (clip; optional videoStart, videoFocus), "image" (Ken Burns zoom; optional imageFocus), else an animated gradient from "bg"/"bg2".
+//  - Visuals per beat: "clips" (a list of short visuals cut together, each {motion|video|image, seconds?}), "motion" (a code-rendered
+//    2D/3D motion graphic: {"scene": "2d/counter", "params": {...}}, rendered by motion.js), "video" (clip; optional videoStart,
+//    videoFocus), "image" (Ken Burns zoom; optional imageFocus), else an animated gradient from "bg"/"bg2".
 //  - Optional crossfades between a beat's clips ("transition": {type, seconds}, script-wide or per beat).
 //  - Each visual starts with a quick punch-in zoom (script "punch", default 0.12; 0 = off; per clip "punch": false).
 //  - Optional top-level "music" file is mixed under the narration.
@@ -90,12 +92,28 @@ function timings(chunks, start, end) {
   });
 }
 
-// Builds ffmpeg inputs and a filter graph ending in [bg] for one visual: video clip, image, or gradient.
-// item: { video, videoStart, videoFocus } | { image } | { bg, bg2 }
+// Renders a motion graphic ({scene, params}) to an MP4 of exactly `secs` with motion.js, cached by its inputs so re-renders are free.
+function motionClip(m, secs) {
+  const spec = typeof m === 'string' ? { scene: m } : m;
+  const scene = /^(2d|3d)\/[a-z0-9-]+$/.test(spec.scene) ? spec.scene : path.resolve(dir, spec.scene);
+  const key = crypto.createHash('sha1').update(JSON.stringify([scene, spec.params || {}, secs.toFixed(3), FPS, W, H, fs.existsSync(scene) ? fs.statSync(scene).mtimeMs : 0])).digest('hex').slice(0, 16);
+  const out = path.join(CACHE, 'motion-renders', `${key}.mp4`);
+  if (!fs.existsSync(out)) {
+    execFileSync('node', [path.join(__dirname, 'motion.js'), scene, out, secs.toFixed(3), JSON.stringify({ accent: ACCENT, ...(spec.params || {}) }), '--base', dir, '--fps', String(FPS), '--size', `${W}x${H}`], { stdio: 'inherit' });
+  }
+  return out;
+}
+
+// Builds ffmpeg inputs and a filter graph ending in [bg] for one visual: motion graphic, video clip, image, or gradient.
+// item: { motion } | { video, videoStart, videoFocus } | { image } | { bg, bg2 }
 function visual(item, secs) {
   const inputs = [];
   let filter;
-  if (item.video) {
+  if (item.motion) {
+    // Rendered at the exact length and frame size, so no loop, crop or darkening: the graphic is designed for the captions.
+    inputs.push('-i', motionClip(item.motion, secs));
+    filter = `[0:v]scale=${W}:${H},fps=${FPS}[bg]`;
+  } else if (item.video) {
     // "videoStart" seeks into the clip; "videoFocus" (0 left .. 1 right, default 0.5) picks the crop for landscape footage.
     inputs.push('-stream_loop', '-1', '-ss', String(item.videoStart || 0), '-t', String(secs), '-i', path.resolve(dir, item.video));
     const focus = item.videoFocus ?? 0.5;
