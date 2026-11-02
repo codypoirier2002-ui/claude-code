@@ -14,6 +14,7 @@ machine. `build.js` calls it for any beat or clip with a `motion` visual.
 | `2d/journey` | A light pulse travelling between two points, with a counter | `fromLabel`, `toLabel`, `counter: {label, from, to, unit, decimals}`, `note`, `travel` |
 | `3d/model` | Turntable of a `.glb` model (spacecraft, rovers) | `model`, `spin`, `tilt`, `elevation`, `startDistance`, `endDistance`, `label` |
 | `3d/planet` | Planet with tilt, spin, terminator, atmosphere glow, optional rings | `model` or `texture` or `color`, `tilt`, `spin`, `atmosphere`, `rings`, `startDistance`, `endDistance` |
+| `3d/story-example` | Stylized 3D reenactment shot (Mars Climate Orbiter, 1999) built with `story-kit.js`; copy it to make story shots | `year`, `sub` |
 | `3d/orbit` | Satellite orbiting a planet with a trail; optional sunrise counter | `model`/`texture`, `satellite`, `satelliteSize`, `orbitRadius`, `inclination`, `period`, `counter: {label}` |
 
 Every scene also takes `accent`, `bg`, `bg2`, `seed`, and the 3D scenes take `frameY` (where the subject's center sits,
@@ -24,6 +25,10 @@ Every scene also takes `accent`, `bg`, `bg2`, `seed`, and the 3D scenes take `fr
 The frame is 1080×1920. `build.js` burns a headline at y ≈ 230–370 and the spoken captions at y ≈ 930–1250, so scenes
 keep the main graphic in y ≈ 400–900 and labels in y ≈ 1290–1650 (`ZONE` in `common.js`). TikTok's buttons cover the
 right ~15% and its description covers the bottom ~270 px.
+
+## Story kit
+
+`story-kit.js` builds vibrant, toon-shaded 3D reenactments with keyframes, camera moves, particles, a year badge and a post-production pass (bloom, grade, vignette, grain). See its header comment and `3d/story-example.html`.
 
 ## Writing a new scene
 

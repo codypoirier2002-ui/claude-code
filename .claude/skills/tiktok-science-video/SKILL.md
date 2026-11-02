@@ -54,6 +54,15 @@ Requires `ffmpeg`/`ffprobe`, Node 18+, and Python 3 (setup only). Environment va
 - `audio` replaces local TTS with your own recording. `music` is optional and mixed low under the narration (`musicVolume`, default 0.12).
 - Paths are relative to the script file.
 
+## History reenactments (stylized 3D stories)
+
+Retell a real, well-documented event from the past (a launch, a discovery, a famous mistake) as a fun, vibrant 3D reenactment instead of stock footage.
+
+- **Story kit:** `scenes/story-kit.js` gives toon-shaded props (`rocket`, `planet`, `figure` with `wave`, `box`, `cloud`, `ground`, `stars`, 3D `label`s, NASA `.glb` via `model`), keyframes for anything (`keys`, `show`, `camera`), effects (`burst`, `flash`, `shake`) and a year `badge`. Every frame goes through a post pass: bloom, saturation/contrast grade, warm/cool toning, vignette and film grain. `scenes/3d/story-example.html` (Mars Climate Orbiter, 1999) is a complete shot to copy.
+- **One scene file per shot:** copy the example next to `script.json` (for example `shots/launch.html`) and reference it as `"motion": {"scene": "shots/launch.html"}`. Keep the action above the caption band (the kit frames it there by default) and leave the bottom zone to the badge.
+- **Pre-production:** before building anything, write `videos/<slug>/storyboard.md`: the verified facts with sources, then 4–6 shots, each with time, narration line, what moves on screen, camera move, and the color mood. Every on-screen date, number and name must match a source you opened. Reenact what is documented; do not invent dialogue, quotes or details. Mark stylization plainly ("artist's reenactment" in the post caption).
+- **Post-production polish:** a music bed (`find-asset.js music`), `"transition": {"type": "fade", "seconds": 0.25}`, a punch-in on each cut, a flash or shake on the key moment, and a final frame that pays off the hook. Render each shot at 1 s first and look at a frame; a full 5 s shot renders in about 2 minutes.
+
 ## Narration options
 
 1. **Local Piper voice (default, free).** Omit `audio` and the builder speaks `vo` itself. Run `scripts/setup.sh` once.
