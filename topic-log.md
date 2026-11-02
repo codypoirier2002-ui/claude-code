@@ -27,3 +27,4 @@
 - 2026-11-02 | Sunsets on Mars are blue | Fine dust in Mars's air lets blue light pass through more efficiently near the Sun's direction, so sunsets on Mars glow blue. | /tmp/w/mars-blue-sunset.mp4
 - 2026-11-02 | Astronauts see 16 sunrises a day | The ISS circles Earth about every 90 minutes at 5 miles per second, so its crew passes through 16 sunrises and 16 sunsets every 24 hours. | 16-sunrises.mp4
 - 2026-11-02 | Voyager 1 is one light-day away | On Nov. 18, 2026, Voyager 1 becomes the first human-made object one light-day from Earth: 16.094 billion miles (25.902 billion km), so a radio signal takes 24 hours each way. | voyager-one-light-day.mp4
+- 2026-11-02 | Venus is hotter than Mercury | Venus's surface (about 872 F) is hotter than Mercury's hottest daytime highs (about 800 F) despite being nearly twice as far from the Sun, because its thick carbon dioxide atmosphere traps heat in a runaway greenhouse effect. | /tmp/venus-hot.mp4

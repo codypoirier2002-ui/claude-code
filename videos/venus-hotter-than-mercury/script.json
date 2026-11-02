@@ -1,0 +1,17 @@
+{
+ "topic": "Venus is hotter than Mercury",
+ "claim": "Venus's surface (about 872 F) is hotter than Mercury's hottest daytime highs (about 800 F) despite being nearly twice as far from the Sun, because its thick carbon dioxide atmosphere traps heat in a runaway greenhouse effect.",
+ "accent": "#ffb454",
+ "beats": [
+  {"id":"hook","seconds":3,"caption":"The hottest planet isn't the closest","vo":"The hottest planet isn't the closest one.","bg":"#2b1405","bg2":"#6b3510","clips":[{"image":"assets/PIA12264.jpg"},{"image":"assets/PIA23791.jpg","imageFocus":0.2}],"audio":"assets/vo/hook.mp3"},
+  {"id":"setup","seconds":8,"caption":"Mercury: 36 million miles. Venus: 67 million.","vo":"Mercury hugs the Sun, about 36 million miles away. Venus is nearly twice as far, around 67 million.","bg":"#2b1405","bg2":"#6b3510","clips":[{"image":"assets/PIA13823.jpg","imageFocus":0.7},{"image":"assets/PIA00478.jpg"}],"audio":"assets/vo/setup.mp3"},
+  {"id":"reveal","seconds":10,"caption":"Venus: 872°F. Mercury's peak: 800°F","vo":"Yet Venus wins. Its surface sits near 872 degrees Fahrenheit, hot enough to melt lead. Mercury's daytime peak is about 800.","bg":"#2b1405","bg2":"#6b3510","clips":[{"image":"assets/PIA00272.jpg"},{"image":"assets/S91-50687.jpg","imageFocus":0.6},{"image":"assets/PIA02416.jpg"}],"audio":"assets/vo/reveal.mp3"},
+  {"id":"mechanism","seconds":10,"caption":"Thick CO₂ air traps the heat","vo":"The difference is air. Venus wraps itself in thick carbon dioxide that traps heat in a runaway greenhouse effect, with surface pressure 93 times Earth's.","bg":"#2b1405","bg2":"#6b3510","clips":[{"image":"assets/PIA23791.jpg","imageFocus":0.8},{"image":"assets/PIA00481.jpg"},{"image":"assets/PIA00272.jpg"}],"audio":"assets/vo/mechanism.mp3"},
+  {"id":"payoff","seconds":10,"caption":"Keeping heat beats being close","vo":"Mercury has almost no atmosphere to hold heat, so its nights plunge to minus 290. It's not about how close you are to the Sun. It's about whether you can keep the heat.","bg":"#2b1405","bg2":"#6b3510","clips":[{"image":"assets/PIA02941.jpg"},{"image":"assets/PIA02416.jpg"},{"image":"assets/PIA12264.jpg"}],"audio":"assets/vo/payoff.mp3"}
+ ],
+ "sources": [
+  {"text":"NASA Science, Venus Facts: https://science.nasa.gov/venus/venus-facts/ (872 F / 467 C, 93x Earth surface pressure, hotter than Mercury, 67 million miles)"},
+  {"text":"NASA Science, Mercury Facts: https://science.nasa.gov/mercury/facts/ (800 F daytime highs, -290 F nights, 36 million miles, Venus is hottest planet)"}
+ ],
+ "credits": ["Images: NASA/JPL, NASA/JPL-Caltech, NASA/Johns Hopkins University Applied Physics Laboratory/Carnegie Institution of Washington (MESSENGER), NASA JSC"]
+}
