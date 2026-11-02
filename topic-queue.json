@@ -509,5 +509,85 @@
     "score": 18,
     "added": "2026-11-01",
     "status": "made"
+  },
+  {
+    "topic": "Saturn's rings are paper-thin",
+    "hook": "",
+    "claim": "Saturn's rings are hundreds of thousands of km wide but only about 30 feet (10 m) thick in most places (verify exact figures).",
+    "why_now": "3D-model showcase batch requested by owner",
+    "evidence": [
+      "https://science.nasa.gov/saturn/facts/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/saturn/facts/"
+    ],
+    "visuals": "NASA 3D models via find-asset.js model-get: saturn-3d-model",
+    "score": 20,
+    "added": "2026-11-02",
+    "status": "assigned"
+  },
+  {
+    "topic": "Neptune has the fastest winds in the solar system",
+    "hook": "",
+    "claim": "Neptune's winds reach about 1,200 mph (2,000 km/h), the fastest in the solar system (verify).",
+    "why_now": "3D-model showcase batch requested by owner",
+    "evidence": [
+      "https://science.nasa.gov/neptune/neptune-facts/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/neptune/neptune-facts/"
+    ],
+    "visuals": "NASA 3D models via find-asset.js model-get: neptune-3d-model",
+    "score": 20,
+    "added": "2026-11-02",
+    "status": "assigned"
+  },
+  {
+    "topic": "A helicopter flew 72 times on Mars",
+    "hook": "",
+    "claim": "NASA's Ingenuity helicopter, planned for 5 test flights, flew 72 times on Mars (verify count and dates).",
+    "why_now": "3D-model showcase batch requested by owner",
+    "evidence": [
+      "https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/"
+    ],
+    "visuals": "NASA 3D models via find-asset.js model-get: mars-ingenuity-helicopter-3d-model",
+    "score": 20,
+    "added": "2026-11-02",
+    "status": "assigned"
+  },
+  {
+    "topic": "Europa may hold twice Earth's ocean water",
+    "hook": "",
+    "claim": "Jupiter's moon Europa likely has a salty ocean under its ice with about twice the water of Earth's oceans (verify).",
+    "why_now": "3D-model showcase batch requested by owner",
+    "evidence": [
+      "https://science.nasa.gov/jupiter/moons/europa/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/jupiter/moons/europa/"
+    ],
+    "visuals": "NASA 3D models via find-asset.js model-get: europa-3d-model, europa-clipper-3d-model",
+    "score": 20,
+    "added": "2026-11-02",
+    "status": "assigned"
+  },
+  {
+    "topic": "Neptune's moon Triton orbits backwards",
+    "hook": "",
+    "claim": "Triton orbits Neptune opposite to Neptune's spin (retrograde), the only large moon to do so, suggesting it was captured (verify).",
+    "why_now": "3D-model showcase batch requested by owner",
+    "evidence": [
+      "https://science.nasa.gov/neptune/moons/triton/"
+    ],
+    "sources_to_cite": [
+      "https://science.nasa.gov/neptune/moons/triton/"
+    ],
+    "visuals": "NASA 3D models via find-asset.js model-get: triton-3d-model, neptune-3d-model",
+    "score": 20,
+    "added": "2026-11-02",
+    "status": "assigned"
   }
 ]
