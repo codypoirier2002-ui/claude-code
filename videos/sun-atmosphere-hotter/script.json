@@ -1,0 +1,115 @@
+{
+ "topic": "The Sun's atmosphere is hotter than its surface",
+ "claim": "The Sun's outer atmosphere, the corona, reaches millions of degrees, hundreds of times hotter than the Sun's visible surface at about 10,000 F, and scientists are still working out why.",
+ "accent": "#ffb703",
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 2,
+   "caption": "HOTTER THAN THE SURFACE?",
+   "vo": "The Sun's air is hotter than its surface.",
+   "clips": [
+    {
+     "video": "assets/sdo_clip.mp4",
+     "videoStart": 0
+    }
+   ]
+  },
+  {
+   "id": "surface",
+   "seconds": 5,
+   "caption": "Surface: 10,000 \u00b0F",
+   "vo": "The Sun's visible surface is about ten thousand degrees Fahrenheit. That is already blazing.",
+   "clips": [
+    {
+     "video": "assets/sdo_clip.mp4",
+     "videoStart": 12
+    },
+    {
+     "video": "assets/short.mp4",
+     "videoStart": 0,
+     "seconds": 1
+    }
+   ]
+  },
+  {
+   "id": "corona",
+   "seconds": 6,
+   "caption": "Corona: up to 3.5 million \u00b0F",
+   "vo": "But above it floats the corona, the Sun's outer atmosphere, and it reaches up to three and a half million degrees. Hundreds of times hotter.",
+   "clips": [
+    {
+     "image": "assets/eclipse.jpg",
+     "imageFocus": 0.5
+    },
+    {
+     "image": "assets/tse2017.jpg",
+     "imageFocus": 0.5
+    },
+    {
+     "image": "assets/skylab.jpg"
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "seconds": 6,
+   "caption": "Heat should fade with distance",
+   "vo": "That breaks common sense. Move away from a fire and it gets cooler. Here, moving away from the Sun's surface gets hotter.",
+   "clips": [
+    {
+     "video": "assets/sdo_clip.mp4",
+     "videoStart": 30
+    },
+    {
+     "video": "assets/sdo_clip.mp4",
+     "videoStart": 40
+    }
+   ]
+  },
+  {
+   "id": "mystery",
+   "seconds": 7,
+   "caption": "Still unsolved",
+   "vo": "Why? Nobody has fully solved it. It is called the coronal heating problem, and it has puzzled scientists for decades.",
+   "clips": [
+    {
+     "image": "assets/skylab.jpg"
+    },
+    {
+     "video": "assets/sdo_clip.mp4",
+     "videoStart": 45
+    }
+   ]
+  },
+  {
+   "id": "probe",
+   "seconds": 7,
+   "caption": "Parker Solar Probe flew through it",
+   "vo": "So NASA sent Parker Solar Probe to fly through the corona itself, and it is still collecting clues. Would you trust a spacecraft that close?",
+   "clips": [
+    {
+     "video": "assets/sdo_clip.mp4",
+     "videoStart": 20
+    },
+    {
+     "image": "assets/tse2017.jpg"
+    }
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Our Sun: Facts, https://science.nasa.gov/sun/facts/ (photosphere about 10,000 F / 5,500 C; corona up to 3.5 million F / 2 million C)"
+  },
+  {
+   "text": "NASA Science, Parker Solar Probe, https://science.nasa.gov/mission/parker-solar-probe/ (flew through the corona, announced Dec 14, 2021; coronal heating is an open question)"
+  },
+  {
+   "text": "NASA Goddard SVS, Discovering the Sun's Mysteriously Hot Atmosphere, https://svs.gsfc.nasa.gov/12903/"
+  }
+ ],
+ "credits": [
+  "NASA/GSFC Scientific Visualization Studio; NASA Solar Dynamics Observatory; NASA/SOHO composite with Williams College eclipse expedition image (GSFC); NASA Armstrong 2017 eclipse image; NASA Skylab"
+ ]
+}
