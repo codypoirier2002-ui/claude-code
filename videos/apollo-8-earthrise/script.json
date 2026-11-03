@@ -1,0 +1,21 @@
+{
+  "topic": "Apollo 8 saw Earthrise by surprise (1968)",
+  "claim": "On Dec. 24, 1968 Apollo 8's crew, the first humans to orbit the Moon, saw Earth rise unplanned, and Bill Anders's color photo became an icon.",
+  "accent": "#ffd166",
+  "music": "assets/music.mp3",
+  "musicVolume": 0.1,
+  "transition": { "type": "fade", "seconds": 0.25 },
+  "beats": [
+    { "id": "hook", "seconds": 3.4, "caption": "1968: THE MOON TRIP", "vo": "They flew to the Moon. They found Earth.", "audio": "assets/vo/hook.mp3", "motion": { "scene": "shots/hook.html" } },
+    { "id": "launch", "seconds": 7, "caption": "DEC. 21, 1968", "vo": "December 21st, 1968. Apollo 8 rides a Saturn V toward the Moon.", "audio": "assets/vo/launch.mp3", "motion": { "scene": "shots/launch.html" } },
+    { "id": "orbit", "seconds": 6, "caption": "FIRST IN LUNAR ORBIT", "vo": "On Christmas Eve, Borman, Lovell, and Anders become the first humans to orbit it.", "audio": "assets/vo/orbit.mp3", "motion": { "scene": "shots/orbit.html" } },
+    { "id": "rise", "seconds": 7.4, "caption": "ORBIT NUMBER 4", "vo": "Fourth time around, Anders looks out his window. Earth is rising! It wasn't on the schedule.", "audio": "assets/vo/rise.mp3", "motion": { "scene": "shots/rise.html" } },
+    { "id": "photo", "seconds": 9, "caption": "EARTHRISE", "vo": "They scrambled for color film. Anders took three photos. One became an icon of the century.", "audio": "assets/vo/photo.mp3", "motion": { "scene": "shots/photo.html" } }
+  ],
+  "sources": [
+    { "text": "NASA, Apollo 8 mission page: https://www.nasa.gov/mission/apollo-8/" },
+    { "text": "NASA SVS, Earthrise in 4K transcript: https://svs.gsfc.nasa.gov/vis/a000000/a004500/a004593/earthrise_in_4k_transcript.html" },
+    { "text": "NASA, Apollo 8 Astronaut Bill Anders Captures Earthrise: https://www.nasa.gov/image-article/apollo-8-astronaut-bill-anders-captures-earthrise/" }
+  ],
+  "credits": ["Artist's reenactment, stylized 3D; not to scale", "Narration: ElevenLabs (Liam)", "Music: Kevin MacLeod (incompetech.com), CC BY 4.0"]
+}

@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8"><script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script></head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 6;
+const moon = (k, r, pos) => k.add(k.planet({ color: "#b9bac6", radius: r, spots: 14, spotColor: "#8a8b9a" }), pos);
+const earth = (k, r, pos) => { const e = k.add(k.planet({ color: PALETTE.earth, radius: r, spots: 12, spotColor: "#ffffff" }), pos); k.every((t) => { e.userData.ball.rotation.y = t * 0.2; }); return e; };
+const craft = (k) => { const g = new THREE.Group(); const cone = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.5, 24), new THREE.MeshToonMaterial({ color: PALETTE.steel })); cone.position.y = 0.25; g.add(cone); const b = k.box({ size: [0.6, 0.45, 0.6], color: PALETTE.sun }); b.position.y = -0.2; g.add(b); const p = k.box({ size: [0.9, 0.03, 0.3], color: "#3a5bd9", radius: 0.01 }); p.position.set(0.75, -0.2, 0); g.add(p); return g; };
+
+const k = await story({ sky: ["#27135e", "#03020a"], bloom: 0.9 });
+k.add(k.stars(700));
+const m = moon(k, 2.4, [0, -1.2, 0]); k.every((t) => { m.userData.ball.rotation.y = t * 0.1; });
+const c = k.add(craft(k)); c.scale.setScalar(0.55);
+k.every((t) => { const a = 2.4 + t * 0.9; c.position.set(Math.cos(a) * 4.4, -1.2 + Math.sin(a) * 0.9, Math.sin(a) * 3.4 - 0.5); c.rotation.set(0.3, t, 0.6); });
+const trail = new THREE.Mesh(new THREE.TorusGeometry(4.4, 0.025, 8, 120), new THREE.MeshBasicMaterial({ color: new THREE.Color(PALETTE.mint) }));
+trail.rotation.x = Math.PI / 2 + 0.2; trail.scale.set(1, 0.77, 1); trail.position.set(0, -1.2, -0.5); k.show(k.add(trail), 0.4);
+k.camera([[0, { pos: [0, 1.5, 15], look: [0, -0.5, 0] }], [D, { pos: [2, 2.5, 12], look: [0, -0.5, 0] }]]);
+k.badge("1968", 0.15, "Dec. 24 · Christmas Eve");
+k.done();
+</script></body></html>

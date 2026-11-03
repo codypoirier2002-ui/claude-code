@@ -704,5 +704,12 @@
       "https://science.nasa.gov/mission/mars-climate-orbiter/"
     ],
     "status": "made"
+  },
+  {
+    "slug": "apollo-8-earthrise",
+    "topic": "Apollo 8 saw Earthrise by surprise (1968)",
+    "format": "history",
+    "status": "made",
+    "score": 21
   }
 ]
