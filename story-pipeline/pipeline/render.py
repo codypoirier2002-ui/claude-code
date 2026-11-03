@@ -81,6 +81,10 @@ def cmd_test(args, tl, story):
         cmd += ["--engine", args.engine]
     t0 = time.time()
     subprocess.run([str(c) for c in cmd], check=True)
+    empty = [p.name for p in sorted(out.glob("test_*.png")) if p.stat().st_size == 0]
+    if empty or len(list(out.glob("test_*.png"))) < len(frames):
+        die(f"{len(empty) or 'some'} test frames came out empty or missing. EEVEE needs a GPU; "
+            "on a machine without one, add --engine CYCLES")
     print(f"{len(frames)} test frames in {time.time() - t0:.0f}s")
     subprocess.run([sys.executable, str(Path(__file__).with_name("contact_sheet.py")), args.slug],
                    check=True)
