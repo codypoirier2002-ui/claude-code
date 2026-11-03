@@ -89,14 +89,14 @@ def earth_material(name, ocean, land, lights_strength):
     return m
 
 
-def atmosphere_material(name, color, strength):
+def atmosphere_material(name, color, strength, blend=0.12):
     """Rim glow: emission weighted by grazing angle, transparent face-on."""
     m = lib.blended(lib.glow(name, color, strength))
     nt = m.node_tree
     em = nt.nodes["Emission"]
     out = nt.nodes["Material Output"]
     lw = nt.nodes.new("ShaderNodeLayerWeight")
-    lw.inputs["Blend"].default_value = 0.35
+    lw.inputs["Blend"].default_value = blend
     tr = nt.nodes.new("ShaderNodeBsdfTransparent")
     mix = nt.nodes.new("ShaderNodeMixShader")
     nt.links.new(lw.outputs["Facing"], mix.inputs[0])
@@ -170,7 +170,7 @@ def build_orbit(ctx):
     earth = lib.add("sphere", "earth", (X, 0, 0), mat=earth_material(
         "earth", (0.004, 0.012, 0.035), (0.02, 0.03, 0.035), lights_strength=4.0),
         smooth=True, coll=coll, segments=128, ring_count=64, radius=EARTH_R)
-    lib.add("sphere", "atmosphere", (X, 0, 0), mat=atmosphere_material("atmo", (0.25, 0.5, 1.0), 3.0),
+    lib.add("sphere", "atmosphere", (X, 0, 0), mat=atmosphere_material("atmo", (0.25, 0.5, 1.0), 1.1, blend=0.1),
             smooth=True, coll=coll, segments=96, ring_count=48, radius=EARTH_R * 1.035)
     # Whole turns over the timeline, so frame 0 and frame total match. The phase puts the
     # launch site where the camera sees it when the narrator says "launched".
@@ -197,7 +197,10 @@ def build_orbit(ctx):
     trail = lib.beam("trail", (0, 0, 0), (0, 0, 7.0), trail_m, radius=0.05, coll=coll, parent=site)
     lib.grow(trail, 0, 0.0, "CONSTANT")
     lib.grow(trail, cue, 0.0)
-    lib.grow(trail, min(cue + ctx.sec(1.6), ctx.end("orbit")), 1.0)
+    full = min(cue + ctx.sec(1.6), ctx.end("orbit"))
+    lib.grow(trail, full, 1.0)
+    if full < ctx.end("orbit"):
+        lib.grow(trail, ctx.end("orbit"), 1.0)          # hold until the cut
     lib.grow(trail, ctx.end("orbit") + 1, 0.0, "CONSTANT")
 
     # Satellite on a tilted ellipse (Oko used highly elliptical Molniya orbits; this is a
@@ -213,7 +216,7 @@ def build_orbit(ctx):
 
     lib.light("orbit_sun", "SUN", (X + 30, -10, 30), 1.2, ICE, size=1.0, target=(X, 0, 0),
               coll=coll)
-    lib.light("orbit_rim", "AREA", (X - 18, 25, 14), 4000.0, (0.5, 0.65, 1.0), size=12,
+    lib.light("orbit_rim", "AREA", (X - 18, 25, 14), 1500.0, (0.5, 0.65, 1.0), size=12,
               target=(X, 0, 0), coll=coll)
 
     # Hook camera: frame 0 pose == outro's final pose (frame total).
@@ -286,11 +289,13 @@ def build_bunker(ctx):
     lib.key(pc, "default_value", hit, (*RED, 1), "CONSTANT")
     lib.key(ps, "default_value", hit, 14.0)
     lib.key(ps, "default_value", hit + ctx.sec(0.8), 0.0)
+    lib.show_during([ac] + list(ac.children), [(appear, hit + ctx.sec(0.8))])
     ring_m = lib.glow("hit_ring", RED, 0.0)
     ring = lib.add("torus", "hit_ring", (X + 0.3, 5.92, 2.55), rot=(R(90), 0, 0), mat=ring_m,
                    coll=coll, major_radius=0.2, minor_radius=0.012)
     lib.key(ring, "scale", hit, (0.2, 0.2, 0.2))
     lib.key(ring, "scale", hit + ctx.sec(0.7), (2.5, 2.5, 2.5))
+    lib.show_during([ring], [(hit, hit + ctx.sec(0.7))])
     rs = lib.emit_socket(ring_m)
     lib.key(rs, "default_value", 0, 0.0, "CONSTANT")
     lib.key(rs, "default_value", hit, 10.0)
@@ -359,7 +364,7 @@ def build_screen(ctx):
     for n, a, b in (("1", m1, m5 - 1), ("5", m5, s1)):
         cm = lib.glow(f"count_{n}", RED, SCREEN_ALARM)
         t = lib.text(f"count_{n}", n, (X + 2.3, -0.04, 0.9), size=1.6, mat=cm, coll=coll)
-        lib.visible([t], [(a, b)])
+        lib.show_during([t], [(a, b)])
 
     # Missile markers rising from the USA edge, five in all, one then four.
     for i in range(5):
@@ -368,7 +373,7 @@ def build_screen(ctx):
         x0 = -1.6 + i * 0.8
         dot = lib.add("ico", f"missile_{i}", (X + x0, -0.05, -3.8), mat=mm, coll=coll,
                       radius=0.13, subdivisions=2)
-        lib.visible([dot], [(appear, s1)])
+        lib.show_during([dot], [(appear, s1)])
         lib.key(dot, "location", appear, (X + x0, -0.05, -3.8), "LINEAR")
         lib.key(dot, "location", s1, (X + x0 * 0.6 + 0.4, -0.05, -3.8 + 0.9 + (s1 - appear) / 60),
                 "LINEAR")
@@ -430,7 +435,7 @@ def build_glint(ctx):
     planet_m = earth_material("earth_day", (0.02, 0.06, 0.16), (0.12, 0.13, 0.10), 0.0)
     lib.add("sphere", "planet", (X, 0, -62), mat=planet_m, smooth=True, coll=coll,
             segments=192, ring_count=96, radius=60.0)
-    lib.add("sphere", "planet_atmo", (X, 0, -62), mat=atmosphere_material("atmo_day", ICE, 4.0),
+    lib.add("sphere", "planet_atmo", (X, 0, -62), mat=atmosphere_material("atmo_day", ICE, 0.5, blend=0.04),
             smooth=True, coll=coll, segments=128, ring_count=64, radius=61.2)
 
     cloud_m = lib.material("cloud", (0.9, 0.93, 1.0), rough=0.95)
@@ -476,7 +481,8 @@ def build_glint(ctx):
     # "fifteen years later": the year, faint, over the sky.
     after = ctx.beat("aftermath")["start_frame"]
     year_m = lib.glow("year", ICE, 0.0)
-    lib.text("year", "1998", (X, 4.0, 6.2), size=1.3, mat=year_m, coll=coll, rot=(R(100), 0, 0))
+    year = lib.text("year", "1998", (X, 4.0, 6.2), size=1.3, mat=year_m, coll=coll, rot=(R(100), 0, 0))
+    lib.show_during([year], [(after, s1)])
     ys = lib.emit_socket(year_m)
     lib.key(ys, "default_value", 0, 0.0, "CONSTANT")
     lib.key(ys, "default_value", after, 0.0)

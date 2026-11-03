@@ -170,6 +170,16 @@ def main():
 
         check_scenes(args.slug, stories, build)
 
+        blender = os.environ.get("BLENDER") or shutil.which("blender") or (
+            "/Applications/Blender.app/Contents/MacOS/Blender"
+            if Path("/Applications/Blender.app").exists() else None)
+        if blender:
+            sh(blender, "-b", "--factory-startup", "-noaudio", "--python-exit-code", "1",
+               "-P", HERE / "blender_check.py", "--", "--story-dir", stories / args.slug,
+               "--timeline", build / args.slug / "timeline.json", env=env)
+        else:
+            print("real-Blender checks skipped: Blender not found (set BLENDER=...)")
+
         # Synthetic frames: a dot on a circle with period == the timeline, so the loop is clean.
         frames = build / args.slug / "frames"
         frames.mkdir(parents=True, exist_ok=True)

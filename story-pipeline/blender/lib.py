@@ -315,28 +315,75 @@ def grow(pivot, frame, fraction, interp="BEZIER"):
 # ------------------------------------------------------------------ animation
 
 
+def _fcurves(id_data):
+    ad = id_data.animation_data
+    act = ad.action if ad else None
+    if act is None:
+        return []
+    try:
+        return list(act.fcurves)                      # Blender < 5.0
+    except AttributeError:                            # 5.0+: layered actions
+        out = []
+        for layer in act.layers:
+            for strip in layer.strips:
+                bag = strip.channelbag(ad.action_slot)
+                if bag:
+                    out += list(bag.fcurves)
+        return out
+
+
 def key(owner, path, frame, value=None, interp="BEZIER", index=-1):
-    """Set owner.<path> (optionally one index of it) and keyframe it at frame."""
+    """Set owner.<path> (optionally one index of it) and keyframe it at frame.
+
+    Interpolation is written onto the new key itself: Blender ignores the user
+    preference for keys inserted from Python, so CONSTANT and LINEAR would silently
+    become eased BEZIER curves (things fading in from frame 0, stuttering spins)."""
     if value is not None:
         if index >= 0:
             getattr(owner, path)[index] = value
         else:
             setattr(owner, path, value)
-    prefs = bpy.context.preferences.edit
-    old = prefs.keyframe_new_interpolation_type
-    prefs.keyframe_new_interpolation_type = interp
+    owner.keyframe_insert(data_path=path, frame=frame, index=index)
+    if interp == "BEZIER":
+        return
     try:
-        owner.keyframe_insert(data_path=path, frame=frame, index=index)
-    finally:
-        prefs.keyframe_new_interpolation_type = old
+        full = owner.path_from_id(path)
+    except (AttributeError, ValueError, TypeError):
+        full = path
+    for fc in _fcurves(owner.id_data):
+        if fc.data_path == full and (index < 0 or fc.array_index == index):
+            for kp in fc.keyframe_points:
+                if abs(kp.co[0] - frame) < 0.5:
+                    kp.interpolation = interp
+
+
+_SHOW = {}
+
+
+def show_during(objs, ranges):
+    """Show objs only inside these inclusive [start, end] ranges. Applied by
+    Ctx.finalize, intersected with the shots of the set the object belongs to."""
+    for o in objs:
+        _SHOW[o.name] = sorted(ranges)
+
+
+def _intersect(a, b):
+    out = []
+    for s1, e1 in a:
+        for s2, e2 in b:
+            s, e = max(s1, s2), min(e1, e2)
+            if s <= e:
+                out.append((s, e))
+    return sorted(out)
 
 
 def visible(objs, ranges):
-    """Show objs only inside the inclusive [start, end] frame ranges (constant keys)."""
+    """Key hide_render/hide_viewport now (constant steps). Prefer show_during()."""
     ranges = sorted(ranges)
     for o in objs:
-        key(o, "hide_render", 0, not any(a <= 0 <= b for a, b in ranges), "CONSTANT")
-        key(o, "hide_viewport", 0, not any(a <= 0 <= b for a, b in ranges), "CONSTANT")
+        at0 = not any(a <= 0 <= b for a, b in ranges)
+        key(o, "hide_render", 0, at0, "CONSTANT")
+        key(o, "hide_viewport", 0, at0, "CONSTANT")
         for a, b in ranges:
             if a > 0:
                 key(o, "hide_render", a, False, "CONSTANT")
@@ -431,7 +478,12 @@ class Ctx:
         if missing:
             raise RuntimeError(f"no camera bound for shots: {missing} (use ctx.bind_camera)")
         for coll, ranges in self._sets:
-            visible(list(coll.all_objects), ranges)
+            for o in list(coll.all_objects):   # snapshot: keying invalidates the live list
+                own = _SHOW.pop(o.name, None)
+                visible([o], _intersect(own, ranges) if own is not None else ranges)
+        for name, ranges in list(_SHOW.items()):     # objects outside any set
+            visible([bpy.data.objects[name]], ranges)
+        _SHOW.clear()
         for s in self.tl["shots"]:
             m = self.scene.timeline_markers.new(s["id"], frame=s["start_frame"])
             m.camera = self._cams[s["id"]]
