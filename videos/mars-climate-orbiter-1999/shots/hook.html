@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 6;
+function orbiter(k) {
+  const g = new THREE.Group();
+  const body = k.box({ size: [0.5, 0.5, 0.5], color: PALETTE.sun });
+  g.add(body);
+  for (const s of [-1, 1]) { const p = k.box({ size: [1.1, 0.04, 0.4], color: "#3a5bd9", radius: 0.01 }); p.position.x = s * 0.85; g.add(p); }
+  const dish = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.14, 20), new THREE.MeshToonMaterial({ color: new THREE.Color(PALETTE.cream) }));
+  dish.position.y = 0.34; g.add(dish);
+  g.userData.body = body;
+  return g;
+}
+const k = await story({ sky: ["#2b1055", "#05030f"], bloom: 0.9 });
+k.add(k.stars(700));
+const mars = k.add(k.planet({ color: PALETTE.mars, radius: 2.6, spots: 10, spotColor: "#b23a1f" }), [0, -5.2, -1]);
+k.every((t) => { mars.userData.ball.rotation.y = t * 0.2; });
+const craft = k.add(orbiter(k), [-4, 3.5, 0]);
+k.keys(craft.position, [[0, [-4, 3.5, 0]], [D, [0.6, 0.6, 1.5]]]);
+k.every((t) => { craft.rotation.set(0.4 + t * 0.5, t * 1.2, 0.25); });
+const q = k.add(k.label("LB ≠ N", { color: PALETTE.coral, size: 0.8 }), [0, 4.3, 0]);
+k.show(q, 0.5);
+k.camera([[0, { pos: [0, 1.5, 15], look: [0, 0.5, 0] }], [D, { pos: [0.4, 1.2, 11.5], look: [0.2, 0.4, 0] }]]);
+k.badge("1999", 0.15, "Mars Climate Orbiter");
+k.done();
+</script></body></html>

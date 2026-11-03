@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 6;
+const k = await story({ sky: ["#4cc9f0", "#ffb07c"], bloom: 0.7 });
+k.add(k.ground({ color: "#7bd389", size: 40 }), [0, -3, 0]);
+const pad = k.add(k.box({ size: [3.2, 0.3, 3.2], color: PALETTE.steel }), [0, -2.85, 0]);
+const rocket = k.add(k.rocket({ color: PALETTE.coral, scale: 1.1 }), [0, -1.0, 0]);
+k.keys(rocket.position, [[0, [0, -1.0, 0]], [1.0, [0, -1.0, 0]], [D, [0, 11, 0]]], (u) => u * u);
+k.every((t) => { rocket.rotation.z = t > 1 ? Math.sin(t * 3) * 0.03 : 0; });
+for (let i = 0; i < 5; i++) {
+  const c = k.add(k.cloud({ scale: 0.9 + i * 0.15 }), [-5 + i * 2.6, 3 + (i % 3) * 2.2, -6]);
+  k.every((t) => { c.position.x += 0; });
+}
+k.flash(1.0, 0.4);
+k.burst([0, -2.6, 0.3], 1.0, { count: 150, speed: 3, colors: ["#ffffff", PALETTE.sun, PALETTE.orange], gravity: 0.5 });
+k.shake(1.0, 2.0, 0.12);
+const l = k.add(k.label("9 MONTHS TO MARS", { color: PALETTE.sun, size: 0.5 }), [0, 5.2, 1]);
+k.show(l, D * 0.55);
+k.camera([[0, { pos: [0, -0.5, 15], look: [0, 0.5, 0] }], [1.0, { pos: [0, -0.5, 14], look: [0, 0.5, 0] }], [D, { pos: [0, 4, 15], look: [0, 6, 0] }]]);
+k.badge("1998", 0.15, "Dec. 11");
+k.done();
+</script></body></html>

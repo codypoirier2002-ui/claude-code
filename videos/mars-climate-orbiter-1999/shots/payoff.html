@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 6;
+const k = await story({ sky: ["#06d6a0", "#073b4c"], bloom: 0.8 });
+k.add(k.stars(250));
+const a = k.add(k.box({ size: [2.2, 2.2, 1.2], color: PALETTE.coral }), [-5, 1.5, 0]);
+const b = k.add(k.box({ size: [2.2, 2.2, 1.2], color: PALETTE.sky }), [5, 1.5, 0]);
+k.keys(a.position, [[0, [-5, 1.5, 0]], [D * 0.5, [-1.3, 1.5, 0]]]);
+k.keys(b.position, [[0, [5, 1.5, 0]], [D * 0.5, [1.3, 1.5, 0]]]);
+const la = k.add(k.label("LB", { color: "#ffffff", size: 0.9 }), [0, 0, 0.8]);
+const lb = k.add(k.label("N", { color: "#ffffff", size: 0.9 }), [0, 0, 0.8]);
+k.every((t) => { la.position.set(a.position.x, 1.5, 0.8); lb.position.set(b.position.x, 1.5, 0.8); });
+const t1 = D * 0.5;
+const ring = k.add(new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.07, 12, 64), new THREE.MeshBasicMaterial({ color: new THREE.Color(PALETTE.sun) })), [0, 1.5, 0]);
+k.show(ring, t1, Infinity, 0.4);
+k.every((t) => { ring.rotation.z = t * 0.8; });
+k.flash(t1, 0.3);
+k.burst([0, 1.5, 0.5], t1, { count: 110, speed: 3, colors: [PALETTE.sun, PALETTE.mint, "#ffffff"] });
+const x = k.add(k.label("CHECK YOUR UNITS", { color: PALETTE.sun, size: 0.5 }), [0, 4.6, 1]); k.show(x, t1 + 0.4);
+const eq = k.add(k.label("1 lbf = 4.45 N", { color: PALETTE.cream, size: 0.45 }), [0, -1.6, 1]); k.show(eq, t1 + 0.8);
+k.camera([[0, { pos: [0, 1.5, 14], look: [0, 1.5, 0] }], [D, { pos: [0, 1.8, 11], look: [0, 1.5, 0] }]]);
+k.badge("1999", 0.15, "Mars Climate Orbiter");
+k.done();
+</script></body></html>

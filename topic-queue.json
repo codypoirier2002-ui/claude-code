@@ -116,10 +116,10 @@
     "status": "made"
   },
   {
-    "topic": "What is El Niño",
+    "topic": "What is El Ni\u00f1o",
     "hook": "The Pacific is heating up. Your weather will feel it.",
-    "claim": "El Niño is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
-    "why_now": "NASA says a possibly record El Niño is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
+    "claim": "El Ni\u00f1o is a periodic warming of the central and eastern tropical Pacific surface, tied to weaker trade winds, that shifts weather patterns worldwide.",
+    "why_now": "NASA says a possibly record El Ni\u00f1o is unfolding (NOAA odds cited ~75-83% for strongest since 1950); NASA satellite articles late Oct 2026",
     "evidence": [
       "https://science.nasa.gov/earth/nasa-satellites-observe-historic-2026-el-nino/",
       "https://www.earthdata.nasa.gov/learn/data-in-action/tracking-2026-el-nino-from-open-ocean-coast"
@@ -691,5 +691,18 @@
     "score": 21,
     "added": "2026-11-02",
     "status": "made"
+  },
+  {
+    "topic": "Mars Climate Orbiter: the unit mix-up that lost a spacecraft (1999)",
+    "format": "history",
+    "hook": "One wrong unit lost a spaceship.",
+    "claim": "MCO was lost Sept. 23, 1999 because thruster data was in pound-force seconds instead of newton-seconds.",
+    "score": 21,
+    "added": "2026-11-03",
+    "sources_to_cite": [
+      "https://llis.nasa.gov/llis_lib/pdf/1009464main1_0641-mr.pdf",
+      "https://science.nasa.gov/mission/mars-climate-orbiter/"
+    ],
+    "status": "coded"
   }
 ]

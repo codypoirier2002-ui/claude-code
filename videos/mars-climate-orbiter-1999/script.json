@@ -1,0 +1,25 @@
+{
+  "topic": "Mars Climate Orbiter: the unit mix-up that lost a spacecraft (1999)",
+  "claim": "NASA's Mars Climate Orbiter was lost on Sept. 23, 1999 because thruster data was delivered in pound-force seconds instead of the specified newton-seconds, so its path took it far lower over Mars than planned.",
+  "accent": "#ffd166",
+  "music": "assets/music.mp3",
+  "musicVolume": 0.1,
+  "punch": 0.1,
+  "transition": {"type": "fade", "seconds": 0.25},
+  "beats": [
+    {"id": "hook", "seconds": 3, "caption": "ONE WRONG UNIT", "vo": "One wrong unit lost a spaceship.", "motion": {"scene": "shots/hook.html"}},
+    {"id": "launch", "seconds": 6, "caption": "DECEMBER 11, 1998", "vo": "NASA launched Mars Climate Orbiter on December eleventh, nineteen ninety-eight. Nine months to Mars.", "motion": {"scene": "shots/launch.html"}},
+    {"id": "mixup", "seconds": 9, "caption": "POUNDS VS NEWTONS", "vo": "Ground software gave thruster data in pound-seconds. The navigation software expected newton-seconds. One pound-force is four point four five newtons.", "motion": {"scene": "shots/mixup.html"}},
+    {"id": "approach", "seconds": 8, "caption": "TOO LOW", "vo": "The plan was two hundred twenty-six kilometers above Mars. The real path dipped to fifty-seven. The lowest survivable was eighty.", "motion": {"scene": "shots/approach.html"}},
+    {"id": "loss", "seconds": 6, "caption": "SEPTEMBER 23, 1999", "vo": "On September twenty-third, nineteen ninety-nine, the signal vanished, forty-nine seconds early.", "motion": {"scene": "shots/loss.html"}},
+    {"id": "payoff", "seconds": 5, "caption": "CHECK YOUR UNITS", "vo": "A spaceship, lost to a unit mix-up. Always check your units.", "motion": {"scene": "shots/payoff.html"}}
+  ],
+  "sources": [
+    {"text": "NASA Mars Climate Orbiter Mishap Investigation Board, Phase I Report, Nov. 10, 1999 (launch Dec. 11, 1998; carrier signal last seen 09:04:52 UTC Sept. 23, 1999, 49 s earlier than predicted; Small Forces file in lb-sec instead of N-sec, factor 4.45; planned first periapsis 226 km, minimum survivable 80 km, after-the-fact estimate 57 km): https://llis.nasa.gov/llis_lib/pdf/1009464main1_0641-mr.pdf"},
+    {"text": "NASA Science, Mars Climate Orbiter (English vs metric units error; spacecraft burned up in Mars' atmosphere): https://science.nasa.gov/mission/mars-climate-orbiter/"}
+  ],
+  "credits": [
+    "Artist's reenactment: stylized 3D animation, not archival footage.",
+    "\"Floating Cities\" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/"
+  ]
+}
