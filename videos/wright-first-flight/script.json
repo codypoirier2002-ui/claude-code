@@ -1,0 +1,79 @@
+{
+ "topic": "The Wright brothers' 12-second first flight (1903)",
+ "claim": "On Dec. 17, 1903 at Kitty Hawk, Orville Wright made the first powered flight: 12 seconds, 120 feet; Wilbur's fourth flight that day lasted 59 seconds and covered 852 feet.",
+ "accent": "#ffd166",
+ "music": "assets/music.mp3",
+ "musicVolume": 0.1,
+ "transition": {
+  "type": "fade",
+  "seconds": 0.25
+ },
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 3.2,
+   "caption": "1903: LIFTOFF",
+   "vo": "Twelve seconds changed the world.",
+   "audio": "assets/vo/hook.mp3",
+   "motion": {
+    "scene": "shots/hook.html"
+   }
+  },
+  {
+   "id": "setup",
+   "seconds": 8,
+   "caption": "DEC. 17, 1903",
+   "vo": "December 17th, 1903, Kitty Hawk, North Carolina. Orville and Wilbur Wright ready their Flyer.",
+   "audio": "assets/vo/setup.mp3",
+   "motion": {
+    "scene": "shots/setup.html"
+   }
+  },
+  {
+   "id": "first",
+   "seconds": 7,
+   "caption": "10:35 A.M.",
+   "vo": "At 10:35 a.m., Orville lifts off. Twelve seconds. One hundred twenty feet.",
+   "audio": "assets/vo/first.mp3",
+   "motion": {
+    "scene": "shots/first.html"
+   }
+  },
+  {
+   "id": "more",
+   "seconds": 4.5,
+   "caption": "FOUR FLIGHTS",
+   "vo": "Three more flights follow that day, the brothers taking turns.",
+   "audio": "assets/vo/more.mp3",
+   "motion": {
+    "scene": "shots/more.html"
+   }
+  },
+  {
+   "id": "last",
+   "seconds": 9.5,
+   "caption": "59 SECONDS",
+   "vo": "The last one, flown by Wilbur, lasts fifty-nine seconds and covers eight hundred fifty-two feet. The aerial age has begun.",
+   "audio": "assets/vo/last.mp3",
+   "motion": {
+    "scene": "shots/last.html"
+   }
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA, 120 Years Ago: The First Powered Flight at Kitty Hawk: https://www.nasa.gov/history/120-years-ago-the-first-powered-flight-at-kitty-hawk/"
+  },
+  {
+   "text": "Smithsonian NASM, 1903 Wright Flyer: https://airandspace.si.edu/collection-objects/1903-wright-flyer/nasm_A19610048000"
+  },
+  {
+   "text": "Library of Congress, Today in History Dec. 17: https://www.loc.gov/item/today-in-history/december-17/"
+  }
+ ],
+ "credits": [
+  "Artist's reenactment, stylized 3D; not to scale",
+  "Narration: ElevenLabs (Liam)",
+  "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), CC BY 4.0"
+ ]
+}

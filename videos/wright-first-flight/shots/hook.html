@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+const k = await story({ sky: ['#ff8a5c', '#3a1d6e'], bloom: 0.2, bloomThreshold: 0.97, light: 1.6, vignette: 0.35, fov: 50 });
+k.add(k.ground({ color: '#a8683a', size: 80 }), [0, -1, 0]);
+for (let i = 0; i < 5; i++) k.add(k.cloud({ scale: 1.6 }), [-14 + i * 7, 6 + (i % 2) * 2, -14]);
+// Stylized 1903 Flyer: two stacked wings, front elevator, rear rudder, skids, spinning propeller. Faces +x.
+function flyer(color = '#fff1d6') {
+  const g = new THREE.Group();
+  for (const y of [0.28, -0.28]) { const w = k.box({ size: [0.9, 0.04, 3.6], color, radius: 0.02 }); w.position.y = y; g.add(w); }
+  for (const z of [-1.5, 0, 1.5]) for (const x of [-0.35, 0.35]) { const s = k.box({ size: [0.04, 0.56, 0.04], color: '#7a5230', radius: 0.01 }); s.position.set(x, 0, z); g.add(s); }
+  const el = k.box({ size: [0.45, 0.03, 1.6], color }); el.position.set(1.4, 0.05, 0); g.add(el);
+  const ru = k.box({ size: [0.4, 0.03, 1.2], color }); ru.position.set(-1.6, 0, 0); g.add(ru);
+  const sk = k.box({ size: [2.6, 0.04, 0.05], color: '#7a5230', radius: 0.01 }); sk.position.set(0.3, -0.55, 0.5); g.add(sk);
+  const sk2 = sk.clone(); sk2.position.z = -0.5; g.add(sk2);
+  const eng = k.box({ size: [0.35, 0.25, 0.4], color: PALETTE.ink }); eng.position.set(-0.2, -0.1, 0.45); g.add(eng);
+  const prop = k.box({ size: [0.04, 0.12, 1.1], color: PALETTE.orange, radius: 0.01 }); prop.position.set(-0.55, 0, 0.45); g.add(prop);
+  g.userData.prop = prop; return g;
+}
+const spin = (f, t0 = 0) => k.every((t) => { f.userData.prop.rotation.x = t * 60; });
+
+const f = k.add(flyer(), [-5, -0.4, 0]); spin(f);
+k.keys(f.position, [[0, [-5, -0.4, 0]], [0.9, [-2.5, -0.4, 0]], [1.4, [-0.5, 0.1, 0]], [D, [6, 1.6, 0]]]);
+k.keys(f.rotation, [[0, [0, 0, 0]], [1.2, [0, 0, 0]], [2, [0, 0, 0.18]], [D, [0, 0, 0.12]]]);
+const l = k.add(k.label('12 SECONDS', { color: PALETTE.sun, size: 0.7 }), [-0.5, 2.6, 0]); k.show(l, 1.0);
+k.keys(l.position, [[0, [-4, 2.6, 0]], [1.4, [-0.5, 2.6, 0]], [D, [4, 2.9, 0]]]);
+k.flash(1.3); k.burst([-0.5, -0.9, 0], 1.3, { count: 80, speed: 2, colors: ['#f2d08a', '#ffffff'] });
+k.camera([[0, { pos: [-4, 0.4, 9], look: [-4, 0.3, 0] }], [1.4, { pos: [-0.5, 0.6, 9], look: [-0.5, 0.3, 0] }], [D, { pos: [4, 1.2, 8.5], look: [4, 1.0, 0] }]]);
+k.badge('1903', 0.15, 'Kitty Hawk');
+k.done();
+</script></body></html>

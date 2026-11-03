@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+const k = await story({ sky: ['#1f8fd6', '#9fd8f5'], bloom: 0.2, bloomThreshold: 0.97, light: 1.6, vignette: 0.35, fov: 50 });
+k.add(k.ground({ color: '#a8683a', size: 80 }), [0, -1, 0]);
+for (let i = 0; i < 5; i++) k.add(k.cloud({ scale: 1.6 }), [-14 + i * 7, 6 + (i % 2) * 2, -14]);
+// Stylized 1903 Flyer: two stacked wings, front elevator, rear rudder, skids, spinning propeller. Faces +x.
+function flyer(color = '#fff1d6') {
+  const g = new THREE.Group();
+  for (const y of [0.28, -0.28]) { const w = k.box({ size: [0.9, 0.04, 3.6], color, radius: 0.02 }); w.position.y = y; g.add(w); }
+  for (const z of [-1.5, 0, 1.5]) for (const x of [-0.35, 0.35]) { const s = k.box({ size: [0.04, 0.56, 0.04], color: '#7a5230', radius: 0.01 }); s.position.set(x, 0, z); g.add(s); }
+  const el = k.box({ size: [0.45, 0.03, 1.6], color }); el.position.set(1.4, 0.05, 0); g.add(el);
+  const ru = k.box({ size: [0.4, 0.03, 1.2], color }); ru.position.set(-1.6, 0, 0); g.add(ru);
+  const sk = k.box({ size: [2.6, 0.04, 0.05], color: '#7a5230', radius: 0.01 }); sk.position.set(0.3, -0.55, 0.5); g.add(sk);
+  const sk2 = sk.clone(); sk2.position.z = -0.5; g.add(sk2);
+  const eng = k.box({ size: [0.35, 0.25, 0.4], color: PALETTE.ink }); eng.position.set(-0.2, -0.1, 0.45); g.add(eng);
+  const prop = k.box({ size: [0.04, 0.12, 1.1], color: PALETTE.orange, radius: 0.01 }); prop.position.set(-0.55, 0, 0.45); g.add(prop);
+  g.userData.prop = prop; return g;
+}
+const spin = (f, t0 = 0) => k.every((t) => { f.userData.prop.rotation.x = t * 60; });
+
+// To-scale strips: 120 ft vs 852 ft (ratio 7.1).
+const unit = 0.02; // world units per foot
+const strip = (len, z, color) => { const s = k.box({ size: [len * unit, 0.03, 0.35], color, radius: 0.01 }); s.position.set(-5 + len * unit / 2, -0.95, z); return s; };
+k.add(strip(120, 1.6, PALETTE.sun)); k.add(strip(852, 0, PALETTE.mint));
+const f = k.add(flyer(), [-5, -0.3, 0]); spin(f);
+const Tf = D - 2.6;
+k.keys(f.position, [[0.4, [-5, -0.3, 0]], [1.0, [-4.5, 0.2, 0]], [2.5, [-2, 0.9, 0]], [4.0, [1, 0.4, 0]], [5.5, [5, 1.1, 0]], [Tf + 1.4, [-5 + 852 * unit, 0.1, 0]]]);
+k.keys(f.rotation, [[0.4, [0, 0, 0]], [1.0, [0, 0, 0.15]], [2.5, [0, 0, -0.05]], [4.0, [0, 0, 0.1]], [Tf + 1.4, [0, 0, -0.05]]]);
+const l1 = k.add(k.label('12 SEC · 120 FT', { color: PALETTE.sun, size: 0.6 }), [-3.8, 1.0, 1.6]); k.show(l1, 0.5);
+const l2 = k.add(k.label('59 SEC · 852 FT', { color: PALETTE.mint, size: 1.3 }), [-5 + 852 * unit / 2 - 1.5, 4.4, 0]); k.show(l2, Tf + 0.4);
+const fin = D - 1.6;
+k.flash(fin); k.burst([-5 + 852 * unit * 0.5, 1, 0], fin, { count: 200, speed: 4, gravity: -3, colors: [PALETTE.sun, PALETTE.coral, PALETTE.mint, PALETTE.sky, PALETTE.pink] });
+k.shake(fin, fin + 0.5, 0.1);
+const cx = -5 + 852 * unit / 2;
+k.camera([[0, { pos: [-4, 1.0, 11], look: [-4, 0.3, 0] }], [3.0, { pos: [-1, 1.5, 12], look: [-1, 0.5, 0] }], [Tf, { pos: [cx - 1, 3, 18], look: [cx - 1, 0.8, 0] }], [D, { pos: [cx, 4.5, 26], look: [cx, 1.2, 0] }]]);
+k.badge('1903', 0.15, 'The aerial age begins');
+k.done();
+</script></body></html>
