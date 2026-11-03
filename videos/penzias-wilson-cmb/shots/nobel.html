@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Artist's reenactment: stylized, not to scale. Built with the story kit.
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+const dbl = (m) => { m.material.side = THREE.DoubleSide; return m; };
+function horn(k) {
+  const g = new THREE.Group();
+  const cone = dbl(new THREE.Mesh(new THREE.CylinderGeometry(1.7, 0.3, 3.4, 4, 1, true), k.toon('#8fa8d4')));
+  cone.rotation.y = Math.PI / 4; cone.position.y = 1.7; g.add(cone);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.7 * Math.SQRT1_2 * 1.0, 0.06, 8, 4), k.toon(PALETTE.coral));
+  rim.rotation.x = Math.PI / 2; rim.position.y = 3.4; g.add(rim);
+  const cab = k.box({ size: [1.0, 0.9, 1.0], color: PALETTE.sun }); cab.position.y = -0.2; g.add(cab);
+  return g;
+}
+function pigeon(k, s = 1) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12), k.toon('#9aa5c4')); body.scale.set(1, 0.85, 1.35); g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), k.toon('#7d89ad')); head.position.set(0, 0.32, 0.5); g.add(head);
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.2, 8), k.toon(PALETTE.orange)); beak.rotation.x = Math.PI / 2; beak.position.set(0, 0.3, 0.74); g.add(beak);
+  for (const x of [-0.08, 0.08]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), k.toon(PALETTE.ink)); e.position.set(x, 0.38, 0.66); g.add(e); }
+  const wl = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), k.toon('#7d89ad')); wl.scale.set(1, 0.12, 0.6); wl.position.set(-0.42, 0.1, 0); g.add(wl);
+  const wr = wl.clone(); wr.position.x = 0.42; g.add(wr);
+  g.userData = { wl, wr };
+  g.scale.setScalar(s);
+  return g;
+}
+function flap(k, p, t0 = 0, t1 = Infinity, sp = 22) { k.every((t) => { const on = t >= t0 && t <= t1 ? 1 : 0.15; p.userData.wl.rotation.z = Math.sin(t * sp) * 0.9 * on; p.userData.wr.rotation.z = -Math.sin(t * sp) * 0.9 * on; }); }
+function dot(k, color, r = 0.07) { return new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(color) })); }
+const k = await story({ sky: ['#ffd166', '#6b2fb3'], bloom: 0.45 });
+k.add(k.stars(300));
+k.add(k.ground({ color: '#6be09a', size: 40 }), [0, -1.2, 0]);
+const medal = new THREE.Group();
+const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.2, 48), k.toon(PALETTE.sun, { emissive: new THREE.Color('#ffb300'), emissiveIntensity: 0.1 }));
+disc.rotation.x = Math.PI / 2; medal.add(disc);
+const star = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.06, 8, 48), k.toon('#fff4e0')); medal.add(star);
+k.add(medal, [0, 3.4, 0]);
+k.every((t) => { medal.rotation.y = Math.sin(t * 1.4) * 0.6; });
+k.show(medal, 0.2);
+const a = k.add(k.figure({ color: PALETTE.violet, coat: true, scale: 1.2 }), [-2.0, -1.2, 1.5]); k.wave(a, 1.0, D, 9);
+const b = k.add(k.figure({ color: PALETTE.sky, coat: true, scale: 1.2 }), [2.0, -1.2, 1.5]); k.wave(b, 1.0, D, 9.5);
+const pgn = k.add(pigeon(k, 0.9), [0, 4.9, 0.2]); flap(k, pgn, 4.0, D, 20);
+k.show(pgn, 4.0);
+k.keys(pgn.position, [[4.0, [0, 5.3, 0.2]], [D, [0, 5.2, 0.2]]]);
+const l1 = k.add(k.label('NOBEL PRIZE IN PHYSICS', { color: PALETTE.sun, size: 0.53 }), [0, 6.9, 0]); k.show(l1, 0.6, D);
+const l2 = k.add(k.label('SIGNAL FROM THE EARLY UNIVERSE', { color: '#ffffff', size: 0.48 }), [0, 6.1, 0]); k.show(l2, 3.0, D);
+k.burst([0, 3.4, 0.5], 0.9, { count: 200, speed: 5, life: 2.2 });
+k.burst([0, 3.4, 0.5], 3.5, { count: 120, speed: 4, life: 2 });
+k.flash(0.9, 0.3);
+k.camera([[0, { pos: [0, 4, 19.4], look: [0, 3.4, 0] }], [D, { pos: [0, 4.5, 15.8], look: [0, 3.6, 0] }]]);
+k.badge('1978', 0.15, 'Nobel Prize in Physics');
+k.done();
+</script></body></html>

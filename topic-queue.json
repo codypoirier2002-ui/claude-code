@@ -724,5 +724,18 @@
    "https://airandspace.si.edu/collection-objects/1903-wright-flyer/nasm_A19610048000",
    "https://www.loc.gov/item/today-in-history/december-17/"
   ]
+ },
+ {
+  "topic": "Pigeons, a hiss, and the Big Bang's echo (1960s)",
+  "hook": "They blamed pigeons. It was the Big Bang's echo.",
+  "claim": "Penzias and Wilson's antenna hiss was the cosmic microwave background (~3 K); Nobel 1978.",
+  "format": "history",
+  "sources_to_cite": [
+   "https://www.nobelprize.org/prizes/physics/1978/speedread/",
+   "https://www.aps.org/apsnews/2002/07/discovery-cosmic-microwave-background"
+  ],
+  "score": 22,
+  "added": "2026-11-03",
+  "status": "made"
  }
 ]

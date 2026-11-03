@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Artist's reenactment: stylized, not to scale. Built with the story kit.
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+const dbl = (m) => { m.material.side = THREE.DoubleSide; return m; };
+function horn(k) {
+  const g = new THREE.Group();
+  const cone = dbl(new THREE.Mesh(new THREE.CylinderGeometry(1.7, 0.3, 3.4, 4, 1, true), k.toon('#8fa8d4')));
+  cone.rotation.y = Math.PI / 4; cone.position.y = 1.7; g.add(cone);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.7 * Math.SQRT1_2 * 1.0, 0.06, 8, 4), k.toon(PALETTE.coral));
+  rim.rotation.x = Math.PI / 2; rim.position.y = 3.4; g.add(rim);
+  const cab = k.box({ size: [1.0, 0.9, 1.0], color: PALETTE.sun }); cab.position.y = -0.2; g.add(cab);
+  return g;
+}
+function pigeon(k, s = 1) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12), k.toon('#9aa5c4')); body.scale.set(1, 0.85, 1.35); g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), k.toon('#7d89ad')); head.position.set(0, 0.32, 0.5); g.add(head);
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.2, 8), k.toon(PALETTE.orange)); beak.rotation.x = Math.PI / 2; beak.position.set(0, 0.3, 0.74); g.add(beak);
+  for (const x of [-0.08, 0.08]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), k.toon(PALETTE.ink)); e.position.set(x, 0.38, 0.66); g.add(e); }
+  const wl = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), k.toon('#7d89ad')); wl.scale.set(1, 0.12, 0.6); wl.position.set(-0.42, 0.1, 0); g.add(wl);
+  const wr = wl.clone(); wr.position.x = 0.42; g.add(wr);
+  g.userData = { wl, wr };
+  g.scale.setScalar(s);
+  return g;
+}
+function flap(k, p, t0 = 0, t1 = Infinity, sp = 22) { k.every((t) => { const on = t >= t0 && t <= t1 ? 1 : 0.15; p.userData.wl.rotation.z = Math.sin(t * sp) * 0.9 * on; p.userData.wr.rotation.z = -Math.sin(t * sp) * 0.9 * on; }); }
+function dot(k, color, r = 0.07) { return new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(color) })); }
+const k = await story({ sky: ['#ff9f6b', '#2b1055'], bloom: 0.45 });
+k.add(k.stars(500));
+k.add(k.ground({ color: '#4fbf7a', size: 40 }), [0, -1.2, 0]);
+const h = k.add(horn(k), [0, -1.1, 0]); h.rotation.z = -0.35;
+const p = k.add(pigeon(k, 1.1), [0.2, 2.5, 0.4]); p.rotation.y = 0.4;
+flap(k, p, 0, 0.6);
+k.keys(p.position, [[0, [-3.5, 5, 1]], [0.7, [0.1, 2.9, 0.4]], [D, [0.1, 2.9, 0.4]]]);
+const hit = 1.9;
+const big = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshBasicMaterial({ color: new THREE.Color('#fff2c4'), transparent: true, opacity: 0.0 }));
+k.add(big, [0, 7, -6]);
+k.every((t) => { const u = Math.max(0, t - hit); big.scale.setScalar(0.1 + u * 5); big.material.opacity = t < hit ? 0 : Math.max(0, 0.9 - u * 0.35); });
+k.flash(hit); k.burst([0, 6, -2], hit, { count: 160, speed: 5, gravity: 0 }); k.shake(hit, hit + 0.5, 0.1);
+const lb = k.add(k.label('THE HISS?', { color: PALETTE.sun, size: 0.70 }), [0, 5.3, 0]); k.show(lb, 0.3, hit);
+const lb2 = k.add(k.label('BIG BANG!', { color: PALETTE.pink, size: 0.84 }), [0, 5.0, 0]); k.show(lb2, hit + 0.1);
+k.camera([[0, { pos: [0, 3.5, 19.4], look: [0, 2.6, 0] }], [D, { pos: [0.4, 3.8, 15.1], look: [0, 2.8, 0] }]]);
+k.badge('1960s', 0.15, 'Bell Labs, New Jersey');
+k.done();
+</script></body></html>

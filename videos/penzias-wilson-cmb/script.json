@@ -1,0 +1,76 @@
+{
+  "topic": "Pigeons, a hiss, and the Big Bang's echo (1960s)",
+  "claim": "Bell Labs' Penzias and Wilson tried to remove a background hiss from their Holmdel horn antenna, even trapping nesting pigeons and cleaning out droppings; it proved to be the cosmic microwave background (about 3 K), the Big Bang's afterglow, and won them the 1978 Nobel Prize in Physics.",
+  "accent": "#ffd166",
+  "music": "assets/music.mp3",
+  "musicVolume": 0.1,
+  "transition": {
+    "type": "fade",
+    "seconds": 0.25
+  },
+  "beats": [
+    {
+      "id": "hook",
+      "seconds": 3.4,
+      "caption": "",
+      "vo": "They blamed pigeons. It was the Big Bang's echo.",
+      "audio": "assets/vo/hook.mp3",
+      "motion": {
+        "scene": "shots/hook.html"
+      }
+    },
+    {
+      "id": "antenna",
+      "seconds": 7,
+      "caption": "",
+      "vo": "In the 1960s, Arno Penzias and Robert Wilson aimed a giant horn antenna at space, in New Jersey.",
+      "audio": "assets/vo/antenna.mp3",
+      "motion": {
+        "scene": "shots/antenna.html"
+      }
+    },
+    {
+      "id": "pigeons",
+      "seconds": 9,
+      "caption": "",
+      "vo": "But a faint hiss came from every direction. Pigeons were nesting inside, so they trapped the birds and scrubbed out the droppings. The hiss stayed.",
+      "audio": "assets/vo/pigeons.mp3",
+      "motion": {
+        "scene": "shots/pigeons.html"
+      }
+    },
+    {
+      "id": "dicke",
+      "seconds": 11,
+      "caption": "",
+      "vo": "After a year, the noise was still there: microwaves at about three degrees above absolute zero. Princeton's Robert Dicke explained it: the afterglow of the Big Bang.",
+      "audio": "assets/vo/dicke.mp3",
+      "motion": {
+        "scene": "shots/dicke.html"
+      }
+    },
+    {
+      "id": "nobel",
+      "seconds": 7,
+      "caption": "",
+      "vo": "Penzias and Wilson won the 1978 Nobel Prize in Physics. The static was a signal from the early universe.",
+      "audio": "assets/vo/nobel.mp3",
+      "motion": {
+        "scene": "shots/nobel.html"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "text": "Nobel Prize in Physics 1978, Speed read: https://www.nobelprize.org/prizes/physics/1978/speedread/"
+    },
+    {
+      "text": "APS News, Discovery of the Cosmic Microwave Background: https://www.aps.org/apsnews/2002/07/discovery-cosmic-microwave-background"
+    }
+  ],
+  "credits": [
+    "Artist's reenactment, stylized 3D; not to scale",
+    "Narration: ElevenLabs (Liam)",
+    "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), CC BY 4.0"
+  ]
+}

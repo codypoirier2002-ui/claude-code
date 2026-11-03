@@ -1,0 +1,60 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Artist's reenactment: stylized, not to scale. Built with the story kit.
+import { P } from '/scenes/common.js';
+import { story, PALETTE, THREE } from '/scenes/story-kit.js';
+const D = P.duration || 6;
+const dbl = (m) => { m.material.side = THREE.DoubleSide; return m; };
+function horn(k) {
+  const g = new THREE.Group();
+  const cone = dbl(new THREE.Mesh(new THREE.CylinderGeometry(1.7, 0.3, 3.4, 4, 1, true), k.toon('#8fa8d4')));
+  cone.rotation.y = Math.PI / 4; cone.position.y = 1.7; g.add(cone);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.7 * Math.SQRT1_2 * 1.0, 0.06, 8, 4), k.toon(PALETTE.coral));
+  rim.rotation.x = Math.PI / 2; rim.position.y = 3.4; g.add(rim);
+  const cab = k.box({ size: [1.0, 0.9, 1.0], color: PALETTE.sun }); cab.position.y = -0.2; g.add(cab);
+  return g;
+}
+function pigeon(k, s = 1) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12), k.toon('#9aa5c4')); body.scale.set(1, 0.85, 1.35); g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), k.toon('#7d89ad')); head.position.set(0, 0.32, 0.5); g.add(head);
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.2, 8), k.toon(PALETTE.orange)); beak.rotation.x = Math.PI / 2; beak.position.set(0, 0.3, 0.74); g.add(beak);
+  for (const x of [-0.08, 0.08]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), k.toon(PALETTE.ink)); e.position.set(x, 0.38, 0.66); g.add(e); }
+  const wl = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), k.toon('#7d89ad')); wl.scale.set(1, 0.12, 0.6); wl.position.set(-0.42, 0.1, 0); g.add(wl);
+  const wr = wl.clone(); wr.position.x = 0.42; g.add(wr);
+  g.userData = { wl, wr };
+  g.scale.setScalar(s);
+  return g;
+}
+function flap(k, p, t0 = 0, t1 = Infinity, sp = 22) { k.every((t) => { const on = t >= t0 && t <= t1 ? 1 : 0.15; p.userData.wl.rotation.z = Math.sin(t * sp) * 0.9 * on; p.userData.wr.rotation.z = -Math.sin(t * sp) * 0.9 * on; }); }
+function dot(k, color, r = 0.07) { return new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(color) })); }
+const k = await story({ sky: ['#3a2a7a', '#08051a'], bloom: 0.45 });
+k.add(k.stars(500));
+k.add(k.ground({ color: '#3f9d70', size: 40 }), [0, -1.2, 0]);
+const h = k.add(horn(k), [0, -1.1, 0]); h.scale.setScalar(1.25); h.rotation.z = -0.3;
+const C = [0, 3.4, 0];
+// hiss: glowing dots arrive from every direction
+const R = k.rng;
+for (let i = 0; i < 70; i++) {
+  const u = R() * 2 - 1, th = R() * Math.PI * 2, q = Math.sqrt(1 - u * u), r0 = 9 + R() * 3, d0 = R() * 1.6;
+  const m = k.add(dot(k, i % 2 ? PALETTE.sky : PALETTE.pink, 0.09));
+  const dir = [q * Math.cos(th), Math.abs(u) * 0.8 + 0.2, q * Math.sin(th)];
+  k.every((t) => { const x = ((t - d0) * 0.55) % 1; const f = x < 0 ? 1 : 1 - x; m.visible = t > d0; m.position.set(C[0] + dir[0] * r0 * f, C[1] + dir[1] * r0 * f, C[2] + dir[2] * r0 * f); });
+}
+const l1 = k.add(k.label('HISS FROM EVERYWHERE', { color: PALETTE.sky, size: 0.56 }), [0, 6.9, 0]); k.show(l1, 0.4, 4.4);
+// pigeons nest in the horn, then get shooed out
+const pg = [];
+for (let i = 0; i < 3; i++) { const p = k.add(pigeon(k, 0.9), [0, 0, 0]); p.rotation.y = i * 0.9; flap(k, p, 5.0, D, 24); pg.push(p); }
+const mouth = [[-0.3, 4.1, 0.2], [0.5, 4.0, -0.2], [0.1, 3.7, 0.5]];
+const away = [[-9, 11, 4], [10, 12, -3], [3, 13, 8]];
+pg.forEach((p, i) => k.keys(p.position, [[0, mouth[i]], [4.9, mouth[i]], [D, away[i]]]));
+// droppings
+for (let i = 0; i < 10; i++) { const d = k.add(dot(k, '#ffffff', 0.12), [Math.cos(i) * 0.5 + 0.3, 3.4 + (i % 3) * 0.2, Math.sin(i * 2) * 0.4]); k.show(d, 2.6 + i * 0.05, 6.6); }
+const l2 = k.add(k.label('PIGEONS NESTING', { color: PALETTE.orange, size: 0.59 }), [0, 6.0, 0]); k.show(l2, 2.4, 5.0);
+const l3 = k.add(k.label('CLEANED OUT. STILL THERE.', { color: PALETTE.sun, size: 0.53 }), [0, 6.2, 0]); k.show(l3, 6.0, D);
+k.shake(5.0, 5.4, 0.08);
+k.camera([[0, { pos: [0, 5, 20.9], look: [0, 3.2, 0] }], [D, { pos: [1.4, 5, 17.3], look: [0, 3.4, 0] }]]);
+k.badge('1960s', 0.15, 'Holmdel, New Jersey');
+k.done();
+</script></body></html>
