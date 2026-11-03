@@ -67,8 +67,8 @@ def earth_material(name, ocean, land, lights_strength):
         fine = nt.nodes.new("ShaderNodeTexNoise")
         fine.inputs["Scale"].default_value = 45.0
         specks = nt.nodes.new("ShaderNodeValToRGB")
-        specks.color_ramp.elements[0].position = 0.62
-        specks.color_ramp.elements[1].position = 0.70
+        specks.color_ramp.elements[0].position = 0.70
+        specks.color_ramp.elements[1].position = 0.74
         mask = nt.nodes.new("ShaderNodeMath")
         mask.operation = "GREATER_THAN"
         mask.inputs[1].default_value = 0.53
@@ -122,8 +122,8 @@ def satellite(name, coll, parent=None, scale=1.0):
     return root, beacon
 
 
-def officer(name, coll, base, mat):
-    """Seated silhouette in a peaked cap, facing +Y."""
+def officer(name, coll, base, mat, arms=True):
+    """Seated silhouette in a peaked cap, facing +Y. arms=False for close-ups with no desk."""
     x, y, z = base
     parts = [
         ("cyl", "torso", (x, y, z + 1.05), (1.0, 0.72, 1.0), dict(radius=0.27, depth=0.72)),
@@ -131,12 +131,16 @@ def officer(name, coll, base, mat):
         ("cyl", "neck", (x, y, z + 1.52), (1, 1, 1), dict(radius=0.07, depth=0.14)),
         ("sphere", "head", (x, y + 0.01, z + 1.66), (0.92, 1.0, 1.08), dict(radius=0.135)),
         ("cyl", "cap", (x, y, z + 1.80), (1, 1, 1), dict(radius=0.15, depth=0.08)),
-        ("cyl", "cap_top", (x, y - 0.01, z + 1.85), (1.05, 1.15, 1), dict(radius=0.16, depth=0.03)),
+        ("cyl", "cap_top", (x, y + 0.01, z + 1.85), (1.05, 1.05, 1), dict(radius=0.16, depth=0.03)),
         ("cyl", "brim", (x, y + 0.11, z + 1.765), (0.8, 1.0, 1), dict(radius=0.12, depth=0.015)),
+        ("cone", "nose", (x, y + 0.14, z + 1.65), (0.7, 1, 1), dict(radius1=0.035, depth=0.07)),
+        ("sphere", "chin", (x, y + 0.08, z + 1.57), (1.0, 0.8, 0.6), dict(radius=0.07)),
     ]
     for kind, part, loc, scl, kw in parts:
-        lib.add(kind, f"{name}_{part}", loc, scale=scl, mat=mat, smooth=True, coll=coll, **kw)
-    for side in (-1, 1):  # forearms reaching to the console
+        rot = (R(-90), 0, 0) if part == "nose" else (0, 0, 0)     # cone tip toward +Y
+        lib.add(kind, f"{name}_{part}", loc, rot=rot, scale=scl, mat=mat, smooth=True, coll=coll,
+                **kw)
+    for side in ((-1, 1) if arms else ()):  # forearms reaching to the console
         a = (x + side * 0.30, y + 0.05, z + 1.25)
         b = (x + side * 0.22, y + 0.62, z + 0.98)
         piv = lib.beam(f"{name}_arm{side}", a, b, mat, radius=0.06, coll=coll)
@@ -168,7 +172,7 @@ def build_orbit(ctx):
     total = ctx.total
 
     earth = lib.add("sphere", "earth", (X, 0, 0), mat=earth_material(
-        "earth", (0.004, 0.012, 0.035), (0.02, 0.03, 0.035), lights_strength=4.0),
+        "earth", (0.004, 0.012, 0.035), (0.012, 0.016, 0.02), lights_strength=6.0),
         smooth=True, coll=coll, segments=128, ring_count=64, radius=EARTH_R)
     lib.add("sphere", "atmosphere", (X, 0, 0), mat=atmosphere_material("atmo", (0.25, 0.5, 1.0), 1.1, blend=0.1),
             smooth=True, coll=coll, segments=96, ring_count=48, radius=EARTH_R * 1.035)
@@ -363,7 +367,7 @@ def build_screen(ctx):
     # Count: "1" from missile_1, "5" from missile_5.
     for n, a, b in (("1", m1, m5 - 1), ("5", m5, s1)):
         cm = lib.glow(f"count_{n}", RED, SCREEN_ALARM)
-        t = lib.text(f"count_{n}", n, (X + 2.3, -0.04, 0.9), size=1.6, mat=cm, coll=coll)
+        t = lib.text(f"count_{n}", n, (X + 1.75, -0.04, 0.9), size=1.6, mat=cm, coll=coll)
         lib.show_during([t], [(a, b)])
 
     # Missile markers rising from the USA edge, five in all, one then four.
@@ -398,7 +402,7 @@ def build_petrov(ctx):
     off_f = ctx.cue("alarm_off")
 
     silhouette = lib.material("silhouette_close", (0.02, 0.02, 0.024), rough=0.6)
-    officer("petrov_close", coll, (X, 0, 0), silhouette)
+    officer("petrov_close", coll, (X, 0, 0), silhouette, arms=False)
     wall = lib.material("far_wall", (0.02, 0.022, 0.025), rough=0.9)
     lib.add("plane", "far_wall", (X + 3.5, 2, 1.5), rot=(R(90), 0, R(90)), scale=(6, 3, 1), mat=wall,
             coll=coll)
@@ -419,10 +423,11 @@ def build_petrov(ctx):
               target=(X, 0, 1.65), coll=coll)
 
     # Three-quarter profile from his left, face toward the (red) screen light.
-    cam, tgt = lib.camera("cam_petrov", (X - 1.5, 0.6, 1.62), (X, 0.05, 1.64), lens=55,
-                          dof_fstop=1.8)
-    lib.key(cam, "location", s0, (X - 1.5, 0.6, 1.62))
-    lib.key(cam, "location", s1, (X - 1.05, 0.45, 1.66))
+    # Head-and-shoulders with headroom; a slow push-in over the decision.
+    cam, tgt = lib.camera("cam_petrov", (X - 2.4, 1.0, 1.72), (X, 0.12, 1.52), lens=50,
+                          dof_fstop=2.0)
+    lib.key(cam, "location", s0, (X - 2.4, 1.0, 1.72))
+    lib.key(cam, "location", s1, (X - 1.9, 0.8, 1.70))
     ctx.bind_camera("petrov", cam)
 
 

@@ -100,7 +100,9 @@ thing**, in this order:
 5. Timing: an event lands visibly before or after its word (adjust the cue or the animation).
 6. Polish.
 
-Re-render just the affected shot (`--shot`), and note the fix with `--note`. Every sheet is
+Re-render just the affected shot (`--shot`), and note the fix with `--note`. On a machine
+without a GPU, EEVEE writes empty frames; add `--engine CYCLES --samples 16` to iterate on
+the CPU (same scene, materials and lights; shadows and bounce light differ a little). Every sheet is
 logged in `stories/<slug>/iterations.md`, which is checked in.
 
 ### 5. Final render
@@ -146,9 +148,11 @@ before cutting resolution. At ~3 MB per PNG, the frames need about 4 GB of disk.
 
 ## Status of the Petrov story
 
-The voice, timeline, captions, mix and QC have run end to end here with Piper and with the
-dummy voice. The Blender scenes ran against a recording stand-in for `bpy`: every keyframe
-falls inside the timeline, and the loop seam is exact. They have **not** been rendered yet,
-so the first `make test` on a machine with Blender is the first real contact sheet. Expect
-the look constants at the top of `scenes.py` (light power, glow, camera framing) to need a
-few rounds of step 4.
+- Voice, timeline, captions, mix and QC run end to end (Piper voice: 1,227 frames, 40.9 s).
+- The scenes build and render in Blender 4.2 LTS. Six contact-sheet rounds are logged in
+  [`iterations.md`](stories/petrov-1983/iterations.md). They fixed two pipeline bugs only
+  real Blender could show (interpolation on Python-inserted keys, and set visibility
+  overriding cue visibility; both now guarded by `tests/blender_check.py`), then the
+  exposure, the close-up, the hook and one cropped label.
+- Those sheets were rendered with Cycles on a CPU. The first EEVEE test pass, on a machine
+  with a GPU, is still to come before `make final`.
