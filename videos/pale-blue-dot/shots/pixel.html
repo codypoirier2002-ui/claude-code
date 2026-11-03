@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 6;
+const k = await story({ sky: ["#1a1245", "#020108"], bloom: 0.9, frameY: 0.34 });
+k.add(k.stars(900));
+const dot = (r=0.5) => { const g = new THREE.Group(); g.add(new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), new THREE.MeshBasicMaterial({ color: new THREE.Color("#8fd0ff") }))); const h = new THREE.Mesh(new THREE.SphereGeometry(r*2.2, 24, 16), new THREE.MeshBasicMaterial({ color: new THREE.Color("#4cc9f0"), transparent: true, opacity: 0.22 })); g.add(h); return g; };
+const probe = () => { const g = new THREE.Group(); g.add(k.box({ size: [0.5,0.5,0.4], color: PALETTE.steel }));
+ const dish = new THREE.Mesh(new THREE.SphereGeometry(0.6, 24, 12, 0, Math.PI*2, 0, Math.PI/2.4), new THREE.MeshStandardMaterial({ color: "#fff4e0", side: THREE.DoubleSide })); dish.rotation.x = Math.PI/2; dish.position.z = 0.35; g.add(dish);
+ const boom = k.box({ size: [1.4,0.06,0.06], color: PALETTE.sun }); boom.position.set(-0.9,0,-0.1); g.add(boom);
+ const rtg = k.box({ size: [0.25,0.25,0.6], color: PALETTE.orange }); rtg.position.set(-1.6,0,-0.1); g.add(rtg); return g; };
+
+
+const px = k.add(k.box({ size:[3,3,0.2], color: "#aab6d0", radius:0.04 }), [0,0.4,0]); k.show(px, 0.2);
+const sl = k.add(new THREE.Mesh(new THREE.BoxGeometry(0.36,2.4,0.08), new THREE.MeshBasicMaterial({ color: new THREE.Color("#4cc9f0").multiplyScalar(1.4) })), [-0.7,0.4,0.18]); k.show(sl, 1.4);
+k.show(k.add(k.label("1 PIXEL", { color: "#ffffff", size: 0.7 }), [0,2.7,0]), 0.5);
+k.show(k.add(k.label("EARTH = 0.12", { color: PALETTE.sky, size: 0.6 }), [0,-2.3,0.3]), 2);
+k.flash(1.4);
+k.camera([[0,{pos:[0,0.5,14],look:[0,0.4,0]}],[D,{pos:[-0.3,0.4,10],look:[-0.5,0.4,0]}]]);
+k.badge("0.12", 0.2, "of a pixel");
+k.done();
+</script></body></html>

@@ -1,0 +1,87 @@
+{
+ "topic": "Pale Blue Dot: Voyager 1's photo of Earth (1990)",
+ "claim": "On Feb. 14, 1990 Voyager 1, about 6 billion km from the Sun, photographed Earth as a crescent only 0.12 pixels wide, in 60 frames of the first family portrait of the solar system; the image inspired Carl Sagan's book Pale Blue Dot.",
+ "accent": "#4cc9f0",
+ "music": "assets/music.mp3",
+ "musicVolume": 0.1,
+ "punch": 0.1,
+ "transition": {
+  "type": "fade",
+  "seconds": 0.25
+ },
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 3,
+   "caption": "THIS DOT IS YOU",
+   "vo": "That tiny dot is all of us.",
+   "motion": {
+    "scene": "shots/hook.html"
+   },
+   "audio": "assets/vo/hook.mp3"
+  },
+  {
+   "id": "distance",
+   "seconds": 7,
+   "caption": "FEBRUARY 14, 1990",
+   "vo": "On February fourteenth, nineteen ninety, Voyager 1 was about six billion kilometers from the Sun.",
+   "motion": {
+    "scene": "shots/distance.html"
+   },
+   "audio": "assets/vo/distance.mp3"
+  },
+  {
+   "id": "frames",
+   "seconds": 6,
+   "caption": "60 FRAMES",
+   "vo": "From there, it took sixty frames, the first family portrait of the solar system.",
+   "motion": {
+    "scene": "shots/frames.html"
+   },
+   "audio": "assets/vo/frames.mp3"
+  },
+  {
+   "id": "pixel",
+   "seconds": 6.5,
+   "caption": "LESS THAN ONE PIXEL",
+   "vo": "Earth fills less than one pixel. Just a crescent, point one two of a pixel wide.",
+   "motion": {
+    "scene": "shots/pixel.html"
+   },
+   "audio": "assets/vo/pixel.mp3"
+  },
+  {
+   "id": "ray",
+   "seconds": 4,
+   "caption": "A BEAM OF LIGHT",
+   "vo": "A beam of scattered sunlight runs right through it.",
+   "motion": {
+    "scene": "shots/ray.html"
+   },
+   "audio": "assets/vo/ray.mp3"
+  },
+  {
+   "id": "payoff",
+   "seconds": 8,
+   "caption": "PALE BLUE DOT",
+   "vo": "Carl Sagan named his book after it. Look again at that dot. That's here. That's home. That's us.",
+   "motion": {
+    "scene": "shots/payoff.html"
+   },
+   "audio": "assets/vo/payoff.mp3"
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA Science, Voyager 1's Pale Blue Dot (Feb. 14, 1990; 3.7 billion miles / 6 billion km from the Sun): https://science.nasa.gov/resource/voyager-1s-pale-blue-dot/"
+  },
+  {
+   "text": "NASA/JPL Photojournal PIA00452 (60 frames; Earth a crescent 0.12 pixels; scattered light ray): https://photojournal.jpl.nasa.gov/catalog/PIA00452"
+  }
+ ],
+ "credits": [
+  "Artist's reenactment, stylized 3D; not real imagery.",
+  "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), CC BY 4.0, http://creativecommons.org/licenses/by/4.0/",
+  "Facts: NASA/JPL-Caltech"
+ ]
+}
