@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 5;
+
+const k = await story({ sky: ["#1a2a6c", "#05030f"], bloom: 0.9 });
+
+const mkMoon = (c = "#fff4e0") => { const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color(c) })));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color(c), transparent: true, opacity: 0.22 })));
+  return g; };
+const mkJup = (k, pos = [0, 0, 0]) => { const j = k.add(k.planet({ color: "#f0b27a", radius: 1.4, spots: 22, spotColor: "#a8481f" }), pos);
+  k.every((t) => { j.userData.ball.rotation.y = t * 0.12; }); return j; };
+
+k.add(k.stars(800));
+k.add(k.ground({ color: "#2e4a3a", size: 80 }), [0, -2.2, 0]);
+const gal = k.add(k.figure({ color: "#8a3b2a", coat: false, scale: 1.5 }), [-0.4, -2.2, 0]);
+const scope = new THREE.Group();
+const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 3.2, 20), new THREE.MeshToonMaterial({ color: new THREE.Color(PALETTE.sun) }));
+tube.position.y = 1.6; scope.add(tube);
+[-0.6, 0.6].forEach((x) => { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.2, 8), new THREE.MeshToonMaterial({ color: new THREE.Color("#6b4a2f") })); leg.position.set(x * 0.5, -0.9, 0); leg.rotation.z = x * 0.4; scope.add(leg); });
+const mount = new THREE.Group(); mount.add(scope); scope.rotation.z = -0.62;
+k.add(mount, [0.6, -0.4, 0]);
+const jup = k.add(k.planet({ color: "#f0b27a", radius: 0.55, spots: 8, spotColor: "#c0673a" }), [3.2, 5.6, -2]);
+k.every((t) => { jup.userData.ball.rotation.y = t * 0.3; scope.rotation.z = -0.62 + Math.sin(t * 1.4) * 0.03; });
+k.wave(gal, D * 0.6);
+k.camera([[0, { pos: [-0.5, 1.0, 19], look: [0.8, 1.0, 0] }], [D, { pos: [0.5, 1.8, 17], look: [1.4, 2.0, 0] }]]);
+k.badge("JAN. 7", 0.15, "1610");
+k.done();
+</script></body></html>

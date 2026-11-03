@@ -744,5 +744,19 @@
   "format": "history",
   "score": 21,
   "status": "made"
+ },
+ {
+  "slug": "galileo-jupiter-moons",
+  "topic": "Galileo spots Jupiter's moons (1610)",
+  "format": "history",
+  "hook": "Three tiny stars. Then they moved.",
+  "claim": "Jan 7 1610 Galileo saw three points of light by Jupiter; by Jan 15 concluded four moons orbit it.",
+  "sources_to_cite": [
+   "https://www.nasa.gov/general/415-years-ago-astronomer-galileo-discovers-jupiters-moons/",
+   "https://science.nasa.gov/solar-system/galileos-observations-of-the-moon-jupiter-venus-and-the-sun/"
+  ],
+  "score": 21,
+  "added": "2026-11-03",
+  "status": "made"
  }
 ]

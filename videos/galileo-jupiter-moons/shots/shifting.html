@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 5;
+
+const k = await story({ sky: ["#13265f", "#04020f"], bloom: 1.0 });
+
+const mkMoon = (c = "#fff4e0") => { const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color(c) })));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color(c), transparent: true, opacity: 0.22 })));
+  return g; };
+const mkJup = (k, pos = [0, 0, 0]) => { const j = k.add(k.planet({ color: "#f0b27a", radius: 1.4, spots: 22, spotColor: "#a8481f" }), pos);
+  k.every((t) => { j.userData.ball.rotation.y = t * 0.12; }); return j; };
+
+k.add(k.stars(900));
+mkJup(k);
+const N = [
+  [[-2.05, 0.2, 0], [-1.43, -0.1, 0], [1.67, 0.1, 0]],
+  [[-1.86, -0.3, 0], [1.24, 0.25, 0], [1.98, -0.05, 0]],
+  [[-1.49, 0.3, 0], [-1.18, -0.2, 0], [2.11, 0.2, 0]],
+];
+const ms = [0, 1, 2].map((i) => {
+  const m = k.add(mkMoon(), N[0][i]);
+  k.keys(m.position, [[0, N[0][i]], [D * 0.22, N[0][i]], [D * 0.38, N[1][i]], [D * 0.58, N[1][i]], [D * 0.74, N[2][i]], [D, N[2][i]]]);
+  return m; });
+const nights = ["NIGHT 1", "NIGHT 2", "NIGHT 3"];
+k.camera([[0, { pos: [0, 0.2, 16], look: [0, 0, 0] }], [D, { pos: [0, 0.2, 15.5], look: [0, 0, 0] }]]);
+k.badge("1610", 0.15, "Several nights");
+k.done();
+</script></body></html>

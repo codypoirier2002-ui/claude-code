@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 5;
+
+const k = await story({ sky: ["#1b1458", "#05030f"], bloom: 1.2 });
+
+const mkMoon = (c = "#fff4e0") => { const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color(c) })));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color(c), transparent: true, opacity: 0.22 })));
+  return g; };
+const mkJup = (k, pos = [0, 0, 0]) => { const j = k.add(k.planet({ color: "#f0b27a", radius: 1.4, spots: 22, spotColor: "#a8481f" }), pos);
+  k.every((t) => { j.userData.ball.rotation.y = t * 0.12; }); return j; };
+
+k.add(k.stars(900));
+mkJup(k);
+const Q = [[-1.49, 0.3, 0], [-1.18, -0.2, 0], [2.11, 0.2, 0]];
+Q.forEach((p) => k.add(mkMoon(), p));
+const m4 = k.add(mkMoon(PALETTE.mint), [1.18, -0.15, 0]);
+const hit = D * 0.45;
+k.show(m4, hit, Infinity, 0.35);
+k.flash(hit, 0.3); k.burst([1.18, -0.15, 0], hit, { count: 50, speed: 1.2, size: 0.07, colors: [PALETTE.mint, "#ffffff", PALETTE.sun] });
+k.camera([[0, { pos: [0, 0.2, 16], look: [0, 0, 0] }], [hit, { pos: [0.4, 0.2, 15], look: [0.6, 0, 0] }], [D, { pos: [0.6, 0.2, 13.5], look: [0.56, -0.1, 0] }]]);
+k.badge("1610", 0.15, "Four days later");
+k.done();
+</script></body></html>

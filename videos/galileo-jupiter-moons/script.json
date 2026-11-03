@@ -1,0 +1,85 @@
+{
+ "topic": "Galileo spots Jupiter's moons (1610)",
+ "claim": "On Jan. 7, 1610 Galileo saw three points of light by Jupiter; by Jan. 15 he concluded they were four moons orbiting it.",
+ "accent": "#ffd166",
+ "music": "assets/music.mp3",
+ "musicVolume": 0.1,
+ "transition": {
+  "type": "fade",
+  "seconds": 0.25
+ },
+ "beats": [
+  {
+   "id": "hook",
+   "seconds": 3.0,
+   "caption": "Three stars. Then they moved.",
+   "vo": "Three tiny stars. Then they moved.",
+   "audio": "assets/vo/hook.mp3",
+   "motion": {
+    "scene": "shots/hook.html"
+   }
+  },
+  {
+   "id": "telescope",
+   "seconds": 7.6,
+   "caption": "Jan. 7, 1610",
+   "vo": "On January 7th, 1610, Galileo aimed his improved, homemade, twenty-power telescope at Jupiter.",
+   "audio": "assets/vo/telescope.mp3",
+   "motion": {
+    "scene": "shots/telescope.html"
+   }
+  },
+  {
+   "id": "lights",
+   "seconds": 5.0,
+   "caption": "Distant stars?",
+   "vo": "Beside the planet sat three points of light. He took them for distant stars.",
+   "audio": "assets/vo/lights.mp3",
+   "motion": {
+    "scene": "shots/three-lights.html"
+   }
+  },
+  {
+   "id": "shifting",
+   "seconds": 4.9,
+   "caption": "They moved",
+   "vo": "But over several nights, they changed places, yet never left Jupiter's side.",
+   "audio": "assets/vo/shifting.mp3",
+   "motion": {
+    "scene": "shots/shifting.html"
+   }
+  },
+  {
+   "id": "fourth",
+   "seconds": 4.7,
+   "caption": "A fourth one",
+   "vo": "Four days later, a fourth point of light joined them, and it behaved the same way.",
+   "audio": "assets/vo/fourth.mp3",
+   "motion": {
+    "scene": "shots/fourth.html"
+   }
+  },
+  {
+   "id": "moons",
+   "seconds": 8.7,
+   "caption": "Four moons",
+   "vo": "By January fifteenth, Galileo was sure: four moons, circling Jupiter. Strong evidence that not everything circled Earth.",
+   "audio": "assets/vo/moons.mp3",
+   "motion": {
+    "scene": "shots/four-moons.html"
+   }
+  }
+ ],
+ "sources": [
+  {
+   "text": "NASA, 415 Years Ago: Astronomer Galileo Discovers Jupiter's Moons, https://www.nasa.gov/general/415-years-ago-astronomer-galileo-discovers-jupiters-moons/"
+  },
+  {
+   "text": "NASA Science, Galileo's Observations of the Moon, Jupiter, Venus and the Sun, https://science.nasa.gov/solar-system/galileos-observations-of-the-moon-jupiter-venus-and-the-sun/"
+  }
+ ],
+ "credits": [
+  "Music: \"Floating Cities\" Kevin MacLeod (incompetech.com), CC BY 4.0",
+  "Artist's reenactment; stylized 3D scenes, not to scale"
+ ]
+}

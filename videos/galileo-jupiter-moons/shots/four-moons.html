@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>shot</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import { P } from "/scenes/common.js";
+import { story, PALETTE, THREE } from "/scenes/story-kit.js";
+const D = P.duration || 5;
+
+const k = await story({ sky: ["#2b1055", "#04020f"], bloom: 1.1 });
+
+const mkMoon = (c = "#fff4e0") => { const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color(c) })));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color(c), transparent: true, opacity: 0.22 })));
+  return g; };
+const mkJup = (k, pos = [0, 0, 0]) => { const j = k.add(k.planet({ color: "#f0b27a", radius: 1.4, spots: 22, spotColor: "#a8481f" }), pos);
+  k.every((t) => { j.userData.ball.rotation.y = t * 0.12; }); return j; };
+
+k.add(k.stars(900));
+mkJup(k);
+const cols = ["#fff4e0", "#fff4e0", "#fff4e0", PALETTE.mint], R = [2.0, 2.6, 3.2, 3.9], S = [1.9, 1.2, 0.8, 0.5];
+const ms = R.map((r, i) => { const m = k.add(mkMoon(cols[i]), [r, 0, 0]);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.012, 8, 120), new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffffff"), transparent: true, opacity: 0.25 }));
+  ring.rotation.x = Math.PI / 2 - 0.25; k.show(k.add(ring), 0.4 + i * 0.2); return m; });
+k.every((t) => ms.forEach((m, i) => { const a = 1 + t * S[i] + i * 1.6; m.position.set(Math.cos(a) * R[i], Math.sin(a) * R[i] * 0.25 * Math.cos(0.25) * 1 - 0, Math.sin(a) * R[i] * 0.97); }));
+k.flash(D * 0.3, 0.3);
+k.camera([[0, { pos: [0, 4.5, 17], look: [0, 0, 0] }], [D, { pos: [0, 3.6, 20], look: [0, 0, 0] }]]);
+k.badge("JAN. 15", 0.15, "1610");
+k.done();
+</script></body></html>
