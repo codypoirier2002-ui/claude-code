@@ -1928,6 +1928,44 @@ dialog.settings form {
   transform: scale(calc(1 + var(--level, 0) * 0.12));
 }
 
+/*
+ * §6.7: her animated character gets a 3/4 box, min(52vh, 420px) tall, radius 36
+ * and a glow; her VRM portrait a 4/5 box, min(56vh, 460px) tall. Both stay
+ * within 82vw on a narrow screen. Her face moves on its own, so the box
+ * doesn't swell with the level the way the orb does.
+ */
+.vo-target:has(.char),
+.vo-target:has(.avatar-view) {
+  width: auto;
+  border-radius: 36px;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 181, 71, 0.3), rgba(255, 181, 71, 0.05) 58%, transparent 78%),
+    linear-gradient(180deg, #232b38, #141922);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45), 0 0 80px rgba(255, 181, 71, 0.28);
+}
+
+.vo-target:has(.char) {
+  height: min(52vh, 420px, calc(82vw * 4 / 3));
+  aspect-ratio: 3 / 4;
+}
+
+.vo-target:has(.avatar-view) {
+  height: min(56vh, 460px, calc(82vw * 5 / 4));
+  aspect-ratio: 4 / 5;
+}
+
+.vo-target:has(.char)::before,
+.vo-target:has(.avatar-view)::before {
+  border-radius: 42px;
+}
+
+.slot-voice:has(.char),
+.slot-voice:has(.avatar-view) {
+  border-radius: 36px;
+  overflow: hidden;
+  transform: none;
+}
+
 .slot-voice .orb {
   width: 100%;
   max-width: none;

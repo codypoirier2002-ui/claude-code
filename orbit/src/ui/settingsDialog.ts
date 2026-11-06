@@ -14,12 +14,28 @@ import {
   type Effort,
   type Settings,
 } from "../core/settings";
+import { deleteAvatar, loadAvatar, saveAvatar } from "../core/blobstore";
 import { eraseAllStorage } from "../core/store";
 import type { AppCtx, SettingsSection } from "./context";
 import { h } from "./dom";
 
 export const ERASE_CONFIRM = "Delete your keys, chats, timers, tasks, notes, memories and avatar from this headset?";
 export type ElevenVoice = Voice;
+
+/** "Her body" (§6.9 item 11): the status note with no body stored. */
+export const BODY_NOTE_NONE =
+  "No 3D body yet, so she uses her illustrated face. For a full 3D body, make her in VRoid Studio (free), export as .vrm, then load it here.";
+
+/** The status note under "Show her animated face": with a stored body, its file name. */
+export function bodyNote(name: string | null): string {
+  return name ? `Body: ${name}. She stands beside your panel in VR and appears in voice mode.` : BODY_NOTE_NONE;
+}
+
+/** A failed "Load .vrm avatar". */
+export function bodyErrorText(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  return `Couldn't load her body: ${msg}`;
+}
 
 /** GET /v1/voices mapped to {id, name}. Failures throw an ElevenError classified per §5.3. */
 export function fetchVoices(key: string, signal?: AbortSignal): Promise<ElevenVoice[]> {
@@ -186,15 +202,67 @@ export function createSettingsDialog(ctx: AppCtx) {
     const look = check("Look when I say “look at this”", s.lookOnRequest, "lookOnRequest");
     // 11. Her body
     const showCharacter = check("Show her animated face", s.showCharacter, "showCharacter");
-    const bodyNote = hint(
-      "No 3D body yet, so she uses her illustrated face. For a full 3D body, make her in VRoid Studio (free), export as .vrm, then load it here.",
-    );
-    const loadVrm = h(
-      "button",
-      { type: "button", class: "btn ghost", onClick: () => ctx.toast("3D bodies come in a later build") },
-      "Load .vrm avatar",
-    );
-    const removeVrm = h("button", { type: "button", class: "btn ghost", disabled: true }, "Remove body");
+    // Load and Remove take effect at once, not on Save (§6.9).
+    const bodyStatus = h("p", { class: "hint", "aria-live": "polite" }, BODY_NOTE_NONE);
+    const bodyError = h("p", { class: "hint body-error", role: "alert", hidden: true });
+    const vrmFile = h("input", { type: "file", accept: ".vrm", hidden: true, tabindex: "-1" });
+    const loadVrm = h("button", { type: "button", class: "btn ghost", onClick: () => vrmFile.click() }, "Load .vrm avatar");
+    const removeVrm = h("button", { type: "button", class: "btn ghost", disabled: true, onClick: () => void removeBody() }, "Remove body");
+    let hasBody = false;
+    let bodyBusy = false;
+    function showBody(name: string | null): void {
+      hasBody = name !== null;
+      bodyStatus.textContent = bodyNote(name);
+      removeVrm.disabled = bodyBusy || !hasBody;
+    }
+    function setBodyBusy(on: boolean): void {
+      bodyBusy = on;
+      loadVrm.disabled = on;
+      removeVrm.disabled = on || !hasBody;
+      loadVrm.setAttribute("aria-busy", on ? "true" : "false");
+    }
+    function showBodyError(text: string | null): void {
+      bodyError.textContent = text ?? "";
+      bodyError.hidden = !text;
+    }
+    void loadAvatar().then((rec) => {
+      if (!bodyBusy) showBody(rec ? rec.name : null);
+    });
+    vrmFile.addEventListener("change", () => {
+      const file = vrmFile.files?.[0];
+      vrmFile.value = "";
+      if (file) void loadBody(file);
+    });
+    async function loadBody(file: File): Promise<void> {
+      setBodyBusy(true);
+      showBodyError(null);
+      try {
+        const data = await file.arrayBuffer();
+        // three-vrm loads only here and in VR, never with the app (§2, §14).
+        const { validateVrm } = await import("../xr/avatar");
+        await validateVrm(data);
+        await saveAvatar(file.name, data);
+        showBody(file.name);
+        await ctx.rebuildCharacters({ reloadBody: true });
+      } catch (err) {
+        showBodyError(bodyErrorText(err));
+      } finally {
+        setBodyBusy(false);
+      }
+    }
+    async function removeBody(): Promise<void> {
+      setBodyBusy(true);
+      showBodyError(null);
+      try {
+        await deleteAvatar();
+        showBody(null);
+        await ctx.rebuildCharacters({ reloadBody: true });
+      } catch (err) {
+        showBodyError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setBodyBusy(false);
+      }
+    }
     // 12. Advanced
     const suggest = check("Suggested replies after answers", s.suggestReplies, "suggestReplies");
     const effort = h("select", { name: "effort" }, EFFORTS.map((e) => h("option", { value: e, selected: e === s.effort }, e)));
@@ -217,10 +285,15 @@ export function createSettingsDialog(ctx: AppCtx) {
         onClick: () => {
           if (!confirm(ERASE_CONFIRM)) return;
           ctx.voice.stop();
-          ctx.assistant.reset();
-          eraseAllStorage();
-          // Phase 7 also deletes the IndexedDB avatar here.
-          location.reload();
+          // The avatar lives in IndexedDB (§10). Delete it first, then clear the
+          // seven keys and reload straight away, so nothing writes them back.
+          void deleteAvatar()
+            .catch(() => undefined)
+            .then(() => {
+              ctx.assistant.reset();
+              eraseAllStorage();
+              location.reload();
+            });
         },
       },
       "Erase all data",
@@ -269,8 +342,9 @@ export function createSettingsDialog(ctx: AppCtx) {
         ),
         section("Her body"),
         showCharacter.row,
-        bodyNote,
-        h("div", { class: "button-row" }, loadVrm, removeVrm),
+        bodyStatus,
+        h("div", { class: "button-row" }, loadVrm, removeVrm, vrmFile),
+        bodyError,
         h(
           "details",
           { class: "advanced" },

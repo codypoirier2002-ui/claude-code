@@ -1,8 +1,8 @@
 // Where she appears (§7.3). Each slot is one stable element that the shell
 // moves around (the welcome is rebuilt, the slot node is re-inserted), so
-// whatever is mounted inside survives re-renders. Phase 3 fills every slot
-// with the §6.10 CSS orb; phase 7 mounts the animated character or the VRM
-// renderer with slot.mount(...) and can go back with slot.mountOrb().
+// whatever is mounted inside survives re-renders. A slot starts with the §6.10
+// CSS orb; ui/characterHost.ts mounts her animated face or her VRM view with
+// slot.mount(...) and goes back with slot.mountOrb().
 
 import { h } from "./dom";
 

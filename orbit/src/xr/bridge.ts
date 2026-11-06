@@ -73,8 +73,10 @@ export interface XrHost {
   sceneFailed(message: string): void;
   /** The immersive session (or the preview) ended: stop voice but keep the answer. */
   onExit(): void;
-  /** Phase 7: she glides to a new spot (the spot is already saved). */
+  /** She glides to a new spot (the spot is already saved). */
   onSpot?(spot: AvatarSpot): void;
+  /** She says a short line out loud: her hello when the user waves (§8.5). */
+  say?(text: string): void;
 }
 
 /** Desktop preview dev parameters (§8.1). */
@@ -85,7 +87,7 @@ export interface PreviewParams {
   avatarCam: boolean;
   /** `?kb`: open the keyboard. */
   kb: boolean;
-  /** `?wave`: she waves every 3 s (phase 7; parsed now). */
+  /** `?wave`: she waves every 3 s. */
   wave: boolean;
   /** `?hour=<h>`: the clock sky at that hour. */
   hour: number | null;
@@ -101,7 +103,7 @@ export interface Immersive {
   tick(): void;
   /** A 6-second message on the panel. */
   notify(text: string): void;
-  /** The finished-focus celebration (phase 7 makes her cheer). */
+  /** The finished-focus celebration: the orb pulses and she cheers. */
   celebrate(): void;
   isActive(): boolean;
   /** `?xr-preview`: render the VR scene in the page with the mouse as the controller. */

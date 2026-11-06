@@ -34,4 +34,9 @@ export interface AppCtx {
   };
   /** Voice not ready (§5.6): toast SESSION_TEXT.needsKey and open Settings at Voice. */
   needVoiceKey(): void;
+  /**
+   * Rebuild her views in the three slots (§7.3). `reloadBody` re-reads the stored
+   * VRM, after "Her body" loads or removes one. main.ts installs the real one.
+   */
+  rebuildCharacters(opts?: { reloadBody?: boolean }): Promise<void>;
 }

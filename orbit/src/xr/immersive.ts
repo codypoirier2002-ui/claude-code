@@ -8,16 +8,24 @@
 // restores the clock sky, stars and floor. The soundscape lives in the app
 // (core/ambience.ts), which follows the same setting.
 //
-// Seams left for later phases:
-// - phase 7: `presence` (her spot, her hit target, celebrate/wave), the orb's
-//   0.35-scale "spark" beside her head, and host.onSpot.
-//   `presence.onSceneLook(panorama)` fires on every scene change: while a
-//   panorama shows there is no floor disc, so her VRM body needs its soft
-//   contact-shadow decal (§8.7); `presence.panorama` holds the current state.
+// Callie (§8.5, §8.11, §7.4): each session (and the preview) brings her in at
+// her spot: her VRM body when one is stored (./avatar, loaded only then, with
+// three-vrm), else the hologram portrait (./portrait). The orb becomes a
+// 0.35-scale spark beside her head. She turns to the viewer, glides to the
+// floor point the user selects, waves back (or cheers, as the hologram) when a
+// hand waves, greets 1.2 s after entering while the greeting is fresh, and
+// cheers at a finished focus session. Under a panorama (no floor disc) her VRM
+// body stands on a soft contact-shadow decal (§8.7). She is disposed when the
+// session ends, so a body loaded in Settings meanwhile shows next time.
 
 import * as THREE from "three";
+import type { AssistantState } from "../core/assistant";
+import { WaveDetector } from "../core/avatarMotion";
+import { loadAvatar } from "../core/blobstore";
+import { GREETING_MAX_AGE_MS } from "../core/session";
 import { readJSON, writeJSON } from "../core/store";
-import type { AvatarSpot, Immersive, PreviewParams, XrHost, XrMode } from "./bridge";
+import type { AvatarBody } from "./avatar";
+import type { AvatarSpot, Immersive, OrbMood, PreviewParams, XrHost, XrMode, XrVoiceView } from "./bridge";
 import { createKeyboard } from "./keyboard";
 import { createOrb, orbLevel, orbMood } from "./orb";
 import { createPanel } from "./panel";
@@ -25,6 +33,7 @@ import { PANEL_TEXT } from "./panelModel";
 import { environmentById, sceneLoadFailedText, type Environment } from "../core/environments";
 import { createPanoramaMaterial, createPanoramaSwitcher, loadPanoramaTexture, PANORAMA_MAX_ANISOTROPY } from "./panorama";
 import { createParticles } from "./particles";
+import { SPARK_SCALE, createPortrait, type Portrait } from "./portrait";
 import { createClockSky } from "./sky";
 
 export type { Immersive };
@@ -46,6 +55,115 @@ const STICK_REPEAT_MS = 120;
 const FLOOR_MIN = 0.6;
 const FLOOR_MAX = 4;
 const ACCENT = 0xffb547;
+/** Her greeting wave comes this long after entering (§8.5). */
+export const GREET_DELAY_MS = 1200;
+/** `?wave`: she waves this often in the preview (§8.1). */
+export const PREVIEW_WAVE_MS = 3000;
+/** What she says when the user waves and she is idle (§8.5). */
+export const HELLO_LINES = ["Hi!", "Hey, you!", "Oh, hi there!", "Hiya!"] as const;
+/** The VRM body's contact-shadow decal under a panorama (§8.7): radius in metres and peak darkness. */
+export const CONTACT_SHADOW = Object.freeze({ radius: 0.36, alpha: 0.5 });
+
+/** Her, whichever body she has: the VRM or the hologram, behind one face. */
+export interface Her {
+  readonly kind: "vrm" | "hologram";
+  readonly group: THREE.Object3D;
+  readonly hitTarget: THREE.Object3D;
+  readonly sparkAnchor: THREE.Object3D;
+  update(dt: number, mood: OrbMood, level: number, text: string, head: THREE.Vector3): void;
+  setSpot(spot: AvatarSpot): void;
+  /** Her answer to a wave: the VRM waves back, the hologram cheers (§8.5). */
+  wave(): void;
+  cheer(): void;
+  /** A panorama is showing: the VRM body stands on its contact shadow. */
+  setPanorama(on: boolean): void;
+  setAnisotropy(n: number): void;
+  dispose(): void;
+}
+
+const SHADOW_VERT = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+const SHADOW_FRAG = /* glsl */ `
+uniform float uAlpha;
+varying vec2 vUv;
+void main() {
+  float d = length(vUv - 0.5) * 2.0;
+  float a = uAlpha * (1.0 - smoothstep(0.1, 1.0, d));
+  gl_FragColor = vec4(0.0, 0.0, 0.0, a);
+}`;
+
+function hologramHer(p: Portrait): Her {
+  return {
+    kind: "hologram",
+    group: p.group,
+    hitTarget: p.hitTarget,
+    sparkAnchor: p.sparkAnchor,
+    update: (dt, mood, level, text, head) => p.update(dt, mood, level, text, head),
+    setSpot: (spot) => p.setSpot(spot),
+    wave: () => p.cheer(),
+    cheer: () => p.cheer(),
+    setPanorama: () => {},
+    setAnisotropy: (n) => p.setAnisotropy(n),
+    dispose: () => p.dispose(),
+  };
+}
+
+function vrmHer(body: AvatarBody): Her {
+  const geo = new THREE.CircleGeometry(CONTACT_SHADOW.radius, 40);
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uAlpha: { value: CONTACT_SHADOW.alpha } },
+    vertexShader: SHADOW_VERT,
+    fragmentShader: SHADOW_FRAG,
+    transparent: true,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  const shadow = new THREE.Mesh(geo, mat);
+  shadow.name = "avatar-shadow";
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = 0.002;
+  shadow.renderOrder = 1;
+  shadow.visible = false;
+  body.group.add(shadow);
+  return {
+    kind: "vrm",
+    group: body.group,
+    hitTarget: body.hitTarget,
+    sparkAnchor: body.sparkAnchor,
+    update: (dt, mood, level, text, head) => body.update(dt, mood, level, text, head),
+    setSpot: (spot) => body.setSpot(spot),
+    wave: () => body.wave(),
+    cheer: () => body.cheer(),
+    setPanorama: (on) => {
+      shadow.visible = on;
+    },
+    setAnisotropy: () => {},
+    dispose: () => {
+      geo.dispose();
+      mat.dispose();
+      body.dispose();
+    },
+  };
+}
+
+/** What she is saying, for her expressions: the streaming reply, else the last one while her voice plays. */
+export function herText(st: Pick<AssistantState, "text" | "turns">, v: Pick<XrVoiceView, "speaking">): string {
+  if (st.text) return st.text;
+  if (!v.speaking) return "";
+  const last = st.turns[st.turns.length - 1];
+  return last && last.role === "assistant" ? last.text : "";
+}
+
+/** "This visit's greeting is still fresh" (§8.5): one arrived less than 15 minutes ago. */
+export function greetingFresh(st: Pick<AssistantState, "greeting">, now: number): boolean {
+  const g = st.greeting;
+  return Boolean(g && g.text.trim() && now - g.at < GREETING_MAX_AGE_MS);
+}
 
 /** `orbit:avatarSpot`, validated; the default spot when missing or malformed. */
 export function loadSpot(): AvatarSpot {
@@ -134,7 +252,7 @@ export function createImmersive(host: XrHost): Immersive {
   orb.group.position.copy(ORB_POS);
   rig.add(orb.group);
 
-  // Phase 7 hooks: she stands on `spot`; her hit target joins the raycast list.
+  // She stands on `spot`; her hit target joins the raycast list.
   const presence = {
     spot: loadSpot(),
     hitTarget: null as THREE.Object3D | null,
@@ -143,6 +261,90 @@ export function createImmersive(host: XrHost): Immersive {
     panorama: false,
     onSceneLook: null as ((panorama: boolean) => void) | null,
   };
+
+  // ---- Her (§8.11, §7.4) ----
+  let her: Her | null = null;
+  /** Each summon bumps this, so a body that finishes loading after the session ended is dropped. */
+  let herTicket = 0;
+  /** The greeting wave came before she had loaded: she waves on arrival. */
+  let wavePending = false;
+  /** The motes' point-size scale for the full-size orb; the spark uses SPARK_SCALE of it. */
+  let orbPx = 900;
+  let greetTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function setOrbPx(px: number): void {
+    orbPx = px;
+    orb.setPixelScale(her ? px * SPARK_SCALE : px);
+  }
+
+  /** Her VRM body when one is stored and still loads, else the hologram. */
+  async function loadHer(): Promise<Her> {
+    const record = await loadAvatar();
+    if (record) {
+      try {
+        const avatar = await import("./avatar");
+        return vrmHer(avatar.createAvatarBody(await avatar.parseVrm(record.data), { spot: presence.spot }));
+      } catch {
+        // The file no longer parses (or the chunk failed): the hologram stands in.
+      }
+    }
+    return hologramHer(createPortrait({ spot: presence.spot }));
+  }
+
+  function summonHer(): void {
+    const ticket = ++herTicket;
+    void loadHer().then((h) => {
+      if (ticket !== herTicket || !active) {
+        h.dispose();
+        return;
+      }
+      her = h;
+      rig.add(h.group);
+      h.setAnisotropy(Math.min(4, renderer?.capabilities.getMaxAnisotropy() ?? 1));
+      h.setPanorama(presence.panorama);
+      presence.hitTarget = h.hitTarget;
+      presence.celebrate = () => h.cheer();
+      presence.onSceneLook = (panorama) => h.setPanorama(panorama);
+      orb.group.scale.setScalar(SPARK_SCALE);
+      setOrbPx(orbPx);
+      if (wavePending) {
+        wavePending = false;
+        h.wave();
+      }
+    });
+  }
+
+  function dismissHer(): void {
+    herTicket++;
+    wavePending = false;
+    if (greetTimer) clearTimeout(greetTimer);
+    greetTimer = null;
+    her?.dispose();
+    her = null;
+    presence.hitTarget = null;
+    presence.celebrate = null;
+    presence.onSceneLook = null;
+    orb.group.scale.setScalar(1);
+    orb.group.position.copy(ORB_POS);
+    setOrbPx(orbPx);
+  }
+
+  /** She waves (VRM) or cheers (hologram); before she has loaded, as soon as she arrives. */
+  function herWave(): void {
+    if (her) her.wave();
+    else wavePending = true;
+  }
+
+  /** The user waved (§8.5): she answers, and says hi if she is idle and voice is set up. */
+  function onUserWave(): void {
+    if (!her) return;
+    her.wave();
+    const v = host.voice();
+    const st = host.assistant();
+    if (v.ready && host.say && orbMood({ voiceState: v.state, ttsPlaying: v.speaking, busy: st.busy }) === "idle") {
+      host.say(HELLO_LINES[Math.floor(Math.random() * HELLO_LINES.length)]);
+    }
+  }
 
   // ---- Scenes (§8.7): panorama, lights and particles follow settings.environmentId ----
   /** Lights and particles for a scene; the panorama or clock look on the sky. */
@@ -203,7 +405,15 @@ export function createImmersive(host: XrHost): Immersive {
   const pointers: Pointer[] = [];
   const raycaster = new THREE.Raycaster();
   const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-  const tmp = { v: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3(), head: new THREE.Vector3() };
+  const tmp = {
+    v: new THREE.Vector3(),
+    q: new THREE.Quaternion(),
+    s: new THREE.Vector3(),
+    head: new THREE.Vector3(),
+    fwd: new THREE.Vector3(),
+    hand: new THREE.Vector3(),
+    spark: new THREE.Vector3(),
+  };
 
   function targets(): THREE.Object3D[] {
     const list: THREE.Object3D[] = [panel.mesh, orb.hitTarget];
@@ -276,7 +486,7 @@ export function createImmersive(host: XrHost): Immersive {
         tapOrb();
         break;
       case "her":
-        break; // phase 7
+        break; // Selecting her does nothing: only empty floor moves her.
       case "floor":
         moveSpot(hit.point);
         break;
@@ -292,6 +502,7 @@ export function createImmersive(host: XrHost): Immersive {
     const local = rig.worldToLocal(world.clone());
     presence.spot = { x: local.x, z: local.z };
     writeJSON("avatarSpot", presence.spot);
+    her?.setSpot(presence.spot);
     host.onSpot?.({ ...presence.spot });
   }
 
@@ -299,6 +510,8 @@ export function createImmersive(host: XrHost): Immersive {
   const rayGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -RAY_LENGTH)]);
   const rayMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, toneMapped: false });
   const aPressed = new Map<XRInputSource, boolean>();
+  /** Per hand: where to read its position (the wrist joint, else the controller) and its detector. */
+  const wavers: { hand: THREE.XRHandSpace; controller: THREE.XRTargetRaySpace; detector: WaveDetector }[] = [];
   const lastStick = new Map<XRInputSource, number>();
   let controllersReady = false;
 
@@ -307,6 +520,9 @@ export function createImmersive(host: XrHost): Immersive {
     controllersReady = true;
     for (let i = 0; i < 2; i++) {
       const controller = r.xr.getController(i);
+      const hand = r.xr.getHand(i);
+      scene.add(hand);
+      wavers.push({ hand, controller, detector: new WaveDetector() });
       const line = new THREE.Line(rayGeo, rayMat);
       line.name = "ray";
       controller.add(line);
@@ -342,6 +558,32 @@ export function createImmersive(host: XrHost): Immersive {
         lastStick.set(src, now);
         panel.scroll(y > 0 ? 1 : -1);
       }
+    }
+  }
+
+  /**
+   * Waving (§8.5): each hand's wrist (hand tracking) or controller, in a frame
+   * made of the head position plus head yaw only: x across, y up.
+   */
+  function pollWaves(nowMs: number): void {
+    const head = headPosition(tmp.head);
+    const cam = renderer?.xr.isPresenting ? renderer.xr.getCamera() : camera;
+    const fwd = tmp.fwd.set(0, 0, -1).applyQuaternion(cam.getWorldQuaternion(tmp.q));
+    const len = Math.hypot(fwd.x, fwd.z) || 1;
+    const rx = -fwd.z / len;
+    const rz = fwd.x / len;
+    for (const w of wavers) {
+      const wrist = w.hand.joints.wrist;
+      let p: THREE.Vector3 | null = null;
+      if (wrist && w.hand.visible && wrist.visible) p = wrist.getWorldPosition(tmp.hand);
+      else if (w.controller.visible) p = w.controller.getWorldPosition(tmp.hand);
+      if (!p) {
+        w.detector.reset();
+        continue;
+      }
+      const dx = p.x - head.x;
+      const dz = p.z - head.z;
+      if (w.detector.push(dx * rx + dz * rz, p.y - head.y, nowMs)) onUserWave();
     }
   }
 
@@ -389,10 +631,23 @@ export function createImmersive(host: XrHost): Immersive {
 
     const v = host.voice();
     const st = host.assistant();
-    orb.update(dt, orbMood({ voiceState: v.state, ttsPlaying: v.speaking, busy: st.busy }), orbLevel(v.micLevel, v.ttsLevel));
-    orb.group.position.y = ORB_POS.y + 0.012 * Math.sin(time * 1.3);
+    const mood = orbMood({ voiceState: v.state, ttsPlaying: v.speaking, busy: st.busy });
+    const level = orbLevel(v.micLevel, v.ttsLevel);
+    orb.update(dt, mood, level);
+    if (her) {
+      // She faces the head; the orb rides beside her head as a 0.35-scale spark (§8.2).
+      rig.updateMatrixWorld();
+      const head = rig.worldToLocal(headPosition(tmp.head));
+      her.update(dt, mood, level, herText(st, v), head);
+      orb.group.position.copy(rig.worldToLocal(her.sparkAnchor.getWorldPosition(tmp.spark)));
+    } else {
+      orb.group.position.set(ORB_POS.x, ORB_POS.y + 0.012 * Math.sin(time * 1.3), ORB_POS.z);
+    }
 
-    if (session) pollGamepads(now);
+    if (session) {
+      pollGamepads(now);
+      pollWaves(now);
+    }
 
     // Hover: the first pointer on the panel or keyboard wins.
     let panelUv: THREE.Vector2 | null = null;
@@ -418,6 +673,12 @@ export function createImmersive(host: XrHost): Immersive {
     r.domElement.style.display = "block";
     panel.markDirty();
     syncScene();
+    summonHer();
+    // 1.2 s in, she waves or cheers if this visit's greeting is still fresh (§8.5).
+    greetTimer = setTimeout(() => {
+      greetTimer = null;
+      if (active && greetingFresh(host.assistant(), Date.now())) herWave();
+    }, GREET_DELAY_MS);
     r.setAnimationLoop(onFrame);
   }
 
@@ -426,7 +687,9 @@ export function createImmersive(host: XrHost): Immersive {
     if (renderer) renderer.domElement.style.display = "none";
     keyboard.close();
     for (const p of pointers) p.reticle.visible = false;
+    for (const w of wavers) w.detector.reset();
     active = false;
+    dismissHer();
   }
 
   /** Move the rig to the head: position, y = max(−1, head.y − 1.6), and yaw only. */
@@ -479,7 +742,7 @@ export function createImmersive(host: XrHost): Immersive {
       s.updateTargetFrameRate(90).catch(() => {});
     }
     sky.setStarScale(1.7);
-    orb.setPixelScale(1800);
+    setOrbPx(1800);
     camera.position.set(0, 0, 0);
     start();
     recenterTimer = setTimeout(() => {
@@ -519,7 +782,7 @@ export function createImmersive(host: XrHost): Immersive {
     camera.position.set(0, EYE_HEIGHT, 0);
     camera.rotation.set(pitch, -yaw, 0, "YXZ");
     if (params.avatarCam) {
-      // A close-up of her default spot (she arrives in phase 7).
+      // A close-up of her spot.
       const spot = presence.spot;
       const toUser = new THREE.Vector2(-spot.x, -spot.z).normalize();
       camera.position.set(spot.x + toUser.x * 1.2, 1.35, spot.z + toUser.y * 1.2);
@@ -570,7 +833,9 @@ export function createImmersive(host: XrHost): Immersive {
     canvas.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
     window.addEventListener("resize", resize);
+    const waveTimer = params.wave ? setInterval(herWave, PREVIEW_WAVE_MS) : null;
     previewCleanup = () => {
+      if (waveTimer) clearInterval(waveTimer);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerleave", onLeave);
       canvas.removeEventListener("pointerdown", onDown);
@@ -582,7 +847,7 @@ export function createImmersive(host: XrHost): Immersive {
       (mouse.reticle.material as THREE.Material).dispose();
     };
     resize();
-    orb.setPixelScale(window.innerHeight * r.getPixelRatio());
+    setOrbPx(window.innerHeight * r.getPixelRatio());
     start();
   }
 

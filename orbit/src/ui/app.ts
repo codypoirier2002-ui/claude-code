@@ -40,6 +40,8 @@ export function createApp(deps: AppDeps) {
   const slots = { hero: createSlot("hero"), sidebar: createSlot("sidebar"), voice: createSlot("voice") };
   const pending = new Set<RenderPart>();
   let frame = 0;
+  /** Set by main.ts (setCharacterRebuild) once her views exist. */
+  let rebuildCharacters: (opts?: { reloadBody?: boolean }) => Promise<void> = () => Promise.resolve();
 
   // ---- Context handed to every part ----
   const composerApi = {
@@ -67,6 +69,7 @@ export function createApp(deps: AppDeps) {
       toast(SESSION_TEXT.needsKey);
       settings.open("voice");
     },
+    rebuildCharacters: (opts) => rebuildCharacters(opts),
   };
 
   const rail = createRail(ctx);
@@ -153,6 +156,10 @@ export function createApp(deps: AppDeps) {
     },
     requestRender,
     renderAll: () => requestRender(...ALL),
+    /** main.ts installs the character host's rebuild here (§7.3). */
+    setCharacterRebuild(fn: (opts?: { reloadBody?: boolean }) => Promise<void>): void {
+      rebuildCharacters = fn;
+    },
     /** The clock's step 1. */
     updateCountdowns: () => side.updateCountdowns(),
     openSettings: ctx.openSettings,

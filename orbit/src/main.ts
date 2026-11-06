@@ -7,6 +7,8 @@ import "./ui/style.css";
 import { createAmbience, type AmbiencePlace } from "./core/ambience";
 import { createAssistant } from "./core/assistant";
 import { audioContext, existingAudioContext, playChime } from "./core/audioContext";
+import type { Mood } from "./core/avatarMotion";
+import { loadAvatar } from "./core/blobstore";
 import { checkInLine, doneLine } from "./core/focus";
 import { MODES } from "./core/modes";
 import { CLOCK_ENVIRONMENT_ID, ambienceFile, nextEnvironment } from "./core/environments";
@@ -15,12 +17,16 @@ import { getSettings, isConfigured, loadSettings, onSettings, updateSettings } f
 import { readJSON, writeJSON } from "./core/store";
 import { createWorkspace } from "./core/workspace";
 import { createApp } from "./ui/app";
+import { preloadCharacter } from "./ui/character";
+import { createCharacterHost } from "./ui/characterHost";
 import type { VoiceHooks, XrBridge, XrMode } from "./ui/hooks";
 import { toast } from "./ui/toast";
 import { installVoice } from "./ui/voiceShell";
 import type { Immersive, PreviewParams, XrHost, XrModule } from "./xr/bridge";
 
 loadSettings();
+// Her six face layers start decoding before the shell is built (§7.3).
+if (getSettings().showCharacter) void preloadCharacter();
 
 const workspace = createWorkspace({
   initial: readJSON<unknown>("workspace", null),
@@ -66,8 +72,46 @@ const app = createApp({ root, assistant, workspace, voice, xr, getSettings, upda
 // ---- Voice (§5): the speaker, the hands-free session, dictation, the overlay and the card ----
 const voiceShell = installVoice({ app, assistant, voice, getSettings });
 
+// ---- Callie (§7.3, §7.4): her face, her VRM body or the orb in the hero, sidebar and voice slots ----
+/** speaking: her voice is playing; thinking: a reply is busy; listening: voice mode; else idle. */
+function herMood(): Mood {
+  if (voiceShell.speaker.speaking) return "speaking";
+  if (assistant.getState().busy) return "thinking";
+  if (voice.inVoiceMode()) return "listening";
+  return "idle";
+}
+
+/** What she is saying: the streaming reply, else (while her voice plays) the last reply. */
+function herText(): string {
+  const st = assistant.getState();
+  if (st.text) return st.text;
+  if (!voiceShell.speaker.speaking) return "";
+  const last = st.turns[st.turns.length - 1];
+  return last && last.role === "assistant" ? last.text : "";
+}
+
+const characters = createCharacterHost({
+  slots: app.slots,
+  getSettings,
+  getMood: herMood,
+  getLevel: () => voiceShell.speaker.level(),
+  getText: herText,
+  inXr: () => xr.active,
+  loadAvatar: () => loadAvatar(),
+  // three.js and three-vrm load only when a body is stored (§2, §14).
+  importAvatar: () => import("./xr/avatar"),
+});
+app.setCharacterRebuild((opts) => characters.rebuild(opts));
+void characters.rebuild();
+let showCharacter = getSettings().showCharacter;
+onSettings((s) => {
+  if (s.showCharacter === showCharacter) return;
+  showCharacter = s.showCharacter;
+  void characters.rebuild();
+});
+
 /** For later phases and the console: the running app's handles. */
-export const orbit = { app, assistant, workspace, voice, xr, voiceShell };
+export const orbit = { app, assistant, workspace, voice, xr, voiceShell, characters };
 (window as unknown as { orbit?: typeof orbit }).orbit = orbit;
 
 // ---- VR (§8): the host the XR module talks to, support detection and preloading ----
@@ -141,6 +185,9 @@ const xrHost: XrHost = {
     toast(message);
     updateSettings({ environmentId: CLOCK_ENVIRONMENT_ID });
   },
+  say(text) {
+    voice.say(text);
+  },
   onExit() {
     // Stop listening, but let an answer that is streaming or being spoken finish.
     voiceShell.session.stop({ keepAnswer: true });
@@ -153,9 +200,12 @@ let place: AmbiencePlace = "2d";
 
 function setXrActive(on: boolean, where: AmbiencePlace): void {
   place = on ? where : "2d";
+  const changed = xr.active !== on;
   xr.active = on;
   document.body.classList.toggle("in-xr", on);
   app.renderAll();
+  // Her 2D views are torn down while VR runs and rebuilt after it (§14).
+  if (changed) void characters.rebuild();
 }
 
 let xrModule: Promise<XrModule> | null = null;
@@ -285,6 +335,7 @@ function clockTick(): void {
       if (!voice.inVoiceMode()) voice.speak(line);
       if (t.focus.breakMinutes > 0) workspace.addTimer(t.focus.breakMinutes, "Break");
       xr.celebrate();
+      characters.cheer();
     } else if (t.at !== undefined) {
       toast(`🔔 Reminder: ${t.label}`);
       xr.notify(`🔔 Reminder: ${t.label}`);

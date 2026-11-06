@@ -1,8 +1,7 @@
 // The orb (§8.10): a noise-displaced icosphere with a two-colour Fresnel
 // shader, an additive billboard glow 6r across and 160 orbiting motes (one draw
 // call). It swells with the audio level and eases between four moods over about
-// a third of a second. mountOrbView() renders it on its own in a 2D container,
-// the voice overlay's fallback in phase 7.
+// a third of a second. mountOrbView() renders it on its own in a 2D container.
 
 import * as THREE from "three";
 import type { OrbMood } from "./bridge";
@@ -174,7 +173,7 @@ export interface Orb {
   update(dt: number, mood: OrbMood, level: number): void;
   /** Motes' point size scale: roughly the render target height in px. */
   setPixelScale(px: number): void;
-  /** A short swell (the celebration hook until she arrives in phase 7). */
+  /** A short swell (the celebration, alongside her cheer). */
   pulse(): void;
   dispose(): void;
 }
@@ -311,8 +310,7 @@ export interface OrbViewOptions {
 }
 
 /**
- * The orb on its own canvas inside a 2D container (phase 7's voice-overlay
- * fallback). Returns a teardown that stops the loop and frees the GL context.
+ * The orb on its own canvas inside a 2D container. Returns a teardown that stops the loop and frees the GL context.
  */
 export function mountOrbView(container: HTMLElement, opts: OrbViewOptions): { dispose(): void } {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
