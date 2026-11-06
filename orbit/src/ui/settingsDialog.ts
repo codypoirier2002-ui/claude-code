@@ -2,6 +2,7 @@
 // Save (or Enter in a field) writes every field at once; Esc or Cancel
 // discards. The form is rebuilt on every open, so discarded edits never linger.
 
+import { ElevenError, createElevenClient, type Voice } from "../core/eleven";
 import { ENVIRONMENTS } from "../core/environments";
 import { PERSONALITIES } from "../core/modes";
 import {
@@ -18,21 +19,13 @@ import type { AppCtx, SettingsSection } from "./context";
 import { h } from "./dom";
 
 export const ERASE_CONFIRM = "Delete your keys, chats, timers, tasks, notes, memories and avatar from this headset?";
-const ELEVEN_VOICES_URL = "https://api.elevenlabs.io/v1/voices";
+export type ElevenVoice = Voice;
 
-export interface ElevenVoice {
-  id: string;
-  name: string;
-}
-
-/** GET /v1/voices mapped to {id, name}. Phase 4 adds error classification. */
-export async function fetchVoices(key: string, signal?: AbortSignal): Promise<ElevenVoice[]> {
-  const res = await fetch(ELEVEN_VOICES_URL, { headers: { "xi-api-key": key }, signal });
-  if (!res.ok) throw new Error(`ElevenLabs error (${res.status})`);
-  const body = (await res.json()) as { voices?: { voice_id?: unknown; name?: unknown }[] };
-  return (body.voices ?? [])
-    .filter((v) => typeof v.voice_id === "string")
-    .map((v) => ({ id: String(v.voice_id), name: typeof v.name === "string" ? v.name : String(v.voice_id) }));
+/** GET /v1/voices mapped to {id, name}. Failures throw an ElevenError classified per §5.3. */
+export function fetchVoices(key: string, signal?: AbortSignal): Promise<ElevenVoice[]> {
+  return createElevenClient({ getKey: () => key })
+    .listVoices(signal)
+    .then((list) => list.map((v) => ({ id: v.id, name: v.name || v.id })));
 }
 
 const NOTE_FIRST = "Callie and Marissa need adding to My voices on elevenlabs.io first (Voices → search the name → Add).";
@@ -42,6 +35,11 @@ const NOTE_ALL = "All the favourites are in your account.";
 function joinNames(names: string[]): string {
   if (names.length <= 1) return names.join("");
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/** The note when the voices couldn't load: the classified ElevenLabs message, else the first note. */
+export function voicesErrorNote(err: unknown): string {
+  return err instanceof ElevenError ? err.message : NOTE_FIRST;
 }
 
 /** The note under "Her voice" once the account's voices are known. */
@@ -118,10 +116,10 @@ export function createSettingsDialog(ctx: AppCtx) {
         if (abort.signal.aborted) return;
         accountVoices = list;
         voiceNote.textContent = voicesNote(new Set(list.map((v) => v.id)));
-      } catch {
+      } catch (err) {
         if (abort.signal.aborted) return;
         accountVoices = null;
-        voiceNote.textContent = NOTE_FIRST;
+        voiceNote.textContent = voicesErrorNote(err);
       }
       renderVoices();
     }

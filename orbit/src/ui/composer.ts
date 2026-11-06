@@ -4,6 +4,7 @@
 import type { Attachment } from "../core/assistant";
 import { audioContext } from "../core/audioContext";
 import { prepareImage } from "../core/images";
+import { DICTATION_TEXT } from "../core/session";
 import { assistantName, isConfigured } from "../core/settings";
 import type { AppCtx } from "./context";
 import { h } from "./dom";
@@ -91,7 +92,9 @@ export function createComposer(ctx: AppCtx) {
   function renderPlaceholder(): void {
     const name = assistantName(ctx.getSettings());
     const look = (capturing || fromCamera) && textarea.value === "";
-    textarea.placeholder = look ? LOOK_PLACEHOLDER : `Message ${name}…`;
+    textarea.placeholder = ctx.voice.isTranscribing()
+      ? DICTATION_TEXT.transcribing
+      : look ? LOOK_PLACEHOLDER : `Message ${name}…`;
   }
 
   function renderPreview(): void {
@@ -145,7 +148,9 @@ export function createComposer(ctx: AppCtx) {
     sendBtn.textContent = busy ? "Stop" : "Send";
     sendBtn.classList.toggle("stop", busy);
     sendBtn.setAttribute("aria-label", busy ? "Stop" : "Send");
-    micBtn.classList.toggle("recording", ctx.voice.isDictating());
+    const recording = ctx.voice.isDictating();
+    micBtn.classList.toggle("recording", recording);
+    micBtn.setAttribute("aria-pressed", recording ? "true" : "false");
     lookBtn.classList.toggle("capturing", capturing);
     renderPlaceholder();
   }

@@ -1730,6 +1730,269 @@ dialog.settings form {
   }
 }
 
+/* ---- The "Let {name} talk" card (§6.8) -------------------------------- */
+
+.voice-card {
+  width: 100%;
+  margin: 4px 0 2px;
+  padding: 18px 20px;
+  border: 1px solid rgba(180, 140, 255, 0.34);
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(180, 140, 255, 0.2), transparent 60%),
+    rgba(30, 26, 46, 0.86);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  text-align: left;
+}
+
+.voice-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.voice-card-face {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 0;
+  box-shadow: 0 0 0 2px var(--violet);
+  background: var(--surface-hi);
+}
+
+.voice-card-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 750;
+  line-height: 1.25;
+  color: var(--violet-soft);
+}
+
+.voice-card-intro {
+  margin: 2px 0 0;
+  font-size: 15px;
+  color: var(--dim);
+}
+
+.voice-card-steps {
+  margin: 14px 0 0;
+  padding-left: 22px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.voice-card-steps li + li {
+  margin-top: 6px;
+}
+
+.voice-card-steps li::marker {
+  color: var(--violet);
+  font-weight: 700;
+}
+
+.voice-card-steps .dim {
+  color: var(--dim);
+  opacity: 0.8;
+}
+
+.voice-card-steps a {
+  color: var(--violet-soft);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+
+.voice-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.voice-card-input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(12, 15, 21, 0.7);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.voice-card-input:focus {
+  border-color: rgba(180, 140, 255, 0.75);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(180, 140, 255, 0.16);
+}
+
+.voice-card-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.voice-card-buttons .btn.primary {
+  background: var(--violet);
+  color: #160d2a;
+}
+
+.voice-card-msg {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--violet-soft);
+}
+
+.voice-card-msg.error {
+  color: var(--error-text);
+}
+
+/* ---- The voice overlay (§6.7) ---------------------------------------- */
+
+.voice-mode .app,
+.voice-mode .scrim {
+  display: none;
+}
+
+.voice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: max(18px, env(safe-area-inset-top)) 20px max(18px, env(safe-area-inset-bottom));
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #1a2030, #0b0d12 70%);
+  text-align: center;
+}
+
+.voice-overlay[hidden] {
+  display: none;
+}
+
+.vo-top {
+  display: flex;
+  justify-content: center;
+  min-height: 24px;
+  margin-bottom: 14px;
+}
+
+.vo-model {
+  font-size: 13px;
+  padding: 3px 12px;
+}
+
+.vo-target {
+  position: relative;
+  flex: none;
+  width: min(46vh, 380px, 82vw);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.vo-target::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.voice-overlay[data-state="listening"] .vo-target::before {
+  border-color: rgba(127, 216, 196, 0.55);
+  box-shadow: 0 0 40px rgba(127, 216, 196, 0.22);
+  animation: vo-ring 1.6s ease-in-out infinite;
+}
+
+.voice-overlay[data-state="speaking"] .vo-target::before {
+  border-color: rgba(255, 181, 71, 0.45);
+}
+
+@keyframes vo-ring {
+  50% { transform: scale(1.03); opacity: 0.6; }
+}
+
+.slot-voice {
+  border-radius: 50%;
+  transform: scale(calc(1 + var(--level, 0) * 0.12));
+}
+
+.slot-voice .orb {
+  width: 100%;
+  max-width: none;
+}
+
+.voice-overlay[data-state="thinking"] .slot-voice .orb,
+.voice-overlay[data-state="transcribing"] .slot-voice .orb {
+  animation-duration: 1.6s;
+}
+
+.voice-overlay[data-state="off"] .slot-voice .orb {
+  filter: saturate(0.55) brightness(0.8);
+}
+
+.vo-status {
+  min-height: 30px;
+  max-width: min(680px, 100%);
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: var(--accent);
+}
+
+.vo-heard {
+  max-width: min(680px, 100%);
+  font-size: 16px;
+  font-style: italic;
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+
+.vo-reply {
+  width: min(720px, 100%);
+  max-height: 26vh;
+  overflow-y: auto;
+  font-size: 19px;
+  line-height: 1.5;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.vo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.vo-end {
+  border-color: rgba(255, 122, 107, 0.5);
+  color: var(--danger);
+  background: rgba(255, 122, 107, 0.08);
+}
+
+@media (max-width: 720px) {
+  .voice-card {
+    padding: 16px;
+  }
+
+  .vo-reply {
+    font-size: 17px;
+  }
+}
+
 /* ---- Reduced motion (§6.10): CSS animations and transitions off -------- */
 
 @media (prefers-reduced-motion: reduce) {

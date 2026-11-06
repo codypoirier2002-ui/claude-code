@@ -3,11 +3,12 @@
 
 import type { Assistant } from "../core/assistant";
 import { environmentById } from "../core/environments";
+import { SESSION_TEXT } from "../core/session";
 import { onSettings, type Settings } from "../core/settings";
 import type { Workspace } from "../core/workspace";
 import { createConversation } from "./chat";
 import { createComposer } from "./composer";
-import { VOICE_NEEDS_KEY, type AppCtx, type RenderPart, type SettingsSection } from "./context";
+import type { AppCtx, RenderPart, SettingsSection } from "./context";
 import { h } from "./dom";
 import { createHeader } from "./header";
 import type { VoiceHooks, XrBridge } from "./hooks";
@@ -36,7 +37,7 @@ export function sceneUrl(thumb: string, base: string): string {
 
 export function createApp(deps: AppDeps) {
   const { root, assistant, workspace, voice, xr } = deps;
-  const slots = { hero: createSlot("hero"), sidebar: createSlot("sidebar") };
+  const slots = { hero: createSlot("hero"), sidebar: createSlot("sidebar"), voice: createSlot("voice") };
   const pending = new Set<RenderPart>();
   let frame = 0;
 
@@ -63,7 +64,7 @@ export function createApp(deps: AppDeps) {
     slots,
     composer: composerApi,
     needVoiceKey: () => {
-      toast(VOICE_NEEDS_KEY);
+      toast(SESSION_TEXT.needsKey);
       settings.open("voice");
     },
   };
@@ -87,7 +88,7 @@ export function createApp(deps: AppDeps) {
   );
   const scrim = h("div", { class: "scrim", "aria-hidden": "true", onClick: () => toggleDrawer(false) });
   const grid = h("div", { class: "app" }, rail.el, chat, side.el);
-  /** Phase 4 mounts the voice overlay (§6.7) here, outside the grid. */
+  /** The voice overlay (§6.7) mounts here, outside the grid. */
   const overlayRoot = h("div", { class: "voice-overlay-root" });
   root.replaceChildren(grid, scrim, overlayRoot, toastElement(), settings.el);
 
@@ -145,7 +146,7 @@ export function createApp(deps: AppDeps) {
     ctx,
     slots,
     overlayRoot,
-    /** Phase 4's voice overlay registers here to re-render with the messages. */
+    /** The voice overlay registers here to re-render with the messages. */
     onOverlayRender(fn: () => void): () => void {
       overlayRenderers.add(fn);
       return () => overlayRenderers.delete(fn);

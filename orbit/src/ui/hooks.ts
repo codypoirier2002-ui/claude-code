@@ -2,10 +2,14 @@
 // (VR) replace the defaults with Object.assign on the exported objects, so no
 // caller has to change.
 
-/** The voice layer (§5). Phase 4 registers the real speaker, session and dictation. */
+/** The voice layer (§5). Phase 4 registers the real speaker, session and dictation (ui/voiceShell.ts). */
 export interface VoiceHooks {
-  /** Speak a line out loud (clock announcements, 🔊 Read). No-op until phase 4. */
+  /** Queue a line after whatever is playing (the clock's timer, reminder and focus lines). */
   speak(text: string): void;
+  /** Stop, then speak the whole text (🔊 Read). */
+  say(text: string): void;
+  /** Something can speak: an ElevenLabs key or the browser's speechSynthesis. */
+  canSpeak(): boolean;
   /** Stop any speech (Read aloud off, mode switch, New chat, Erase all). */
   stop(): void;
   /** Her voice is playing right now ("speaking…" in the header). */
@@ -18,6 +22,8 @@ export interface VoiceHooks {
   startDictation(): void;
   /** True while 🎙 is recording (it pulses red). */
   isDictating(): boolean;
+  /** True while a dictation is being transcribed (placeholder "Transcribing…"). */
+  isTranscribing(): boolean;
 }
 
 /** The XR bridge (§4.3, §6.3). Phase 5 fills it in. */

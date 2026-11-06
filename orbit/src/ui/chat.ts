@@ -3,7 +3,7 @@
 
 import { THINK_HARDER_TITLE, modelsLabel, thinkHarderLabel, type AssistantState, type DisplayTurn } from "../core/assistant";
 import { modeById } from "../core/modes";
-import { assistantName, hasVoiceKey, isConfigured } from "../core/settings";
+import { assistantName, isConfigured } from "../core/settings";
 import { stripAudioTags } from "../core/tags";
 import type { AppCtx } from "./context";
 import { h } from "./dom";
@@ -91,7 +91,7 @@ export function createConversation(ctx: AppCtx) {
   const banner = h("div", { class: "greeting-wrap" });
   const list = h("div", { class: "messages", role: "log", "aria-live": "polite", "aria-relevant": "additions" });
   const errorBar = h("div", { class: "error-wrap" });
-  /** Persistent container for phase 4's "Let {name} talk" card (§6.8). */
+  /** Persistent container for the "Let {name} talk" card (§6.8, ui/voiceCard.ts). */
   const voiceCardSlot = h("div", { class: "voice-card-slot" });
 
   let shown = 0;
@@ -111,9 +111,10 @@ export function createConversation(ctx: AppCtx) {
     }
   }
 
+  /** 🔊 Read (§6.5): ElevenLabs with a key, else the browser's speechSynthesis. */
   function read(text: string): void {
-    if (!hasVoiceKey(ctx.getSettings())) return ctx.needVoiceKey();
-    ctx.voice.speak(text);
+    if (!ctx.voice.canSpeak()) return ctx.needVoiceKey();
+    ctx.voice.say(text);
   }
 
   function face(): HTMLElement {

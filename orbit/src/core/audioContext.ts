@@ -1,6 +1,6 @@
 // One app-wide AudioContext (§5.2). Browsers only let it start inside a user
 // gesture, so call audioContext() from a tap handler (Talk, dictation, Enter
-// VR, the orb) to create or resume it. Phase 4's voice module imports this.
+// VR, the orb) to create or resume it. The voice shell (ui/voiceShell.ts) uses it too.
 
 type AudioContextCtor = typeof AudioContext;
 

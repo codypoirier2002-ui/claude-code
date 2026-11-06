@@ -23,7 +23,7 @@ export interface AppCtx {
   /** Coalesced into one requestAnimationFrame. */
   requestRender(...parts: RenderPart[]): void;
   toggleDrawer(force?: boolean): void;
-  slots: { hero: CharacterSlot; sidebar: CharacterSlot };
+  slots: { hero: CharacterSlot; sidebar: CharacterSlot; voice: CharacterSlot };
   /** Composer access for the conversation (Retry, failed sends) and the voice overlay. */
   composer: {
     focus(): void;
@@ -32,8 +32,6 @@ export interface AppCtx {
     /** Clear the draft if it still holds exactly this text (Retry resends it). */
     clearIfDraft(text: string): void;
   };
-  /** Voice not ready (§5.6): toast and open Settings at Voice. */
+  /** Voice not ready (§5.6): toast SESSION_TEXT.needsKey and open Settings at Voice. */
   needVoiceKey(): void;
 }
-
-export const VOICE_NEEDS_KEY = "Voice needs an ElevenLabs key (Quest Browser has no built-in speech recognition).";

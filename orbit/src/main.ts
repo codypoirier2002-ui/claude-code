@@ -10,9 +10,9 @@ import { getSettings, loadSettings, updateSettings } from "./core/settings";
 import { readJSON, writeJSON } from "./core/store";
 import { createWorkspace } from "./core/workspace";
 import { createApp } from "./ui/app";
-import { VOICE_NEEDS_KEY } from "./ui/context";
 import type { VoiceHooks, XrBridge, XrMode } from "./ui/hooks";
 import { toast } from "./ui/toast";
+import { installVoice } from "./ui/voiceShell";
 
 loadSettings();
 
@@ -24,18 +24,20 @@ const workspace = createWorkspace({
 const assistant = createAssistant({ getSettings, workspace, updateSettings });
 
 /**
- * The voice layer. Phase 4 replaces these with Object.assign(voice, {...}) when
- * it registers the speaker; until then speaking is a no-op and Talk/🎙 explain
- * that a key is needed (§5.6).
+ * The voice layer. installVoice() below replaces these with
+ * Object.assign(voice, {...}) once the shell exists.
  */
 export const voice: VoiceHooks = {
   speak: () => {},
+  say: () => {},
+  canSpeak: () => false,
   stop: () => {},
   isSpeaking: () => false,
   inVoiceMode: () => false,
-  startTalk: () => app.ctx.needVoiceKey(),
-  startDictation: () => app.ctx.needVoiceKey(),
+  startTalk: () => {},
+  startDictation: () => {},
   isDictating: () => false,
+  isTranscribing: () => false,
 };
 
 /**
@@ -55,8 +57,12 @@ const root = document.getElementById("app");
 if (!root) throw new Error("Orbit needs <div id=\"app\">.");
 const app = createApp({ root, assistant, workspace, voice, xr, getSettings, updateSettings });
 
+// ---- Voice (§5): the speaker, the hands-free session, dictation, the overlay and the card ----
+const voiceShell = installVoice({ app, assistant, voice, getSettings });
+
 /** For later phases and the console: the running app's handles. */
-export const orbit = { app, assistant, workspace, voice, xr, VOICE_NEEDS_KEY };
+export const orbit = { app, assistant, workspace, voice, xr, voiceShell };
+(window as unknown as { orbit?: typeof orbit }).orbit = orbit;
 
 // ---- WebXR support: "Enter VR" and "Passthrough" show only when supported ----
 type XRSystemLike = { isSessionSupported(mode: XrMode): Promise<boolean> };
