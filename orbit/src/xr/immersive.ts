@@ -2,11 +2,18 @@
 // desktop preview. Loaded only through dynamic import() from main.ts, which
 // talks to it through the XrHost / Immersive contract in ./bridge.ts.
 //
+// Scenes (§8.7–8.8): the scene follows settings.environmentId. A panorama
+// loads through ./panorama (off the main thread, stale loads dropped) onto the
+// sky sphere; the lights and the particle pool switch with it. The clock scene
+// restores the clock sky, stars and floor. The soundscape lives in the app
+// (core/ambience.ts), which follows the same setting.
+//
 // Seams left for later phases:
-// - phase 6: `sky.setPanoramaMaterial()` / `sky.showClock()` (scenes), and the
-//   lights below get the per-scene colours.
 // - phase 7: `presence` (her spot, her hit target, celebrate/wave), the orb's
 //   0.35-scale "spark" beside her head, and host.onSpot.
+//   `presence.onSceneLook(panorama)` fires on every scene change: while a
+//   panorama shows there is no floor disc, so her VRM body needs its soft
+//   contact-shadow decal (§8.7); `presence.panorama` holds the current state.
 
 import * as THREE from "three";
 import { readJSON, writeJSON } from "../core/store";
@@ -15,6 +22,9 @@ import { createKeyboard } from "./keyboard";
 import { createOrb, orbLevel, orbMood } from "./orb";
 import { createPanel } from "./panel";
 import { PANEL_TEXT } from "./panelModel";
+import { environmentById, sceneLoadFailedText, type Environment } from "../core/environments";
+import { createPanoramaMaterial, createPanoramaSwitcher, loadPanoramaTexture, PANORAMA_MAX_ANISOTROPY } from "./panorama";
+import { createParticles } from "./particles";
 import { createClockSky } from "./sky";
 
 export type { Immersive };
@@ -90,10 +100,14 @@ export function createImmersive(host: XrHost): Immersive {
   // ---- World: sky, stars, floor and lights stay fixed ----
   const sky = createClockSky({ hour: parseHour(new URLSearchParams(location.search).get("hour")) });
   scene.add(sky.group);
-  const hemi = new THREE.HemisphereLight(0xcfe3ff, 0x1a1410, 1);
-  const key = new THREE.DirectionalLight(0xffe6c8, 1.3);
+  const clockEnv = environmentById("clock");
+  const hemi = new THREE.HemisphereLight(clockEnv.hemisphere.sky, clockEnv.hemisphere.ground, 1);
+  const key = new THREE.DirectionalLight(clockEnv.key.color, clockEnv.key.intensity);
   key.position.set(0.5, 2.5, 1.2);
   scene.add(hemi, key);
+  const particles = createParticles();
+  particles.setScene(clockEnv.particles);
+  scene.add(particles.points);
 
   // ---- The rig: everything the user interacts with ----
   const rig = new THREE.Group();
@@ -125,7 +139,53 @@ export function createImmersive(host: XrHost): Immersive {
     spot: loadSpot(),
     hitTarget: null as THREE.Object3D | null,
     celebrate: null as (() => void) | null,
+    /** A panorama is showing (no floor disc): her body wants its contact-shadow decal. */
+    panorama: false,
+    onSceneLook: null as ((panorama: boolean) => void) | null,
   };
+
+  // ---- Scenes (§8.7): panorama, lights and particles follow settings.environmentId ----
+  /** Lights and particles for a scene; the panorama or clock look on the sky. */
+  function applySceneLook(env: Environment, panoramaMaterial: THREE.Material | null): void {
+    hemi.color.setHex(env.hemisphere.sky);
+    hemi.groundColor.setHex(env.hemisphere.ground);
+    key.color.setHex(env.key.color);
+    key.intensity = env.key.intensity;
+    particles.setScene(env.particles);
+    sky.setPanoramaMaterial(panoramaMaterial);
+    sky.showClock(!panoramaMaterial);
+    presence.panorama = Boolean(panoramaMaterial);
+    presence.onSceneLook?.(presence.panorama);
+  }
+
+  const scenes = createPanoramaSwitcher<THREE.ShaderMaterial>({
+    load: (env) =>
+      loadPanoramaTexture(new URL(env.image ?? "", document.baseURI).href, maxAnisotropy()).then((tex) =>
+        createPanoramaMaterial(tex, env),
+      ),
+    showPanorama: (env, material) => applySceneLook(env, material),
+    showClock: () => applySceneLook(clockEnv, null),
+    discard: (material) => {
+      (material.uniforms.uMap.value as THREE.Texture).dispose();
+      material.dispose();
+    },
+    failed: (env) => {
+      const text = sceneLoadFailedText(env.name);
+      panel.message(text);
+      host.sceneFailed(text);
+    },
+  });
+
+  function maxAnisotropy(): number {
+    return renderer ? Math.min(PANORAMA_MAX_ANISOTROPY, renderer.capabilities.getMaxAnisotropy()) : 1;
+  }
+
+  /** Show the scene in settings. Loads start only once the renderer exists (a session or the preview). */
+  function syncScene(): void {
+    if (!renderer) return;
+    void scenes.set(environmentById(host.settings().environmentId));
+  }
+  host.subscribe(syncScene);
 
   // ---- Pointers: controllers in XR, the mouse in the preview ----
   const reticleGeo = new THREE.RingGeometry(0.008, 0.012, 32);
@@ -176,7 +236,8 @@ export function createImmersive(host: XrHost): Immersive {
         : ray.direction.clone().negate();
       return { kind: kindOf(first.object), point: first.point.clone(), uv: first.uv?.clone() ?? null, normal };
     }
-    if (!sky.floor.visible || ray.direction.y >= -1e-3) return null;
+    // The floor stays pickable under a panorama, where its disc is hidden.
+    if (ray.direction.y >= -1e-3) return null;
     const p = ray.intersectPlane(floorPlane, new THREE.Vector3());
     if (!p) return null;
     const head = headPosition(tmp.head);
@@ -324,6 +385,7 @@ export function createImmersive(host: XrHost): Immersive {
     time += dt;
 
     sky.update(time);
+    particles.update(time);
 
     const v = host.voice();
     const st = host.assistant();
@@ -355,6 +417,7 @@ export function createImmersive(host: XrHost): Immersive {
     lastFrame = performance.now();
     r.domElement.style.display = "block";
     panel.markDirty();
+    syncScene();
     r.setAnimationLoop(onFrame);
   }
 
@@ -397,6 +460,7 @@ export function createImmersive(host: XrHost): Immersive {
     session = s;
     passthrough = mode === "immersive-ar";
     sky.setVisible(!passthrough);
+    particles.setVisible(!passthrough);
     r.setClearColor(0x000000, passthrough ? 0 : 1);
     s.addEventListener("end", onSessionEnd, { once: true });
     try {
@@ -445,6 +509,7 @@ export function createImmersive(host: XrHost): Immersive {
     previewing = true;
     passthrough = false;
     sky.setVisible(true);
+    particles.setVisible(true);
     if (params.hour !== null) sky.setHourOverride(params.hour);
     sky.setStarScale(1);
 

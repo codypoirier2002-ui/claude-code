@@ -124,3 +124,13 @@ export function nextEnvironment(id: string | null | undefined): Environment {
 export function cssColor(n: number): string {
   return `#${(n & 0xffffff).toString(16).padStart(6, "0")}`;
 }
+
+/** The message when a panorama fails to load (§8.7): the panel in VR, the toast in 2D. */
+export function sceneLoadFailedText(name: string): string {
+  return `Couldn't load the ${name} scene. Going back to the clock sky.`;
+}
+
+/** Where a scene's soundscape lives, relative to the app base (§8.9). Every scene has one, the clock too. */
+export function ambienceFile(id: string): string {
+  return `ambience/${id}.ogg`;
+}

@@ -4,11 +4,12 @@
 // it only through `import type` (§2 code splitting).
 
 import "./ui/style.css";
+import { createAmbience, type AmbiencePlace } from "./core/ambience";
 import { createAssistant } from "./core/assistant";
 import { audioContext, existingAudioContext, playChime } from "./core/audioContext";
 import { checkInLine, doneLine } from "./core/focus";
 import { MODES } from "./core/modes";
-import { nextEnvironment } from "./core/environments";
+import { CLOCK_ENVIRONMENT_ID, ambienceFile, nextEnvironment } from "./core/environments";
 import { getRecognitionCtor, voiceReady } from "./core/session";
 import { getSettings, isConfigured, loadSettings, onSettings, updateSettings } from "./core/settings";
 import { readJSON, writeJSON } from "./core/store";
@@ -131,19 +132,27 @@ const xrHost: XrHost = {
     if (!on) voice.stop();
   },
   nextScene() {
-    // The sky stays the clock sky until phase 6 adds the panoramas.
+    // The VR module follows the setting: panorama, lights, particles; the soundscape crossfades.
     const env = nextEnvironment(getSettings().environmentId);
     updateSettings({ environmentId: env.id });
     return env.name;
   },
+  sceneFailed(message) {
+    toast(message);
+    updateSettings({ environmentId: CLOCK_ENVIRONMENT_ID });
+  },
   onExit() {
     // Stop listening, but let an answer that is streaming or being spoken finish.
     voiceShell.session.stop({ keepAnswer: true });
-    setXrActive(false);
+    setXrActive(false, "2d");
   },
 };
 
-function setXrActive(on: boolean): void {
+/** Where the app is, for the soundscape's play rules (§8.9). */
+let place: AmbiencePlace = "2d";
+
+function setXrActive(on: boolean, where: AmbiencePlace): void {
+  place = on ? where : "2d";
   xr.active = on;
   document.body.classList.toggle("in-xr", on);
   app.renderAll();
@@ -159,9 +168,9 @@ function loadImmersive(): Promise<Immersive> {
 
 function startImmersive(imm: Immersive, mode: XrMode): Promise<void> {
   // Mark the app as in VR first so the 2D portraits tear down; undo it if refused.
-  setXrActive(true);
+  setXrActive(true, mode === "immersive-ar" ? "ar" : "vr");
   return imm.enter(mode).catch((err: unknown) => {
-    if (!imm.isActive()) setXrActive(false);
+    if (!imm.isActive()) setXrActive(false, "2d");
     throw err;
   });
 }
@@ -209,7 +218,8 @@ function previewParams(search: string): PreviewParams | null {
 const preview = previewParams(location.search);
 if (preview) {
   void loadImmersive().then((imm) => {
-    setXrActive(true);
+    // The preview stands in for an immersive-vr session, soundscape included (after a click).
+    setXrActive(true, "vr");
     imm.preview(preview);
   });
 }
@@ -224,6 +234,33 @@ function unlockAudio(): void {
 }
 window.addEventListener("pointerdown", unlockAudio, true);
 window.addEventListener("keydown", unlockAudio, true);
+
+// ---- Soundscapes (§8.9): the context exists only after a tap, which is the 2D first-tap rule ----
+const ambience = createAmbience({
+  context: existingAudioContext,
+  read: () => {
+    const s = getSettings();
+    return {
+      sceneId: s.environmentId,
+      mode: s.ambience,
+      volume: s.ambienceVolume,
+      place,
+      speaking: voiceShell.speaker.speaking,
+      listening: voiceShell.session.state === "listening",
+    };
+  },
+  url: (id) => new URL(ambienceFile(id), document.baseURI).href,
+  fetchBytes: (url) =>
+    fetch(url).then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.arrayBuffer();
+    }),
+  every: (ms, fn) => {
+    const handle = setInterval(fn, ms);
+    return () => clearInterval(handle);
+  },
+});
+ambience.start();
 
 // ---- The one-second clock (§4.3) ----
 function clockTick(): void {

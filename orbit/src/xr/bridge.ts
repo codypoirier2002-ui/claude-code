@@ -65,6 +65,12 @@ export interface XrHost {
   toggleAloud(): void;
   /** 🌅 Scene: cycle settings.environmentId; returns the new scene's name. */
   nextScene(): string;
+  /**
+   * A panorama failed to load and the clock sky is back up. `message` is the
+   * §8.7 text; the VR module has already put it on the panel, and the app shows
+   * the toast and switches the setting back to the clock scene.
+   */
+  sceneFailed(message: string): void;
   /** The immersive session (or the preview) ended: stop voice but keep the answer. */
   onExit(): void;
   /** Phase 7: she glides to a new spot (the spot is already saved). */

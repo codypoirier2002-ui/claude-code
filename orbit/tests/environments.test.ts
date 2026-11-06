@@ -4,9 +4,11 @@ import { describe, expect, it } from "vitest";
 import {
   CLOCK_ENVIRONMENT_ID,
   ENVIRONMENTS,
+  ambienceFile,
   cssColor,
   environmentById,
   nextEnvironment,
+  sceneLoadFailedText,
 } from "../src/core/environments";
 
 const publicDir = resolve(__dirname, "../public");
@@ -66,5 +68,11 @@ describe("environments", () => {
   it("formats colours for CSS", () => {
     expect(cssColor(0x0c1418)).toBe("#0c1418");
     expect(cssColor(0xffe6c8)).toBe("#ffe6c8");
+  });
+
+  it("words the load failure and names each soundscape file", () => {
+    expect(sceneLoadFailedText("Night lake")).toBe("Couldn't load the Night lake scene. Going back to the clock sky.");
+    expect(ambienceFile("rooftop")).toBe("ambience/rooftop.ogg");
+    expect(ambienceFile("clock")).toBe("ambience/clock.ogg");
   });
 });
