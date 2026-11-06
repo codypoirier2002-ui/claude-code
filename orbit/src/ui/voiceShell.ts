@@ -4,6 +4,7 @@
 
 import type { Assistant } from "../core/assistant";
 import { audioContext } from "../core/audioContext";
+import { captureFrame } from "../core/camera";
 import { createDictation, createVoiceSession, getRecognitionCtor, voiceReady } from "../core/session";
 import { hasVoiceKey, onSettings, type Settings } from "../core/settings";
 import { createSpeaker } from "../core/voice";
@@ -50,7 +51,8 @@ export function installVoice(deps: VoiceShellDeps) {
     assistant,
     speaker,
     audioContext: requireAudioContext,
-    // captureFrame arrives with the camera in phase 8.
+    // With Look-on-request on, a look phrase takes a camera frame and sends it with the words (§4.6).
+    captureFrame: () => captureFrame(),
     takeGreeting: () => {
       const g = assistant.getState().greeting;
       if (!g || g.at === spokenGreetingAt) return null;

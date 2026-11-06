@@ -1,4 +1,4 @@
-// Seams for later phases. The 2D shell calls these; phase 4 (voice) and phase 5
+// Seams between the 2D shell and the layers it drives. The shell calls these; phase 4 (voice) and phase 5
 // (VR) replace the defaults with Object.assign on the exported objects, so no
 // caller has to change.
 

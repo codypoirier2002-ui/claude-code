@@ -940,8 +940,12 @@ describe("greeting", () => {
     expect(fake.createCalls).toHaveLength(2);
     // Restored after the failure, so the next start tries again.
     expect(JSON.parse(localStorage.getItem("orbit:lastGreeting")!)).toBe(saved);
+    // Dismissing hides the banner only: the greeting stays for "Hey, it's {name}" and Talk.
     assistant.dismissGreeting();
-    expect(assistant.getState().greeting).toBeNull();
+    expect(assistant.getState().greeting).toEqual({ text: "Morning! [giggles] Ready?", at: saved, dismissed: true });
+    const changes = assistant.getState();
+    assistant.dismissGreeting();
+    expect(assistant.getState().greeting).toEqual(changes.greeting);
   });
 
   it("removes lastGreeting again when the first ever call fails, and skips when not configured", async () => {

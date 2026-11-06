@@ -136,7 +136,17 @@ export function createApp(deps: AppDeps) {
   const overlayRenderers = new Set<() => void>();
 
   // Streaming: only the messages, the composer, the header status and the overlay.
-  assistant.on("onChange", () => requestRender("messages", "composer", "status", "overlay"));
+  // A reply starting or ending also refreshes the side panel, once each: a send
+  // records the visit (the streak) and a new thread bumps the chat count, both on
+  // the Memory tab's story card (§4.5, §6.4).
+  let wasBusy = assistant.getState().busy;
+  assistant.on("onChange", (s) => {
+    requestRender("messages", "composer", "status", "overlay");
+    if (s.busy !== wasBusy) {
+      wasBusy = s.busy;
+      requestRender("side");
+    }
+  });
   workspace.subscribe(() => requestRender("side"));
   onSettings(() => requestRender(...ALL));
 

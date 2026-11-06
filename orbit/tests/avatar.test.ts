@@ -109,12 +109,17 @@ describe("visemesFor", () => {
   });
 
   it("makes aa the dominant shape at full open, at every moment", () => {
+    // Checked once at the end: an expect per sample made this slow under load.
+    let lowestAa = Infinity;
+    let notDominant = 0;
     for (let i = 0; i < 4000; i++) {
       const v = visemesFor(1, i * 0.0137);
-      expect(v.aa).toBeGreaterThanOrEqual(0.55 - 1e-12);
-      for (const k of ["ih", "ou", "ee", "oh"] as const) expect(v.aa).toBeGreaterThan(v[k]);
+      lowestAa = Math.min(lowestAa, v.aa);
+      for (const k of ["ih", "ou", "ee", "oh"] as const) if (!(v.aa > v[k])) notDominant++;
     }
-  });
+    expect(lowestAa).toBeGreaterThanOrEqual(0.55 - 1e-12);
+    expect(notDominant).toBe(0);
+  }, 20_000);
 
   it("swings aa between 0.55 and 1 as the first oscillator turns", () => {
     const high = visemesFor(1, Math.PI / 2 / 7.3); // sin(7.3t) = 1, so a = 1
@@ -128,14 +133,19 @@ describe("visemesFor", () => {
 
   it("stays between 0 and 1 for any level and time", () => {
     const rand = seeded(42);
+    let lowest = Infinity;
+    let highest = -Infinity;
     for (let i = 0; i < 5000; i++) {
       const v = visemesFor(rand() * 3 - 0.75, rand() * 200);
       for (const k of SHAPES) {
-        expect(v[k]).toBeGreaterThanOrEqual(0);
-        expect(v[k]).toBeLessThanOrEqual(1);
+        // NaN would slip past min/max, so it pins the bounds outside the range instead.
+        lowest = Number.isNaN(v[k]) ? -1 : Math.min(lowest, v[k]);
+        highest = Number.isNaN(v[k]) ? 2 : Math.max(highest, v[k]);
       }
     }
-  });
+    expect(lowest).toBeGreaterThanOrEqual(0);
+    expect(highest).toBeLessThanOrEqual(1);
+  }, 20_000);
 
   it("reads a NaN level as silence", () => {
     const v = visemesFor(Number.NaN, 1);
@@ -383,7 +393,7 @@ describe("Blinker", () => {
     const share = doubles / (starts.length - doubles);
     expect(share).toBeGreaterThan(0.12);
     expect(share).toBeLessThan(0.18);
-  });
+  }, 20_000);
 
   it("ignores zero, negative and NaN steps, and survives a huge one", () => {
     const b = new Blinker(script(0));
@@ -407,10 +417,10 @@ describe("Blinker", () => {
     whole.update(30);
     for (let i = 0; i < 300; i++) parts.update(0.1);
     // Same schedule either way: the next ten seconds match step for step.
-    for (let i = 0; i < 10000; i++) {
-      expect(Math.abs(whole.update(0.001) - parts.update(0.001))).toBeLessThan(1e-6);
-    }
-  });
+    let worst = 0;
+    for (let i = 0; i < 10000; i++) worst = Math.max(worst, Math.abs(whole.update(0.001) - parts.update(0.001)));
+    expect(worst).toBeLessThan(1e-6);
+  }, 20_000);
 });
 
 // ---- Mood expression and pose --------------------------------------------------------

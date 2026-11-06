@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AvatarRecord } from "../src/core/blobstore";
 import { createCharacterHost, planSlots, type AvatarViewModule } from "../src/ui/characterHost";
 import { createSlot } from "../src/ui/slots";
@@ -156,6 +156,96 @@ describe("createCharacterHost", () => {
     await flush();
     t.host.cheer();
     expect(t.fake.views.map((v) => v.cheered)).toEqual([1, 1]);
+  });
+});
+
+describe("hidden tabs (§14)", () => {
+  /** Flips document.visibilityState and fires visibilitychange, as a tab switch would. */
+  function setHidden(hidden: boolean): void {
+    Object.defineProperty(document, "visibilityState", { value: hidden ? "hidden" : "visible", configurable: true });
+    Object.defineProperty(document, "hidden", { value: hidden, configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+  }
+
+  afterEach(() => {
+    setHidden(false);
+  });
+
+  it("tears her face down when the tab is hidden and rebuilds it when shown", async () => {
+    const t = setup();
+    await t.host.rebuild();
+    expect(t.host.kinds()).toEqual({ hero: "face", sidebar: "face", voice: "face" });
+    setHidden(true);
+    await flush();
+    expect(t.host.kinds()).toEqual({ hero: "orb", sidebar: "orb", voice: "orb" });
+    expect(t.slots.sidebar.el.querySelector(".char")).toBeNull();
+    setHidden(false);
+    await flush();
+    expect(t.host.kinds()).toEqual({ hero: "face", sidebar: "face", voice: "face" });
+    t.host.dispose();
+  });
+
+  it("disposes her VRM views while hidden and mounts fresh ones after", async () => {
+    const t = setup({ record: RECORD });
+    await t.host.rebuild();
+    await flush();
+    expect(t.fake.views).toHaveLength(2);
+    setHidden(true);
+    await flush();
+    expect(t.fake.views.every((v) => v.disposed)).toBe(true);
+    expect(t.host.kinds()).toEqual({ hero: "orb", sidebar: "orb", voice: "orb" });
+    setHidden(false);
+    await flush();
+    await flush();
+    expect(t.host.kinds()).toEqual({ hero: "orb", sidebar: "body", voice: "body" });
+    expect(t.fake.views).toHaveLength(4);
+    expect(t.loadAvatar).toHaveBeenCalledTimes(1); // the stored body is read once
+    t.host.dispose();
+  });
+
+  it("keeps the VR behaviour: a tab switch in VR changes nothing, and leaving VR while hidden stays torn down", async () => {
+    const t = setup();
+    await t.host.rebuild();
+    t.state.inXr = true;
+    await t.host.rebuild();
+    setHidden(true);
+    setHidden(false);
+    setHidden(true);
+    await flush();
+    expect(t.host.kinds()).toEqual({ hero: "orb", sidebar: "orb", voice: "orb" });
+    // Leaving VR rebuilds (main.ts does this) while the tab is still hidden: nothing comes back yet.
+    t.state.inXr = false;
+    await t.host.rebuild();
+    expect(t.host.kinds()).toEqual({ hero: "orb", sidebar: "orb", voice: "orb" });
+    setHidden(false);
+    await flush();
+    expect(t.host.kinds()).toEqual({ hero: "face", sidebar: "face", voice: "face" });
+    t.host.dispose();
+  });
+
+  it("does nothing on a visibilitychange that changes nothing, and stops after dispose", async () => {
+    const t = setup();
+    await t.host.rebuild();
+    const calls = t.loadAvatar.mock.calls.length;
+    document.dispatchEvent(new Event("visibilitychange")); // still visible
+    await flush();
+    expect(t.host.kinds()).toEqual({ hero: "face", sidebar: "face", voice: "face" });
+    t.host.dispose();
+    setHidden(true);
+    await flush();
+    expect(t.host.kinds()).toEqual({ hero: "face", sidebar: "face", voice: "face" });
+    expect(t.loadAvatar.mock.calls.length).toBe(calls);
+  });
+
+  it("starts torn down when the tab is already hidden", async () => {
+    setHidden(true);
+    const t = setup();
+    await t.host.rebuild();
+    expect(t.host.kinds()).toEqual({ hero: "orb", sidebar: "orb", voice: "orb" });
+    setHidden(false);
+    await flush();
+    expect(t.host.kinds()).toEqual({ hero: "face", sidebar: "face", voice: "face" });
+    t.host.dispose();
   });
 });
 

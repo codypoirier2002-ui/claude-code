@@ -132,6 +132,11 @@ export interface Greeting {
   text: string;
   /** Epoch ms when it arrived. */
   at: number;
+  /**
+   * The banner's "×" was tapped. Only the banner goes: the welcome still says
+   * "Hey, it's {name}" and Talk still says it once within 15 minutes (§3.8).
+   */
+  dismissed?: boolean;
 }
 
 export interface AssistantState extends LiveState {
@@ -984,8 +989,8 @@ export function createAssistant(deps: AssistantDeps) {
   }
 
   function dismissGreeting(): void {
-    if (!greeting) return;
-    greeting = null;
+    if (!greeting || greeting.dismissed) return;
+    greeting = { ...greeting, dismissed: true };
     changed();
   }
 

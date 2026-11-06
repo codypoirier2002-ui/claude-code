@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from "vitest";
-import type { DisplayTurn } from "../src/core/assistant";
-import { buildRows, enteringFrom } from "../src/ui/chat";
+import { describe, expect, it, vi } from "vitest";
+import type { AssistantState, DisplayTurn } from "../src/core/assistant";
+import { DEFAULT_SETTINGS } from "../src/core/settings";
+import { buildRows, createConversation, enteringFrom } from "../src/ui/chat";
+import type { AppCtx } from "../src/ui/context";
 import { createSlot } from "../src/ui/slots";
 import { sceneUrl } from "../src/ui/app";
 
@@ -89,5 +91,106 @@ describe("sceneUrl", () => {
     expect(sceneUrl("skies/thumbs/beach.jpg", "https://orbit.example/app/index.html")).toBe(
       'url("https://orbit.example/app/skies/thumbs/beach.jpg")',
     );
+  });
+});
+
+// ---- The greeting and follow-ups in the conversation (§3.8, §6.5) ----
+
+function conversationHarness(over: Partial<AssistantState> = {}) {
+  let state = {
+    modeId: "chat",
+    suggestions: [],
+    greeting: null,
+    turns: [],
+    lastTier: null,
+    pending: null,
+    hasPending: false,
+    thinkHarderTarget: null,
+    ...idle,
+    ...over,
+  } as unknown as AssistantState;
+  const send = vi.fn();
+  const dismissGreeting = vi.fn(() => {
+    if (state.greeting) state = { ...state, greeting: { ...state.greeting, dismissed: true } };
+  });
+  const restore = vi.fn();
+  const ctx = {
+    assistant: { getState: () => state, send, dismissGreeting, thinkHarder: vi.fn(), retry: vi.fn() },
+    getSettings: () => ({ ...DEFAULT_SETTINGS, apiKey: "sk-ant-test" }),
+    slots: { hero: createSlot("hero") },
+    voice: { startTalk: vi.fn(), canSpeak: () => false, say: vi.fn() },
+    composer: { restore, clearIfDraft: vi.fn(), focus: vi.fn() },
+    toast: vi.fn(),
+    openSettings: vi.fn(),
+    needVoiceKey: vi.fn(),
+  } as unknown as AppCtx;
+  const conv = createConversation(ctx);
+  return {
+    conv,
+    send,
+    dismissGreeting,
+    restore,
+    set(patch: Partial<AssistantState>) {
+      state = { ...state, ...patch };
+    },
+  };
+}
+
+describe("the greeting (§3.8, §6.5)", () => {
+  it("says “Hi, I'm Callie” until a greeting exists, then “Hey, it's Callie” with the banner", () => {
+    const t = conversationHarness();
+    t.conv.render();
+    expect(t.conv.list.querySelector(".welcome h1")?.textContent).toBe("Hi, I'm Callie");
+    expect(t.conv.banner.childElementCount).toBe(0);
+
+    t.set({ greeting: { text: "[giggles] Morning! Your tea timer has 5 minutes left.", at: 1 } });
+    t.conv.render();
+    expect(t.conv.list.querySelector(".welcome h1")?.textContent).toBe("Hey, it's Callie");
+    // Audio tags never show.
+    expect(t.conv.banner.querySelector(".greeting-text")?.textContent).toBe("Morning! Your tea timer has 5 minutes left.");
+  });
+
+  it("dismisses only the banner: the welcome keeps “Hey, it's Callie”", () => {
+    const t = conversationHarness({ greeting: { text: "Hi there!", at: 1 } });
+    t.conv.render();
+    t.conv.banner.querySelector<HTMLButtonElement>(".greeting .x")!.click();
+    expect(t.dismissGreeting).toHaveBeenCalledTimes(1);
+    t.conv.render();
+    expect(t.conv.banner.childElementCount).toBe(0);
+    expect(t.conv.list.querySelector(".welcome h1")?.textContent).toBe("Hey, it's Callie");
+  });
+
+  it("is never added to the conversation", () => {
+    const t = conversationHarness({ greeting: { text: "Hi there!", at: 1 }, turns: [user("hello", 0), her("Hey!", 1)] });
+    t.conv.render();
+    expect([...t.conv.list.querySelectorAll(".md")].map((e) => e.textContent)).toEqual(["Hey!"]);
+  });
+});
+
+describe("follow-up chips (§3.8, §6.5)", () => {
+  it("sit under her last reply and send just that text, leaving the composer alone", () => {
+    const t = conversationHarness({
+      turns: [user("one", 0), her("first", 1), user("two", 2), her("second", 3)],
+      suggestions: ["Tell me more", "Yes, do it"],
+    });
+    t.conv.render();
+    const groups = t.conv.list.querySelectorAll(".followups");
+    expect(groups).toHaveLength(1);
+    const rows = t.conv.list.querySelectorAll(".her-row");
+    expect(rows[rows.length - 1].querySelector(".followups")).toBe(groups[0]);
+    const chips = [...groups[0].querySelectorAll<HTMLButtonElement>(".followup")];
+    expect(chips.map((c) => c.textContent)).toEqual(["Tell me more", "Yes, do it"]);
+    chips[1].click();
+    expect(t.send).toHaveBeenCalledWith({ text: "Yes, do it" });
+    expect(t.restore).not.toHaveBeenCalled();
+  });
+
+  it("disappear while a reply streams and when there are none", () => {
+    const t = conversationHarness({ turns: [user("one", 0), her("first", 1)], suggestions: [] });
+    t.conv.render();
+    expect(t.conv.list.querySelector(".followups")).toBeNull();
+    t.set({ suggestions: ["Tell me more"], busy: true, turns: [user("one", 0), her("first", 1), user("again", 2)] });
+    t.conv.render();
+    expect(t.conv.list.querySelector(".followups")).toBeNull();
   });
 });

@@ -236,7 +236,7 @@ export function createConversation(ctx: AppCtx) {
   }
 
   function renderBanner(state: AssistantState): void {
-    if (!state.greeting) {
+    if (!state.greeting || state.greeting.dismissed) {
       banner.replaceChildren();
       return;
     }

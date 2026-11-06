@@ -1,8 +1,9 @@
 // Who fills the three character slots (§7.3, §7.4): her animated 2D face, her
 // VRM head-and-shoulders view, or the CSS orb. One rebuild() decides for all
 // three; it runs at start-up, when "Her body" loads or removes a VRM, when
-// "Show her animated face" changes, and on entering and leaving VR (every view
-// is torn down while VR runs, §14). three.js and three-vrm load only when a VRM
+// "Show her animated face" changes, on entering and leaving VR, and when the tab
+// is hidden or shown again (every view is torn down while VR runs and while the
+// tab is hidden, §14). three.js and three-vrm load only when a VRM
 // is stored, through the injected importer, so they stay out of the main bundle.
 
 import type { Mood } from "../core/avatarMotion";
@@ -39,6 +40,20 @@ export interface CharacterHostDeps {
   loadAvatar: () => Promise<AvatarRecord | null>;
   /** import("../xr/avatar"). */
   importAvatar: () => Promise<AvatarViewModule>;
+  /** The tab is hidden. Defaults to document.visibilityState. */
+  isHidden?: () => boolean;
+  /** Calls `fn` when the tab is hidden or shown; returns an unsubscribe. Defaults to visibilitychange on document. */
+  onVisibilityChange?: (fn: () => void) => () => void;
+}
+
+function documentHidden(): boolean {
+  return typeof document !== "undefined" && document.visibilityState === "hidden";
+}
+
+function onDocumentVisibility(fn: () => void): () => void {
+  if (typeof document === "undefined") return () => {};
+  document.addEventListener("visibilitychange", fn);
+  return () => document.removeEventListener("visibilitychange", fn);
 }
 
 /** What each slot shows. */
@@ -72,6 +87,9 @@ export function createCharacterHost(deps: CharacterHostDeps) {
   let generation = 0;
 
   const getters = { getMood: deps.getMood, getLevel: deps.getLevel, getText: deps.getText };
+  const isHidden = deps.isHidden ?? documentHidden;
+  /** Whether the last rebuild tore the views down for a hidden tab. */
+  let tornDownForHidden = false;
 
   function orb(slot: CharacterSlot): void {
     views.delete(slot);
@@ -107,9 +125,11 @@ export function createCharacterHost(deps: CharacterHostDeps) {
     const gen = ++generation;
     if (opts.reloadBody || !record) record = deps.loadAvatar();
     const inXr = deps.inXr();
+    const hidden = isHidden();
+    tornDownForHidden = hidden && !inXr;
     const showCharacter = deps.getSettings().showCharacter;
-    if (inXr) {
-      // Tear everything down at once; the stored body is not needed for that.
+    if (inXr || hidden) {
+      // Tear everything down at once (VR, or a hidden tab); the stored body is not needed for that.
       for (const slot of Object.values(slots)) orb(slot);
       return;
     }
@@ -137,8 +157,19 @@ export function createCharacterHost(deps: CharacterHostDeps) {
     }
   }
 
+  // Hidden tab: tear the views down; visible again: rebuild them (§14). In VR
+  // they are already down and the session's exit rebuilds them.
+  const stopWatching = (deps.onVisibilityChange ?? onDocumentVisibility)(() => {
+    if (deps.inXr()) return;
+    const hidden = isHidden();
+    if (hidden === tornDownForHidden) return;
+    void rebuild();
+  });
+
   return {
     rebuild,
+    /** Stops following the tab's visibility. */
+    dispose: stopWatching,
     /** A finished focus session (§7.2): every live view smiles and hops. */
     cheer(): void {
       for (const v of views.values()) v.cheer();

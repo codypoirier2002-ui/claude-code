@@ -614,11 +614,26 @@ describe("FaceRig", () => {
     expect(rig.update(0.016, "idle", 0).talk).toBeLessThan(1);
   });
 
+  // Bounds are gathered over the run and checked once: one expect per frame made
+  // this 7200-frame run slow enough to time out under load, with no extra coverage.
   it("keeps every output in range through a long mixed run", () => {
     const rand = seeded(2024);
     const rig = new FaceRig(seeded(77));
     const moods: Mood[] = ["idle", "listening", "thinking", "speaking"];
     const texts = ["", "Sure, one moment.", "Haha, nice one!", "Wow!!", "oh my", "x".repeat(300), "Done! Great! Lovely!"];
+    const unit = ["talk", "smile", "think", "wow", "hop"] as const;
+    const lo: Record<string, number> = {};
+    const hi: Record<string, number> = {};
+    for (const k of unit) {
+      lo[k] = Infinity;
+      hi[k] = -Infinity;
+    }
+    let maxBreath = 0;
+    let maxSway = 0;
+    let maxTilt = 0;
+    let maxPitch = 0;
+    let badBlinks = 0;
+    let nonFinite = 0;
     let mood: Mood = "idle";
     let text = "";
     for (let i = 0; i < 60 * 120; i++) {
@@ -628,15 +643,28 @@ describe("FaceRig", () => {
         if (rand() < 0.3) rig.cheer();
       }
       const f = rig.update(1 / 60, mood, rand(), text);
-      for (const key of ["talk", "smile", "think", "wow", "hop"] as const) {
-        expect(f[key], key).toBeGreaterThanOrEqual(0);
-        expect(f[key], key).toBeLessThanOrEqual(1);
+      for (const k of unit) {
+        if (!Number.isFinite(f[k])) nonFinite++;
+        if (f[k] < lo[k]) lo[k] = f[k];
+        if (f[k] > hi[k]) hi[k] = f[k];
       }
-      expect(f.blink === 0 || f.blink === 1).toBe(true);
-      expect(Math.abs(f.breath)).toBeLessThanOrEqual(1);
-      expect(Math.abs(f.sway)).toBeLessThanOrEqual(0.025 + 1e-12);
-      expect(Math.abs(f.tilt)).toBeLessThanOrEqual(0.2);
-      expect(Math.abs(f.pitch)).toBeLessThanOrEqual(0.2);
+      if (f.blink !== 0 && f.blink !== 1) badBlinks++;
+      if (!Number.isFinite(f.breath + f.sway + f.tilt + f.pitch)) nonFinite++;
+      maxBreath = Math.max(maxBreath, Math.abs(f.breath));
+      maxSway = Math.max(maxSway, Math.abs(f.sway));
+      maxTilt = Math.max(maxTilt, Math.abs(f.tilt));
+      maxPitch = Math.max(maxPitch, Math.abs(f.pitch));
     }
-  });
+    for (const k of unit) {
+      expect(lo[k], k).toBeGreaterThanOrEqual(0);
+      expect(hi[k], k).toBeLessThanOrEqual(1);
+    }
+    expect(nonFinite).toBe(0);
+    expect(badBlinks).toBe(0);
+    expect(maxBreath).toBeLessThanOrEqual(1);
+    expect(maxSway).toBeLessThanOrEqual(0.025 + 1e-12);
+    expect(maxTilt).toBeLessThanOrEqual(0.2);
+    expect(maxPitch).toBeLessThanOrEqual(0.2);
+  }, 20_000);
+
 });

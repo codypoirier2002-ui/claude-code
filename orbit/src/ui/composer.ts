@@ -3,6 +3,7 @@
 
 import type { Attachment } from "../core/assistant";
 import { audioContext } from "../core/audioContext";
+import { captureFrame as defaultCaptureFrame } from "../core/camera";
 import { prepareImage } from "../core/images";
 import { DICTATION_TEXT } from "../core/session";
 import { assistantName, isConfigured } from "../core/settings";
@@ -12,10 +13,10 @@ import { h } from "./dom";
 export const TEXTAREA_MAX_PX = 180;
 export const LOOK_PLACEHOLDER = "What should I look at?";
 
-export function createComposer(ctx: AppCtx) {
+export function createComposer(ctx: AppCtx, captureFrame: () => Promise<string> = () => defaultCaptureFrame()) {
   const { assistant } = ctx;
   let attachment: Attachment | undefined;
-  /** The attachment came from the headset camera (phase 8); drives the 👁 placeholder. */
+  /** The attachment came from the headset camera; drives the 👁 placeholder. */
   let fromCamera = false;
   let capturing = false;
 
@@ -59,7 +60,7 @@ export function createComposer(ctx: AppCtx) {
       class: "icon-btn look",
       title: "Show her what you see (headset camera)",
       "aria-label": "Show her what you see (headset camera)",
-      onClick: () => ctx.toast("Camera comes in a later build"),
+      onClick: () => void look(),
     },
     "👁",
   );
@@ -128,6 +129,21 @@ export function createComposer(ctx: AppCtx) {
     }
   }
 
+  /** 👁 (§6.6): one headset-camera frame, attached like a picked image. */
+  async function look(): Promise<void> {
+    if (capturing) return;
+    capturing = true;
+    render();
+    try {
+      setAttachment({ data: await captureFrame() }, true);
+    } catch (err) {
+      ctx.toast(err instanceof Error && err.message ? err.message : "Couldn't open the camera.");
+    } finally {
+      capturing = false;
+      render();
+    }
+  }
+
   function send(): void {
     if (assistant.getState().busy) return;
     const text = textarea.value;
@@ -171,15 +187,9 @@ export function createComposer(ctx: AppCtx) {
       setAttachment(undefined);
       autosize();
     },
-    /** Phase 8's camera: pulse 👁 while a frame is being taken. */
-    setCapturing(on: boolean): void {
-      capturing = on;
-      render();
-    },
-    /** Phase 8's camera: attach a frame that went through prepareImage. */
-    attachCameraFrame(data: string): void {
-      setAttachment({ data }, true);
-    },
+    /** 👁, as a tap would press it. */
+    look,
+    isCapturing: () => capturing,
     getDraft: () => textarea.value,
     setDraft(text: string): void {
       textarea.value = text;

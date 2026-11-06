@@ -10,6 +10,7 @@ import { audioContext, existingAudioContext, playChime } from "./core/audioConte
 import type { Mood } from "./core/avatarMotion";
 import { loadAvatar } from "./core/blobstore";
 import { checkInLine, doneLine } from "./core/focus";
+import { exitClosesApp, launchAction, readLaunchEnv, vrRefusedToast } from "./core/launch";
 import { MODES } from "./core/modes";
 import { CLOCK_ENVIRONMENT_ID, ambienceFile, nextEnvironment } from "./core/environments";
 import { getRecognitionCtor, voiceReady } from "./core/session";
@@ -25,6 +26,8 @@ import { installVoice } from "./ui/voiceShell";
 import type { Immersive, PreviewParams, XrHost, XrModule } from "./xr/bridge";
 
 loadSettings();
+/** How the page was started: the Quest store build, and whether it is the immersive one (§11). */
+const launchEnv = readLaunchEnv();
 // Her six face layers start decoding before the shell is built (§7.3).
 if (getSettings().showCharacter) void preloadCharacter();
 
@@ -110,7 +113,7 @@ onSettings((s) => {
   void characters.rebuild();
 });
 
-/** For later phases and the console: the running app's handles. */
+/** For the console and the browser checks: the running app's handles. */
 export const orbit = { app, assistant, workspace, voice, xr, voiceShell, characters };
 (window as unknown as { orbit?: typeof orbit }).orbit = orbit;
 
@@ -192,6 +195,8 @@ const xrHost: XrHost = {
     // Stop listening, but let an answer that is streaming or being spoken finish.
     voiceShell.session.stop({ keepAnswer: true });
     setXrActive(false, "2d");
+    // The installed immersive build that is set up closes when VR ends (§11).
+    if (exitClosesApp(launchEnv, getSettings())) window.close();
   },
 };
 
@@ -248,6 +253,14 @@ if (xrSystem) {
     if (vr || ar) {
       app.requestRender("header");
       void loadImmersive().catch(() => {});
+    }
+    // Launch modes (§11): the store builds can open straight into VR. A refusal
+    // falls back to 2D quietly, with a toast only in the immersive build.
+    if (launchAction(launchEnv, vr, getSettings()) === "enter-vr") {
+      void Promise.resolve(xr.enter("immersive-vr")).catch(() => {
+        const m = vrRefusedToast(launchEnv);
+        if (m) toast(m);
+      });
     }
   });
 }
@@ -355,3 +368,8 @@ clockTick();
 
 // The greeting (§3.8): at startup when configured, throttled inside the engine.
 void assistant.fetchGreeting();
+
+// The service worker (§12): production builds only, so dev never serves stale files.
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {});
+}
