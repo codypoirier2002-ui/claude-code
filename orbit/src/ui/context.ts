@@ -1,0 +1,42 @@
+// What every 2D shell module gets from app.ts.
+
+import type { Assistant, Attachment } from "../core/assistant";
+import type { Settings } from "../core/settings";
+import type { Workspace } from "../core/workspace";
+import type { VoiceHooks, XrBridge } from "./hooks";
+import type { CharacterSlot } from "./slots";
+
+export type RenderPart = "rail" | "header" | "status" | "side" | "messages" | "composer" | "backdrop" | "overlay";
+
+/** Settings sections openSettings can scroll to. */
+export type SettingsSection = "apiKey" | "voice";
+
+export interface AppCtx {
+  assistant: Assistant;
+  workspace: Workspace;
+  voice: VoiceHooks;
+  xr: XrBridge;
+  getSettings(): Settings;
+  updateSettings(patch: Partial<Settings>): Settings;
+  toast(message: string): void;
+  openSettings(section?: SettingsSection): void;
+  /** Coalesced into one requestAnimationFrame. */
+  requestRender(...parts: RenderPart[]): void;
+  toggleDrawer(force?: boolean): void;
+  slots: { hero: CharacterSlot; sidebar: CharacterSlot; voice: CharacterSlot };
+  /** Composer access for the conversation (Retry, failed sends) and the voice overlay. */
+  composer: {
+    focus(): void;
+    /** Put a failed message back (text and image) unless the user already typed something. */
+    restore(text: string, attachment?: Attachment): void;
+    /** Clear the draft if it still holds exactly this text (Retry resends it). */
+    clearIfDraft(text: string): void;
+  };
+  /** Voice not ready (§5.6): toast SESSION_TEXT.needsKey and open Settings at Voice. */
+  needVoiceKey(): void;
+  /**
+   * Rebuild her views in the three slots (§7.3). `reloadBody` re-reads the stored
+   * VRM, after "Her body" loads or removes one. main.ts installs the real one.
+   */
+  rebuildCharacters(opts?: { reloadBody?: boolean }): Promise<void>;
+}

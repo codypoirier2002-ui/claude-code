@@ -1,0 +1,17 @@
+{
+  "name": "Orbit: AI Assistant",
+  "short_name": "Orbit",
+  "description": "An all-in-one Claude assistant for Meta Quest: chat, voice, web search, timers, tasks, notes and an immersive VR mode.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0f1218",
+  "theme_color": "#0f1218",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

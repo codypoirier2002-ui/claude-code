@@ -1,0 +1,8 @@
+{
+  "beach": { "k": 160, "bands": 5 },
+  "lake": { "k": 96, "bands": 4 },
+  "loft": { "k": 160, "bands": 5 },
+  "deck": { "k": 160, "bands": 5 },
+  "forest": { "k": 96, "bands": 4 },
+  "rooftop": { "k": 96, "bands": 4 }
+}
