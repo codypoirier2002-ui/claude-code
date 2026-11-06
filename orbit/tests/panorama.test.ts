@@ -94,7 +94,7 @@ describe("panorama material and texture", () => {
     const tex = new THREE.Texture();
     const m = createPanoramaMaterial(tex, environmentById("beach"));
     expect(m.uniforms.uHorizon.value).toBe(0.5);
-    expect(m.uniforms.uSeam.value).toBe(0.04);
+    expect(m.uniforms.uSeam.value).toBe(environmentById("beach").seam);
     expect(m.uniforms.uMap.value).toBe(tex);
     expect(m.side).toBe(THREE.BackSide);
     expect(m.fragmentShader).toContain("textureGrad");

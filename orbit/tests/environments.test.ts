@@ -43,7 +43,8 @@ describe("environments", () => {
       expect(e.particles.count).toBeGreaterThan(0);
     }
     expect(environmentById("rooftop").particles).toEqual({ kind: "rain", color: 0xd8c8ff, count: 700 });
-    expect(environmentById("beach").seam).toBe(0.04);
+    // The panoramas are made to wrap in the image (docs/ASSETS.md), so the mirrored seam blend is off everywhere.
+    for (const e of ENVIRONMENTS) expect(e.seam).toBe(0);
     expect(environmentById("lake").hemisphere).toEqual({ sky: 0x9fb8ff, ground: 0x0c1418 });
   });
 
