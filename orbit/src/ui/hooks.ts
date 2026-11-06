@@ -1,8 +1,8 @@
-// Seams between the 2D shell and the layers it drives. The shell calls these; phase 4 (voice) and phase 5
-// (VR) replace the defaults with Object.assign on the exported objects, so no
-// caller has to change.
+// Seams between the 2D shell and the layers it drives. The shell calls these;
+// ui/voiceShell.ts (voice) and main.ts (VR) replace the defaults with
+// Object.assign on the exported objects, so no caller has to change.
 
-/** The voice layer (§5). Phase 4 registers the real speaker, session and dictation (ui/voiceShell.ts). */
+/** The voice layer (§5). ui/voiceShell.ts registers the real speaker, session and dictation. */
 export interface VoiceHooks {
   /** Queue a line after whatever is playing (the clock's timer, reminder and focus lines). */
   speak(text: string): void;

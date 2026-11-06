@@ -1,4 +1,4 @@
-// Phase 4's wiring (§5, §6.7, §6.8): the speaker, the hands-free session,
+// The voice wiring (§5, §6.7, §6.8): the speaker, the hands-free session,
 // composer dictation, Read aloud, the voice overlay and the voice card, all
 // registered on the shell's `voice` hooks with Object.assign.
 

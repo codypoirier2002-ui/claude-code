@@ -1,7 +1,7 @@
 // The clock sky, the stars and the floor (§8.6, scene "Follows the clock").
 // All three stay fixed in world space. Uniforms come from core/sky.ts's
 // skyFor(hour) and refresh only every 30 s (§14); the per-frame work is a time
-// uniform. Phase 6 runs the panorama shader on the same sphere through
+// uniform. Panorama scenes run their shader on the same sphere through
 // setPanoramaMaterial() and hides the stars and floor through showClock(false).
 
 import * as THREE from "three";
@@ -101,7 +101,7 @@ void main() {
 }`;
 
 export interface ClockSky {
-  /** The inside-out sphere. Phase 6 swaps its material for the panorama shader. */
+  /** The inside-out sphere. Panorama scenes swap its material for the panorama shader. */
   sphere: THREE.Mesh;
   stars: THREE.Points;
   floor: THREE.Mesh;
@@ -114,9 +114,9 @@ export interface ClockSky {
   /** Re-read skyFor right away (after an hour override changes). */
   refresh(now?: number): void;
   setHourOverride(hour: number | null): void;
-  /** Phase 6 seam: a panorama material on the sphere, or null for the clock sky. */
+  /** A panorama material on the sphere, or null for the clock sky. */
   setPanoramaMaterial(material: THREE.Material | null): void;
-  /** Phase 6 seam: the clock look (stars, floor, sphere at the origin) or the panorama look (sphere at y 1.6, no stars or floor). */
+  /** The clock look (stars, floor, sphere at the origin) or the panorama look (sphere at y 1.6, no stars or floor). */
   showClock(on: boolean): void;
   /** Passthrough hides the whole environment. */
   setVisible(on: boolean): void;

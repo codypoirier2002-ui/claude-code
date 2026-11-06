@@ -1,5 +1,5 @@
 // The seven VR scenes (§8.7): pure data. The table order is also the order the
-// 🌅 Scene button cycles through. Phase 6 adds the panorama shader on top.
+// 🌅 Scene button cycles through. xr/panorama.ts draws the panoramas.
 
 export type ParticleKind = "motes" | "fireflies" | "rain";
 

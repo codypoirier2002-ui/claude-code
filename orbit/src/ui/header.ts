@@ -27,7 +27,7 @@ export function createHeader(ctx: AppCtx) {
     void Promise.resolve()
       .then(() => ctx.xr.enter(mode))
       .catch(() => {
-        // Phase 5 decides what a refused session shows; never an unhandled rejection.
+        // main.ts handles a refused session (quietly in 2D, §11); never an unhandled rejection.
       });
   }
 

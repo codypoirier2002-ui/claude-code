@@ -124,15 +124,27 @@ Steps:
 3. **Fill in the template.** Copy the template you picked to `twa/twa-manifest.json` and
    replace `REPLACE_ORG` (your package id, `com.<org>.orbit`), `REPLACE_DOMAIN` and the
    signing key's path and alias. Keep the keystore outside the repository; `.gitignore`
-   already ignores keystores and every bubblewrap output. Then, from `twa/`:
+   already ignores keystores and every bubblewrap output. Install the CLI once with
+   `npm i -g @meta-quest/bubblewrap-cli` (its first run downloads a JDK and the Android
+   SDK). It has no password flags: it reads the keystore and key passwords from the
+   `BUBBLEWRAP_KEYSTORE_PASSWORD` and `BUBBLEWRAP_KEY_PASSWORD` environment variables.
+   Then, from `twa/`:
 
    ```sh
    bubblewrap update && bubblewrap build
    ```
 
+   The build writes `app-release-signed.apk`. Raise the version code for every upload.
+
 4. **Link the app to the site.** Add `/.well-known/assetlinks.json` to the deployed site
-   with your package id and the SHA-256 fingerprint of your signing key (bubblewrap
-   prints it; `bubblewrap fingerprint` shows it again). Put the file in
+   with your package id and the SHA-256 fingerprint of your signing key.
+   `bubblewrap fingerprint generateAssetLinks` writes that file for you
+   (`bubblewrap fingerprint list` shows the fingerprints it knows). Put the file in
    `public/.well-known/` and deploy again.
 5. **Upload** the signed build to the ALPHA release channel with
-   `ovr-platform-util upload-quest-build --app-id <id> --app-secret <secret> --apk app-release-signed.apk --channel ALPHA`.
+   `ovr-platform-util`. `--age-group` is required (`TEENS_AND_ADULTS`, `MIXED_AGES` or
+   `CHILDREN`), and `--token` can stand in for `--app-secret`:
+
+   ```sh
+   ovr-platform-util upload-quest-build --app-id <id> --app-secret <secret> --apk app-release-signed.apk --channel ALPHA --age-group TEENS_AND_ADULTS
+   ```
