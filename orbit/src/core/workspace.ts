@@ -277,6 +277,20 @@ export function createWorkspace(deps: WorkspaceDeps = {}) {
       return true;
     },
 
+    /** Un-checks a completed task (the side panel's checkbox). */
+    reopenTask(id: string): boolean {
+      if (!state.tasks.some((x) => x.id === id && x.done)) return false;
+      commit({ tasks: state.tasks.map((x) => (x.id === id ? { ...x, done: false } : x)) });
+      return true;
+    },
+
+    /** Removes a task (the side panel's "×"). */
+    deleteTask(id: string): boolean {
+      if (!state.tasks.some((x) => x.id === id)) return false;
+      commit({ tasks: state.tasks.filter((x) => x.id !== id) });
+      return true;
+    },
+
     listTasks(includeDone = false): Task[] {
       return state.tasks.filter((x) => includeDone || !x.done);
     },

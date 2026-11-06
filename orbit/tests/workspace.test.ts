@@ -161,6 +161,18 @@ describe("tasks", () => {
       ["Call mom", false],
     ]);
   });
+
+  it("reopens and deletes tasks", () => {
+    const { ws } = setup();
+    const a = ws.addTask("Stretch");
+    expect(ws.reopenTask(a.id)).toBe(false);
+    ws.completeTask(a.id);
+    expect(ws.reopenTask(a.id)).toBe(true);
+    expect(ws.listTasks().map((x) => x.text)).toEqual(["Stretch"]);
+    expect(ws.deleteTask(a.id)).toBe(true);
+    expect(ws.deleteTask(a.id)).toBe(false);
+    expect(ws.listTasks(true)).toEqual([]);
+  });
 });
 
 describe("notes", () => {
