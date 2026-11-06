@@ -26,7 +26,7 @@ export interface VoiceHooks {
   isTranscribing(): boolean;
 }
 
-/** The XR bridge (§4.3, §6.3). Phase 5 fills it in. */
+/** The XR bridge (§4.3, §6.3). main.ts fills it in from the VR module (src/xr/bridge.ts has the module side). */
 export type XrMode = "immersive-vr" | "immersive-ar";
 
 export interface XrBridge {
