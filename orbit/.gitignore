@@ -1,15 +1,26 @@
 node_modules
 dist
 
-# Signing keystores
+# Signing keystores and the passwords that go with them
 *.keystore
 *.jks
+*.p12
+*.pfx
+keystore.properties
 
 # TWA build outputs
 twa/app
 twa/android
 twa/*.apk
 twa/*.aab
+# Only the two templates in twa/ are tracked. A filled-in copy (your package id,
+# domain and keystore path) and anything bubblewrap generates stay local.
+twa/*
+!twa/twa-manifest.template.json
+!twa/twa-manifest.immersive.template.json
 
 .vercel
 .env.local
+.env
+.env.*
+!.env.example
