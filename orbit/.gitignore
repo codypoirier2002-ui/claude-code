@@ -1,0 +1,15 @@
+node_modules
+dist
+
+# Signing keystores
+*.keystore
+*.jks
+
+# TWA build outputs
+twa/app
+twa/android
+twa/*.apk
+twa/*.aab
+
+.vercel
+.env.local
