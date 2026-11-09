@@ -2,8 +2,10 @@
 
 A mod is a Claude Code plugin whose behaviour lives in a hooks module: one
 `register(on, options)` entry that hooks the engine's events as functions
-`($, e, next)`. These four ship inside Claude Code; this folder is their
-source, published as it is built into the binary.
+`($, e, next)`. The first four below ship inside Claude Code; this folder is
+their source, published as it is built into the binary. The last,
+`model-scale`, is this repository's own: it is not part of Claude Code, and
+you load it yourself.
 
 | Mod | What it does | Seated |
 | --- | --- | --- |
@@ -11,6 +13,7 @@ source, published as it is built into the binary.
 | [`diff`](diff) | `/diff`: the session's uncommitted changes in a pane beside the transcript, file by file with their hunks, refreshed as Claude edits files and runs commands. | Built in |
 | [`telemetry`](telemetry) | Hooks `$.telemetry`'s two events (`log`, `mark`), adding the noun in the `engine.create` fold where the engine has none, so a built-in plugin can record an event as a first-party analytics row, sent in batches; refuses installed plugins; sends nothing wherever Claude Code's analytics are off. | Built in |
 | [`agents-md`](agents-md) | `AGENTS.md` as project instructions, by one option: loaded where the project has no `CLAUDE.md` of its own (`claude-md-or-agents-md`, the default) or beside it (`claude-md-and-agents-md`), placed and framed exactly as the engine places `CLAUDE.md`, nested ones on a `Read`; or the project's and the person's instruction files dropped and the organization's kept (`managed-only`); or `CLAUDE.md` alone, as the engine reads it (`claude-md`). | Built in |
+| [`model-scale`](model-scale) | Routes work to the cheapest Claude model and effort that should do it well: scores each prompt on a six-level scale (Haiku to Fable) and sets the thinking effort for the turn, or in `full` mode also picks the model for a new conversation; gives general-purpose subagents the model their task means; `/scale` shows the scale, changes the settings and reports an estimated saving. | Not built in: this repository's own mod, loaded with `claude --plugin-dir mods/model-scale` |
 
 Each folder is a complete plugin: `.claude-plugin/plugin.json`, a
 `hooks/hooks.json` naming the module, and TypeScript under `hooks/` typed
@@ -113,5 +116,5 @@ will put them beside `claude-code.d.ts` and the include goes away.
 
 Early access: hooks modules load only where function hooks are enabled, and
 the API these mods are written against may change between releases without
-notice. They are not listed in this repository's marketplace; the copies that
-matter are the ones already in your Claude Code.
+notice. They are not listed in this repository's marketplace; for the four
+that ship, the copies that matter are the ones already in your Claude Code.
