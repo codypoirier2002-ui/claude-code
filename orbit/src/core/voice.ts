@@ -65,6 +65,17 @@ export function speakable(text: string, keepTags = false): string {
   return t.replace(/\s+/g, " ").trim();
 }
 
+/**
+ * True when a chunk has words to say: a letter or digit outside square
+ * brackets. ElevenLabs drops every [tag], listed or not, and every emoji, and
+ * refuses an expressive chunk with nothing left (400 input_text_empty). That is
+ * what a tag after her last sentence becomes: "You've got this! [giggles]" is
+ * cut after "this!", leaving "[giggles]" alone.
+ */
+export function hasSpokenText(text: string): boolean {
+  return /[\p{L}\p{N}]/u.test(text.replace(/\[[^\]]*\]/g, ""));
+}
+
 function insideOpenFence(head: string): boolean {
   let n = 0;
   FENCE_LINE.lastIndex = 0;
@@ -194,6 +205,26 @@ function isAbort(err: unknown): boolean {
 const isElevenStatus = (err: unknown, ...codes: number[]): boolean =>
   err instanceof ElevenError && codes.includes(err.status);
 
+/**
+ * A 400 or 422 says the expressive model is out of reach only in so many
+ * words: the model isn't found or available ("model_not_found", "A model with
+ * model ID … does not exist"), or a permission is missing. Any other 400 or 422
+ * is about the request (a chunk with no words gets "input_text_empty").
+ * Matched with underscores read as spaces.
+ */
+const MODEL_UNAVAILABLE =
+  /\bmodel\b.{0,80}?\b(?:does ?n[o']t exist|not found|not (?:available|allowed|supported|enabled)|unavailable|unsupported|no access|access denied)\b|\bpermission/i;
+
+/** The account or key can't use the expressive model, so the fast voice takes over for the session. */
+function expressiveUnavailable(err: ElevenError): boolean {
+  if (err.kind === "missing_permission") return true;
+  // Decided by kind too (§18): quota, bad keys and rate limits are not "unavailable".
+  if (err.kind !== "other") return false;
+  if (isElevenStatus(err, 403, 404)) return true;
+  const said = `${err.detailStatus ?? ""} ${err.detail}`.replace(/_/g, " ");
+  return isElevenStatus(err, 400, 422) && MODEL_UNAVAILABLE.test(said);
+}
+
 export function createSpeaker(deps: SpeakerDeps): Speaker {
   const eleven = deps.eleven ?? createElevenClient({ getKey: () => deps.getSettings().elevenLabsKey, fetch: deps.fetch });
   const synth = deps.speechSynthesis !== undefined
@@ -286,40 +317,43 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
     }
   }
 
-  async function expressive(text: string, previous: string, signal: AbortSignal): Promise<ArrayBuffer> {
+  /** `withPrevious` is false for the one retry without previous_text. */
+  async function expressive(text: string, previous: string, signal: AbortSignal, withPrevious = true): Promise<ArrayBuffer> {
     const voiceId = currentVoice();
-    const prev = sendPreviousText && previous ? previous : undefined;
+    const prev = withPrevious && sendPreviousText && previous ? previous : undefined;
+    let data: ArrayBuffer;
     try {
-      return await eleven.synthesizeExpressive(text, voiceId, prev, signal);
+      data = await eleven.synthesizeExpressive(text, voiceId, prev, signal);
     } catch (err) {
       if (isAbort(err) || signal.aborted) throw err;
-      if (err instanceof ElevenError) {
-        if (err.kind === "voice_unavailable") {
-          if (useLaura(voiceId)) return expressive(text, previous, signal);
-          throw err;
-        }
-        // The request carried previous_text and was rejected as malformed: retry once without it.
-        if (prev !== undefined && isElevenStatus(err, 400, 422) && err.kind === "other") {
-          sendPreviousText = false;
-          return expressive(text, previous, signal);
-        }
-        // The account can't use the expressive model: fast voice for the rest of the session.
-        // Decided by kind too (§18): quota, bad keys and rate limits are not "unavailable".
-        if (err.kind === "missing_permission" || (err.kind === "other" && isElevenStatus(err, 400, 403, 404, 422))) {
-          expressiveDisabled = true;
-          if (!expressiveNoticeShown) {
-            expressiveNoticeShown = true;
-            notify(EXPRESSIVE_FALLBACK_NOTICE);
-          }
-          return fast(text, signal);
-        }
-        // Server trouble: just this chunk goes to the fast voice.
-        if (err.status >= 500 && err.kind === "other") return fast(text, signal);
+      // Network errors (fetch rejects with a TypeError): this chunk only.
+      if (!(err instanceof ElevenError)) return fast(text, signal);
+      if (err.kind === "voice_unavailable") {
+        if (useLaura(voiceId)) return expressive(text, previous, signal, withPrevious);
         throw err;
       }
-      // Network errors (fetch rejects with a TypeError): this chunk only.
-      return fast(text, signal);
+      // The account can't use the expressive model: fast voice for the rest of the session.
+      if (expressiveUnavailable(err)) {
+        expressiveDisabled = true;
+        if (!expressiveNoticeShown) {
+          expressiveNoticeShown = true;
+          notify(EXPRESSIVE_FALLBACK_NOTICE);
+        }
+        return fast(text, signal);
+      }
+      if (err.kind === "other" && isElevenStatus(err, 400, 422)) {
+        // ElevenLabs refused this request, not the account. It carried previous_text: retry once without.
+        if (prev !== undefined) return expressive(text, previous, signal, false);
+        // Something about this chunk: just this chunk goes to the fast voice, and expressive stays on.
+        return fast(text, signal);
+      }
+      // Server trouble: just this chunk goes to the fast voice.
+      if (err.status >= 500 && err.kind === "other") return fast(text, signal);
+      throw err;
     }
+    // The retry without previous_text worked, so previous_text was the trouble: stop sending it.
+    if (!withPrevious) sendPreviousText = false;
+    return data;
   }
 
   async function synthesize(text: string, previous: string, gen: number, signal: AbortSignal): Promise<AudioBuffer | null> {
@@ -415,7 +449,8 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
   }
 
   function enqueue(chunk: string): void {
-    if (!chunk) return;
+    // Nothing to say (a lone tag or emoji): ElevenLabs would refuse it, and no voice has words to read.
+    if (!hasSpokenText(chunk)) return;
     if (!hasVoiceKey(deps.getSettings())) {
       speakWithSynth(chunk);
       return;

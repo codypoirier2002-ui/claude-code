@@ -494,9 +494,10 @@ Read each response in full (`arrayBuffer`, then `decodeAudioData`). Speech start
   - `level()` is `min(1, RMS × 5)` while audio plays. It drives lip-sync.
   - Re-check the generation after every await, so an old playback loop can never consume a new reply's queue.
 - **No ElevenLabs key:** use the browser's `speechSynthesis` at rate 1.05. The level stays 0.
+- **Nothing to say:** a chunk with no letter or digit outside square brackets is never queued, such as a tag left on its own after her last sentence ("You've got this! [giggles]" is cut after "this!") or an emoji. ElevenLabs drops every tag and emoji, and refuses an expressive chunk with nothing left (400 `input_text_empty`).
 - **Fallbacks:**
-  - Expressive request fails with 400/422 while it carried `previous_text`: retry once without it, and stop sending it for the session.
-  - Expressive fails with 400/403/404/422: switch to the fast voice for the session, and show once: "Expressive voice isn't available on this ElevenLabs account, so Orbit is using the fast voice."
+  - The account can't use the expressive model: `missing_permission`, a 403 or 404, or a 400/422 whose detail says the model isn't available (`model_not_found`, "A model with model ID … does not exist") or names a permission. Switch to the fast voice for the session, and show once: "Expressive voice isn't available on this ElevenLabs account, so Orbit is using the fast voice."
+  - Any other 400/422 is about the request. If it carried `previous_text`, retry once without it, and stop sending it for the session only if that retry works. Otherwise send just that chunk with the fast voice; expressive voice stays on, with no notice.
   - Network errors and 5xx: send just that chunk with the fast voice.
   - The chosen voice isn't available to the account (free plans can't use library voices from apps):
     - re-synthesize with Laura, `FGY2WhTYpPnrIDTdsKH5`;
@@ -1773,5 +1774,5 @@ A build made with `VITE_ORBIT_DEMO=1` is for a hosted link that works without ke
   - exactly `POST /v1/speech-to-text`, `POST /v1/text-to-speech/{voice}/stream?output_format=…`, `POST /v1/text-to-dialogue/stream?output_format=…` and `GET /v1/voices`, checked after URL normalization (fixed upstream origin, exact paths, a voice id of letters and digits, no other query);
   - at most 1,200 characters of speech per call (`text`, `inputs[].text` and any previous or next text);
   - ElevenLabs' own errors pass through untouched; a refused host key becomes a 502;
-  - its own errors use ElevenLabs' `{detail: {status, message}}` shape with statuses the page treats as a plain failure (413, 429, 503), never 400/403/404/422 on an allowed call, which would switch expressive voice off.
+  - its own errors use ElevenLabs' `{detail: {status, message}}` shape with statuses the page treats as a plain failure (413, 429, 503), never 400/403/404/422 on an allowed call: a 403 or 404 would switch expressive voice off for the visit, and a 400 or 422 would send that chunk to the fast voice.
 - These are speed bumps. The real caps are the Claude Console workspace's spend limit and the ElevenLabs key's credit limit.

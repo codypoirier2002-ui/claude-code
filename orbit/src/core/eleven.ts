@@ -34,6 +34,12 @@ export interface ElevenErrorInfo {
   detail: string;
   /** The permission name captured for missing_permission, e.g. "speech_to_text". */
   permission?: string;
+  /**
+   * ElevenLabs' own error status from the body (`detail.status`), e.g.
+   * "input_text_empty" or "model_not_found", when it sends one. Not the body's
+   * `code` ("invalid_parameters"), which is broader.
+   */
+  detailStatus?: string;
 }
 
 const FEATURE_LABEL: Record<ElevenFeature, string> = {
@@ -66,24 +72,24 @@ function readDetail(body: unknown): { status: string; message: string } {
 export function classifyElevenError(status: number, body: unknown): ElevenErrorInfo {
   const { status: dStatus, message } = readDetail(body);
   const text = `${dStatus} ${message}`.toLowerCase();
-  const detail = message || dStatus;
+  const base = { detail: message || dStatus, ...(dStatus ? { detailStatus: dStatus } : {}) };
 
   if (/missing_permission|missing the permission/.test(text)) {
     // Prefer the message: "missing_permission <The...>" in the status would capture "the".
     const m = /permission\s+([a-z_]+)/i.exec(message) ?? /permission\s+([a-z_]+)/i.exec(text);
-    return { kind: "missing_permission", detail, ...(m ? { permission: m[1].toLowerCase() } : {}) };
+    return { kind: "missing_permission", ...base, ...(m ? { permission: m[1].toLowerCase() } : {}) };
   }
-  if (/quota|credits|character limit/.test(text)) return { kind: "quota", detail };
+  if (/quota|credits|character limit/.test(text)) return { kind: "quota", ...base };
   if (
     status === 402 ||
     /library voice|paid (plan|subscription)|upgrade your subscription|payment_required/.test(text) ||
     /voice_not_found|voice.*(not found|does not exist)/.test(text)
   ) {
-    return { kind: "voice_unavailable", detail };
+    return { kind: "voice_unavailable", ...base };
   }
-  if (status === 401 || /invalid_api_key|invalid api key/.test(text)) return { kind: "invalid_key", detail };
-  if (status === 429) return { kind: "rate_limit", detail };
-  return { kind: "other", detail };
+  if (status === 401 || /invalid_api_key|invalid api key/.test(text)) return { kind: "invalid_key", ...base };
+  if (status === 429) return { kind: "rate_limit", ...base };
+  return { kind: "other", ...base };
 }
 
 /** The feature named in the missing_permission message, from the captured permission name. */
@@ -126,6 +132,7 @@ export class ElevenError extends Error {
   readonly kind: ElevenErrorKind;
   readonly detail: string;
   readonly permission?: string;
+  readonly detailStatus?: string;
   readonly feature: ElevenFeature;
 
   constructor(status: number, info: ElevenErrorInfo, feature: ElevenFeature) {
@@ -135,6 +142,7 @@ export class ElevenError extends Error {
     this.kind = info.kind;
     this.detail = info.detail;
     if (info.permission) this.permission = info.permission;
+    if (info.detailStatus) this.detailStatus = info.detailStatus;
     this.feature = feature;
   }
 

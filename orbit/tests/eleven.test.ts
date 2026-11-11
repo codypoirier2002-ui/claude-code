@@ -57,6 +57,16 @@ describe("classifyElevenError", () => {
     expect(classifyElevenError(422, { detail: [{ msg: "field required" }] })).toEqual({ kind: "other", detail: "field required" });
     expect(classifyElevenError(503, "upstream down").detail).toBe("upstream down");
   });
+
+  it("keeps ElevenLabs' own error status (detail.status) as detailStatus, apart from the body's code", () => {
+    // As eleven_v4 refused a lone "[giggles]" on 2026-11-11.
+    const message = "Input at position 0 has empty text. All inputs must include non-empty text after removing speaker tags and emojis.";
+    const body = { detail: { type: "validation_error", code: "invalid_parameters", message, status: "input_text_empty", param: "text" } };
+    expect(classifyElevenError(400, body)).toEqual({ kind: "other", detail: message, detailStatus: "input_text_empty" });
+    const err = ElevenError.from(400, { detail: { status: "model_not_found", message: "A model with model ID x does not exist ..." } }, "speech");
+    expect([err.kind, err.detailStatus, err.detail]).toEqual(["other", "model_not_found", "A model with model ID x does not exist ..."]);
+    expect(ElevenError.from(500, { detail: { message: "Boom" } }, "speech").detailStatus).toBeUndefined();
+  });
 });
 
 describe("elevenMessage", () => {
