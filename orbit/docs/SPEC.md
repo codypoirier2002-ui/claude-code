@@ -494,7 +494,7 @@ Read each response in full (`arrayBuffer`, then `decodeAudioData`). Speech start
   - `level()` is `min(1, RMS × 5)` while audio plays. It drives lip-sync.
   - Re-check the generation after every await, so an old playback loop can never consume a new reply's queue.
 - **No ElevenLabs key:** use the browser's `speechSynthesis` at rate 1.05. The level stays 0.
-- **Nothing to say:** a chunk with no letter or digit outside square brackets is never queued, such as a tag left on its own after her last sentence ("You've got this! [giggles]" is cut after "this!") or an emoji. ElevenLabs drops every tag and emoji, and refuses an expressive chunk with nothing left (400 `input_text_empty`).
+- **Nothing to say:** a chunk with no letter or digit outside square brackets is never queued. Examples: a tag after her last sentence, which `flush()` sends on its own once the splitter has cut after that sentence, or an emoji on its own. ElevenLabs drops every tag and emoji, and refuses an expressive chunk with nothing left (400 `input_text_empty`).
 - **Fallbacks:**
   - The account can't use the expressive model: `missing_permission`, a 403 or 404, or a 400/422 whose detail says the model isn't available (`model_not_found`, "A model with model ID … does not exist") or names a permission. Switch to the fast voice for the session, and show once: "Expressive voice isn't available on this ElevenLabs account, so Orbit is using the fast voice."
   - Any other 400/422 is about the request. If it carried `previous_text`, retry once without it, and stop sending it for the session only if that retry works. Otherwise send just that chunk with the fast voice; expressive voice stays on, with no notice.

@@ -68,9 +68,9 @@ export function speakable(text: string, keepTags = false): string {
 /**
  * True when a chunk has words to say: a letter or digit outside square
  * brackets. ElevenLabs drops every [tag], listed or not, and every emoji, and
- * refuses an expressive chunk with nothing left (400 input_text_empty). That is
- * what a tag after her last sentence becomes: "You've got this! [giggles]" is
- * cut after "this!", leaving "[giggles]" alone.
+ * refuses an expressive chunk with nothing left (400 input_text_empty). A tag
+ * after her last sentence becomes such a chunk once the splitter has cut after
+ * that sentence: flush() then sends the tag on its own.
  */
 export function hasSpokenText(text: string): boolean {
   return /[\p{L}\p{N}]/u.test(text.replace(/\[[^\]]*\]/g, ""));

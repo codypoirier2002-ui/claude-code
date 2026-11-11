@@ -519,8 +519,9 @@ describe("speaker", () => {
   });
 
   it("never sends the tag left after her last sentence on its own (the 2026-11-11 demo reply)", async () => {
-    // Her answer in the contest take, with the one tag the panel couldn't show: the cut after
-    // "this!" left "[giggles]" alone for flush(), and ElevenLabs refused it twice with a 400.
+    // Her answer in the contest take, reconstructed: the third chunk's text was never recovered.
+    // The panel hides listed tags, so a tag such as "[giggles]" after "this!" fits: the cut after
+    // "this!" leaves it alone for flush(), and ElevenLabs refused that chunk twice with a 400.
     const { reqs, speaker, notices, errors } = setup({ auto: elevenLike });
     speaker.feed(
       "Your 25-minute focus session for your essay is running and ends at **6:29 PM**. " +
@@ -742,6 +743,21 @@ describe("speaker", () => {
       speaker.flush();
       await flush();
       expect(reqs.map(isFast)).toEqual([false, true, true]);
+    });
+
+    it("switches for the session on a 400 that names a permission, and on a 404", async () => {
+      const cases: [number, unknown][] = [
+        [400, { message: "This API key does not have permission to use this feature." }],
+        [404, { status: "not_found", message: "Not found" }],
+      ];
+      for (const [status, detail] of cases) {
+        const { speaker, notices, reqs } = setup({ auto: (req) => (isFast(req) ? ok(req) : fail(status, detail)) });
+        speaker.feed(`${S1} `);
+        speaker.flush();
+        await flush();
+        expect(notices, String(status)).toEqual([EXPRESSIVE_FALLBACK_NOTICE]);
+        expect(reqs.map(isFast), String(status)).toEqual([false, true]);
+      }
     });
 
     it("decides by kind: a 401 out-of-credits error is not 'expressive unavailable'", async () => {
