@@ -5,6 +5,7 @@
 
 import * as THREE from "three";
 import { modelsLabel } from "../core/assistant";
+import { usesDemoServer } from "../core/demo";
 import { MODES, modeById } from "../core/modes";
 import { assistantName, isConfigured } from "../core/settings";
 import { stripAudioTags } from "../core/tags";
@@ -404,7 +405,7 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
     const rightW = right ? ctx.measureText(right).width : 0;
     ctx.textAlign = "left";
     ctx.fillStyle = C.violet;
-    ctx.fillText(fit(modelLine(st, s), stripFont, INNER_W - rightW - 30), PAD + 4, L.strip);
+    ctx.fillText(fit(modelLine(st, s, usesDemoServer(s)), stripFont, INNER_W - rightW - 30), PAD + 4, L.strip);
     if (right) {
       ctx.textAlign = "right";
       ctx.fillStyle = C.mint;

@@ -3,6 +3,7 @@
 // what these return.
 
 import type { AssistantState } from "../core/assistant";
+import { demoModel } from "../core/demo";
 import { modeById } from "../core/modes";
 import { labelOf, modelForRun, shortLabel } from "../core/routing";
 import type { Settings } from "../core/settings";
@@ -19,6 +20,8 @@ export const KB_H = 560;
 /** Product copy, verbatim from §8.3–8.4. */
 export const PANEL_TEXT = Object.freeze({
   autoModels: "◆ Auto: Haiku · Opus · Fable",
+  /** On the hosted demo server, which tops out at Opus (§21). */
+  autoModelsDemo: "◆ Auto: Haiku · Opus",
   listening: "Listening… (point at the orb and press to send now)",
   gotIt: "Got it…",
   thinking: "Thinking…",
@@ -83,10 +86,19 @@ export function promptLabels(state: Pick<AssistantState, "suggestions" | "modeId
   return out;
 }
 
-/** The violet half of the status strip. */
-export function modelLine(state: Pick<AssistantState, "busy" | "model">, settings: Pick<Settings, "model">): string {
-  if (state.busy) return `◆ ${shortLabel(state.model || modelForRun(settings))} is answering`;
-  return settings.model === "auto" ? PANEL_TEXT.autoModels : `◆ ${labelOf(settings.model)}`;
+/**
+ * The violet half of the status strip. On the demo server (§21) Fable runs on
+ * Opus, so Auto names two models and a pinned Fable shows as Opus.
+ */
+export function modelLine(
+  state: Pick<AssistantState, "busy" | "model">,
+  settings: Pick<Settings, "model">,
+  demoServer = false,
+): string {
+  const shown = (id: string) => (demoServer ? demoModel(id) : id);
+  if (state.busy) return `◆ ${shortLabel(shown(state.model || modelForRun(settings)))} is answering`;
+  if (settings.model === "auto") return demoServer ? PANEL_TEXT.autoModelsDemo : PANEL_TEXT.autoModels;
+  return `◆ ${labelOf(shown(settings.model))}`;
 }
 
 /** The mint half: the soonest timer or reminder, plus "+N" when there are more. */

@@ -31,7 +31,8 @@ packaged for the Quest store.
 
 ## Your keys stay in your browser
 
-Orbit has no server of its own. You paste your Anthropic API key (and, for voice, an
+An ordinary build of Orbit has no server of its own (a [demo build](#demo-builds) adds
+one, for visitors without keys). You paste your Anthropic API key (and, for voice, an
 ElevenLabs key) into the app's Settings. They are kept only in that browser's
 localStorage and sent only to their own APIs. If you set an API proxy URL, the
 Anthropic key is not sent at all: the proxy adds it server-side.
@@ -39,6 +40,42 @@ Anthropic key is not sent at all: the proxy adds it server-side.
 The only network calls the app makes are to the Claude API (or your proxy), to
 ElevenLabs, and to its own static files. Settings → "Erase all data" removes everything
 it stored.
+
+### Demo builds
+
+A build made with `VITE_ORBIT_DEMO=1` is for a hosted link that works without keys
+(the contest entry). It differs in one way: for a service where the visitor has entered
+no key of their own (and, for Claude, no proxy URL), calls go to the demo host's own
+server functions instead, on the same origin:
+
+- Claude: `/api/claude/v1/messages` ([api/claude/v1/messages.ts](api/claude/v1/messages.ts)),
+  which adds the host's `ANTHROPIC_API_KEY`.
+- ElevenLabs: `/api/eleven?path=…` ([api/eleven.ts](api/eleven.ts)), which adds the host's
+  `ELEVENLABS_API_KEY`.
+
+The host's keys stay on the server and never reach the page. A key the visitor enters
+always wins, is kept only in their browser as above, and goes straight to its own API;
+the demo server never sees it. Ordinary builds have no such path.
+
+What the demo server allows:
+
+- **Claude:** Claude Haiku 5.5 and Claude Opus 5.5 only. Fable requests run on Opus, and
+  the app says "Auto: Haiku · Opus" in VR. `max_tokens` is capped at 16,000, web search
+  at 3 uses per request, and fast mode and fallback lists are dropped
+  (`fallbacks: "default"` stays: Opus falls back only to older Opus models). A request
+  may be at most 4 MB and carry at most 400,000 characters of text.
+- **ElevenLabs:** exactly the four calls the app makes (speech to text, the two
+  streaming speech calls, the voice list), at most 4 MB per request and 1,200
+  characters of speech per call. The app splits long replies to stay under that.
+- **Both:** same-origin requests only, and a per-IP limit (90 Claude calls and 240
+  voice calls per 10 minutes).
+
+These checks are speed bumps, not locks. The origin check and the per-IP count can be
+faked by a script (the count also lives in each server instance's memory), so the real
+caps are the host's own limits: a spend limit on the Claude Console workspace the key
+belongs to, and a credit limit on the ElevenLabs key. The voice list call shows visitors
+the voices in the host's ElevenLabs account, so use an account (or a restricted key)
+made for the demo.
 
 ## Run it
 
@@ -96,6 +133,20 @@ headers the app needs:
   up straight away (each build also gets its own cache name).
 - `/manifest.webmanifest` is served as `application/manifest+json`.
 - Every page gets `Permissions-Policy: microphone=(self), xr-spatial-tracking=(self)`.
+
+The two files under `api/` are Vercel Functions for [demo builds](#demo-builds). An
+ordinary build never calls them; deployed without keys they answer 503. `vercel.json`
+gives them up to 300 seconds, for long streamed replies.
+
+To host a demo build on Vercel:
+
+1. Make `orbit/` the project's root directory.
+2. Add the environment variable `VITE_ORBIT_DEMO` = `1` (it is read at build time).
+3. Add `ANTHROPIC_API_KEY` (from a Claude Console workspace with a monthly spend limit)
+   and `ELEVENLABS_API_KEY` (restricted to Text to Speech, Speech to Text and Voices,
+   with a credit limit) as sensitive environment variables.
+4. Deploy, or redeploy after changing any of them: a running deployment keeps the
+   values it was built and started with.
 
 Orbit is also an installable PWA: open the deployed URL in the Quest Browser and install
 it from the browser's menu to get it without the store.

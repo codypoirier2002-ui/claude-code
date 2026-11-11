@@ -2,7 +2,11 @@
 // Save (or Enter in a field) writes every field at once; Esc or Cancel
 // discards. The form is rebuilt on every open, so discarded edits never linger.
 
+import { DEMO_BUILD } from "../core/demo";
 import { ElevenError, createElevenClient, type Voice } from "../core/eleven";
+
+/** Demo builds (§21): the key fields are optional. */
+const DEMO_HINT = "Optional in this demo: leave it blank and the demo server answers, with a shared, capped key.";
 import { ENVIRONMENTS } from "../core/environments";
 import { PERSONALITIES } from "../core/modes";
 import {
@@ -307,14 +311,32 @@ export function createSettingsDialog(ctx: AppCtx) {
       h(
         "div",
         { class: "settings-body" },
-        field("Claude API key (Anthropic)", apiKey, hint("From platform.claude.com → API keys, scoped to the Default workspace. Saved only on this headset.")),
-        field("Models", model, hint("Auto: Claude Haiku 5.5 for chat, Claude Opus 5.5 when it needs to think, Claude Fable 5.1 when it's stuck.")),
+        field(
+          "Claude API key (Anthropic)",
+          apiKey,
+          hint(
+            DEMO_BUILD
+              ? `${DEMO_HINT} Your own key, if you add one, is used instead and saved only on this headset.`
+              : "From platform.claude.com → API keys, scoped to the Default workspace. Saved only on this headset.",
+          ),
+        ),
+        field(
+          "Models",
+          model,
+          hint(
+            DEMO_BUILD && !s.apiKey.trim() && !s.baseURL.trim()
+              ? "Auto: Claude Haiku 5.5 for chat, Claude Opus 5.5 when it needs to think. The demo server tops out at Opus, so Fable requests run on Opus until you add your own key."
+              : "Auto: Claude Haiku 5.5 for chat, Claude Opus 5.5 when it needs to think, Claude Fable 5.1 when it's stuck.",
+          ),
+        ),
         voiceHeading,
         field(
           "ElevenLabs API key",
           elevenKey,
           hint(
-            "Lets you talk hands-free and hear her answer (Quest Browser has no built-in speech recognition). Get a key at elevenlabs.io → Developers → API keys. The free plan works.",
+            DEMO_BUILD
+              ? `${DEMO_HINT} Your own ElevenLabs key, if you add one, is used instead.`
+              : "Lets you talk hands-free and hear her answer (Quest Browser has no built-in speech recognition). Get a key at elevenlabs.io → Developers → API keys. The free plan works.",
           ),
         ),
         field("Her voice", voice, voiceNote),

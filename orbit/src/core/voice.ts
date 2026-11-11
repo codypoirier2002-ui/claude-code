@@ -12,6 +12,7 @@ import {
   type ElevenClient,
   type FetchLike,
 } from "./eleven";
+import { DEMO_BUILD, DEMO_SPEECH_MAX_CHARS, splitSpeech } from "./demo";
 import { hasVoiceKey, type Settings } from "./settings";
 import { stripAudioTags } from "./tags";
 
@@ -71,11 +72,18 @@ function insideOpenFence(head: string): boolean {
   return n % 2 === 1;
 }
 
-/** Cuts streamed text into speakable chunks of at least `minChars`, at sentence ends outside code fences. */
+/**
+ * Cuts streamed text into speakable chunks of at least `minChars`, at sentence
+ * ends outside code fences. A finite `maxChars` (demo builds, §21) also splits
+ * any chunk longer than that.
+ */
 export class SentenceSplitter {
   private buffer = "";
 
-  constructor(readonly minChars = 60) {}
+  constructor(
+    readonly minChars = 60,
+    readonly maxChars = Infinity,
+  ) {}
 
   /** Adds text and returns the chunks that are ready (already passed through speakable(…, true)). */
   feed(delta: string): string[] {
@@ -86,7 +94,7 @@ export class SentenceSplitter {
       if (cut < 0) break;
       const chunk = speakable(this.buffer.slice(0, cut), true);
       this.buffer = this.buffer.slice(cut);
-      if (chunk) out.push(chunk);
+      if (chunk) out.push(...this.limit(chunk));
     }
     return out;
   }
@@ -95,7 +103,11 @@ export class SentenceSplitter {
   flush(): string[] {
     const chunk = speakable(this.buffer, true);
     this.buffer = "";
-    return chunk ? [chunk] : [];
+    return chunk ? this.limit(chunk) : [];
+  }
+
+  private limit(chunk: string): string[] {
+    return Number.isFinite(this.maxChars) ? splitSpeech(chunk, this.maxChars) : [chunk];
   }
 
   clear(): void {
@@ -189,7 +201,8 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
     : typeof globalThis.speechSynthesis !== "undefined" ? globalThis.speechSynthesis : null;
   const makeUtterance = deps.createUtterance ?? ((text: string) => new SpeechSynthesisUtterance(text));
 
-  const splitter = new SentenceSplitter();
+  // The demo server refuses speech over 1,200 characters, so demo builds split below that.
+  const splitter = new SentenceSplitter(60, DEMO_BUILD ? DEMO_SPEECH_MAX_CHARS : Infinity);
   let generation = 0;
   let queue: Chunk[] = [];
   let pumpGen = -1;

@@ -1410,7 +1410,8 @@ Each scene has an id, name, note, image `skies/{id}.jpg`, thumbnail `skies/thumb
 - **Nothing else leaves the device.** The only network calls are:
   - the Claude API (or the proxy);
   - ElevenLabs;
-  - the app's own static files.
+  - the app's own static files;
+  - in a demo build only (§21), for a service with no key entered, the host's same-origin `/api/` functions instead.
 - **Untrusted text is labelled as data.**
   - Memories, the greeting context and suggestion excerpts are marked as data, not instructions.
   - Memory writes are blocked right after a web search.
@@ -1739,3 +1740,38 @@ Each phase ends green with screenshots, then a commit.
   - Callie as a hologram (or a VRM body) who blinks, talks, smiles, thinks and wows, sways her hair, faces you, waves back and moves where you point.
 - It installs as a PWA, works offline for the shell, deploys to Vercel with the headers in §12, and has Quest-store templates for the 2D and immersive builds.
 - No secrets are committed or logged, and keys never leave the device except to their own APIs.
+
+## 21. Demo builds (`demo.ts`, `api/`)
+
+A build made with `VITE_ORBIT_DEMO=1` is for a hosted link that works without keys (the Meta VR Start Developer Competition entry). Ordinary builds are unchanged: the flag defaults off, and every check below takes it as an injectable argument so the tests cover both.
+
+**In the page**
+- Per service, a key the visitor entered always wins and goes straight to its own API. With none (and, for Claude, no proxy URL):
+  - Claude calls go to `<origin>/api/claude` (absolute, because the SDK needs one) with the placeholder key `proxy-managed`;
+  - ElevenLabs calls go to `/api/eleven?path=<encodeURIComponent(path + query)>` with no `xi-api-key` header.
+- `isConfigured` and `hasVoiceKey` are true, so the app opens ready: no key prompts, no voice card, Talk works.
+- The demo server tops out at Opus, so a Fable request asks for Opus, the VR strip says "◆ Auto: Haiku · Opus", and Settings says so beside the model picker. Escalation logic is untouched.
+- Speech chunks are split below 1,000 characters (the server takes 1,200).
+- The key fields in Settings say they are optional here.
+- The service worker never handles anything under `/api/`.
+
+**On the server** (two self-contained Vercel Functions with Web-standard `fetch` handlers and no local imports; keys from `ANTHROPIC_API_KEY` and `ELEVENLABS_API_KEY`)
+- Both:
+  - same origin only: `Sec-Fetch-Site: same-origin`, or with no such header an `Origin` whose host is the request's host;
+  - a per-IP sliding-window limit in the instance's memory: 90 Claude calls and 240 voice calls per 10 minutes;
+  - request bodies up to 4 MB;
+  - the upstream answer streams back with only `content-type`, `request-id`, `retry-after` and `x-should-retry` (never `content-encoding` or `content-length`), plus `cache-control: no-store`;
+  - the request's abort signal is passed upstream, so Stop and barge-in stop the call;
+  - no visitor headers (cookies, keys) are forwarded and no bodies are logged.
+- `api/claude/v1/messages.ts`:
+  - models: `claude-haiku-5-5` and `claude-opus-5-5`; any `claude-fable-*` runs on Opus; anything else is a 400;
+  - `max_tokens` at most 16,000; `web_search*` tools at most 3 uses; `speed` dropped; `fallbacks` kept only as `"default"`;
+  - at most 400,000 characters of text per request (base64 `data` not counted);
+  - `anthropic-version`, `anthropic-beta` and the `beta` query pass through;
+  - its own errors use the Anthropic shape with `x-should-retry: false` (a 502 for an unreachable API may be retried).
+- `api/eleven.ts`:
+  - exactly `POST /v1/speech-to-text`, `POST /v1/text-to-speech/{voice}/stream?output_format=…`, `POST /v1/text-to-dialogue/stream?output_format=…` and `GET /v1/voices`, checked after URL normalization (fixed upstream origin, exact paths, a voice id of letters and digits, no other query);
+  - at most 1,200 characters of speech per call (`text`, `inputs[].text` and any previous or next text);
+  - ElevenLabs' own errors pass through untouched; a refused host key becomes a 502;
+  - its own errors use ElevenLabs' `{detail: {status, message}}` shape with statuses the page treats as a plain failure (413, 429, 503), never 400/403/404/422 on an allowed call, which would switch expressive voice off.
+- These are speed bumps. The real caps are the Claude Console workspace's spend limit and the ElevenLabs key's credit limit.

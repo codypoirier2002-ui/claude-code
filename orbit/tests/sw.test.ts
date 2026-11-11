@@ -248,6 +248,14 @@ describe("requests it leaves alone", () => {
     }
   });
 
+  it("never handles the demo server's proxies under /api/, whatever the request looks like", async () => {
+    const w = startWorker();
+    for (const path of ["/api/eleven?path=%2Fv1%2Fvoices", "/api/claude/v1/messages?beta=true", "/api/assets/x.js"]) {
+      expectUntouched(w, await w.get(request(path)));
+      expectUntouched(w, await w.get(request(path, { mode: "navigate" })));
+    }
+  });
+
   it("leaves Range requests to the network, so partial files are never stored or served", async () => {
     const w = startWorker();
     for (const path of ["/assets/clip.mp4", "/ambience/beach.ogg", "/skies/beach.jpg"]) {

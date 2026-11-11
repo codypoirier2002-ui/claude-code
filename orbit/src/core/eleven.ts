@@ -1,7 +1,10 @@
 // ElevenLabs client (§5.1) and error handling (§5.3). Every call goes straight
 // from the browser to https://api.elevenlabs.io with the user's key in the
-// xi-api-key header. All browser dependencies are injectable for tests.
+// xi-api-key header; in a demo build with no key it goes to the host's
+// same-origin proxy instead (§21, ./demo). All browser dependencies are
+// injectable for tests.
 
+import { DEMO_BUILD, elevenRoute } from "./demo";
 import { stripAudioTags } from "./tags";
 
 export const ELEVEN_BASE = "https://api.elevenlabs.io";
@@ -162,6 +165,8 @@ export interface ElevenClientDeps {
   getKey: () => string;
   /** Defaults to globalThis.fetch. */
   fetch?: FetchLike;
+  /** A demo build (§21): with no key, calls go through the host's proxy. Defaults to the build flag. */
+  demo?: boolean;
 }
 
 export interface Voice {
@@ -181,8 +186,10 @@ export function createElevenClient(deps: ElevenClientDeps): ElevenClient {
 
   async function call(path: string, init: RequestInit, feature: ElevenFeature, signal?: AbortSignal): Promise<Response> {
     const headers = new Headers(init.headers);
-    headers.set("xi-api-key", cleanElevenKey(deps.getKey()));
-    const res = await doFetch(ELEVEN_BASE + path, { ...init, headers, ...(signal ? { signal } : {}) });
+    const key = cleanElevenKey(deps.getKey());
+    const route = elevenRoute(ELEVEN_BASE, path, key, deps.demo ?? DEMO_BUILD);
+    if (route.sendKey) headers.set("xi-api-key", key);
+    const res = await doFetch(route.url, { ...init, headers, ...(signal ? { signal } : {}) });
     if (!res.ok) {
       const raw = await res.text().catch(() => "");
       let body: unknown = raw;
