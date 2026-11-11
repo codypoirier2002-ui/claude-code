@@ -26,8 +26,9 @@ import { GREETING_MAX_AGE_MS } from "../core/session";
 import { readJSON, writeJSON } from "../core/store";
 import type { AvatarBody } from "./avatar";
 import type { AvatarSpot, Immersive, OrbMood, PreviewParams, XrHost, XrMode, XrVoiceView } from "./bridge";
+import { createHandJoints, type HandJoints } from "./hands";
 import { createKeyboard } from "./keyboard";
-import { createOrb, orbLevel, orbMood } from "./orb";
+import { SPARK_HIT_BOOST, createOrb, orbLevel, orbMood } from "./orb";
 import { createPanel } from "./panel";
 import { PANEL_TEXT } from "./panelModel";
 import { environmentById, sceneLoadFailedText, type Environment } from "../core/environments";
@@ -306,6 +307,8 @@ export function createImmersive(host: XrHost): Immersive {
       presence.celebrate = () => h.cheer();
       presence.onSceneLook = (panorama) => h.setPanorama(panorama);
       orb.group.scale.setScalar(SPARK_SCALE);
+      // The spark is small; its hit sphere grows inside it so a pinch ray still lands.
+      orb.hitTarget.scale.setScalar(SPARK_HIT_BOOST);
       setOrbPx(orbPx);
       if (wavePending) {
         wavePending = false;
@@ -325,6 +328,7 @@ export function createImmersive(host: XrHost): Immersive {
     presence.celebrate = null;
     presence.onSceneLook = null;
     orb.group.scale.setScalar(1);
+    orb.hitTarget.scale.setScalar(1);
     orb.group.position.copy(ORB_POS);
     setOrbPx(orbPx);
   }
@@ -512,6 +516,8 @@ export function createImmersive(host: XrHost): Immersive {
   const aPressed = new Map<XRInputSource, boolean>();
   /** Per hand: where to read its position (the wrist joint, else the controller) and its detector. */
   const wavers: { hand: THREE.XRHandSpace; controller: THREE.XRTargetRaySpace; detector: WaveDetector }[] = [];
+  /** Joint spheres for tracked hands (hands-first); hidden in passthrough, where real hands show. */
+  const handJoints: HandJoints[] = [];
   const lastStick = new Map<XRInputSource, number>();
   let controllersReady = false;
 
@@ -522,6 +528,7 @@ export function createImmersive(host: XrHost): Immersive {
       const controller = r.xr.getController(i);
       const hand = r.xr.getHand(i);
       scene.add(hand);
+      handJoints.push(createHandJoints(hand));
       wavers.push({ hand, controller, detector: new WaveDetector() });
       const line = new THREE.Line(rayGeo, rayMat);
       line.name = "ray";
@@ -647,6 +654,7 @@ export function createImmersive(host: XrHost): Immersive {
     if (session) {
       pollGamepads(now);
       pollWaves(now);
+      for (const h of handJoints) h.update();
     }
 
     // Hover: the first pointer on the panel or keyboard wins.
@@ -724,6 +732,7 @@ export function createImmersive(host: XrHost): Immersive {
     passthrough = mode === "immersive-ar";
     sky.setVisible(!passthrough);
     particles.setVisible(!passthrough);
+    for (const h of handJoints) h.mesh.visible = !passthrough;
     r.setClearColor(0x000000, passthrough ? 0 : 1);
     s.addEventListener("end", onSessionEnd, { once: true });
     try {

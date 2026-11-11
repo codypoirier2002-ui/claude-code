@@ -36,7 +36,7 @@ export const PANEL_TEXT = Object.freeze({
   recenter: "⟲ Recenter",
   scene: "🌅 Scene",
   exit: "Exit VR",
-  footer: "A/X to talk · Thumbstick to scroll · Trigger or pinch to press",
+  footer: "Pinch or trigger to press · Arrows or thumbstick to scroll · Talk or A/X to speak",
   noKey: "Add your Claude API key first: Exit VR, then Settings.",
   voiceAside: " (To talk out loud, exit VR and add an ElevenLabs key in Settings → Voice.)",
   needVoiceKey: "Voice needs an ElevenLabs key: Exit VR → Settings → Voice.",
@@ -165,6 +165,102 @@ export function hitAt<T extends HitRect>(rects: readonly T[], x: number, y: numb
     if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) return r;
   }
   return null;
+}
+
+// ---- Conversation scrolling (§8.3, hands-first) ----
+
+/** The conversation shows 17 rows of 50 px (§8.3). */
+export const VISIBLE_ROWS = 17;
+export const ROW_H = 50;
+/** One chevron press pages by all but three rows, so the last three stay in view. */
+export const PAGE_ROWS = VISIBLE_ROWS - 3;
+/** The right gutter, always reserved so text never re-wraps when the chevrons appear. */
+export const GUTTER_W = 112;
+/** Space between the text and the gutter. */
+export const GUTTER_GAP = 16;
+/** Height of each drawn chevron button; each one answers presses over half the gutter. */
+export const CHEVRON_H = 176;
+
+export type Rect = Omit<HitRect, "id">;
+
+export interface ScrollLayout {
+  /** Where the conversation text goes. */
+  text: Rect;
+  /** The drawn chevron buttons. */
+  up: Rect;
+  down: Rect;
+  /** Where a press counts for each chevron: the top and bottom halves of the gutter. Hand rays jitter. */
+  upHit: Rect;
+  downHit: Rect;
+  /** The scrollbar track between the two buttons. */
+  track: Rect;
+}
+
+/** Splits the conversation area into the text column and the right gutter with its two chevrons. */
+export function scrollLayout(area: Rect): ScrollLayout {
+  const gx = area.x + area.w - GUTTER_W;
+  const half = Math.floor(area.h / 2);
+  const inset = 4;
+  const up = { x: gx, y: area.y + inset, w: GUTTER_W, h: CHEVRON_H };
+  const down = { x: gx, y: area.y + area.h - inset - CHEVRON_H, w: GUTTER_W, h: CHEVRON_H };
+  const trackW = 8;
+  const trackTop = up.y + up.h + 14;
+  return {
+    text: { x: area.x, y: area.y, w: area.w - GUTTER_W - GUTTER_GAP, h: area.h },
+    up,
+    down,
+    upHit: { x: gx, y: area.y, w: GUTTER_W, h: half },
+    downHit: { x: gx, y: area.y + half, w: GUTTER_W, h: area.h - half },
+    track: { x: gx + (GUTTER_W - trackW) / 2, y: trackTop, w: trackW, h: Math.max(0, down.y - 14 - trackTop) },
+  };
+}
+
+/**
+ * The three points of a chevron drawn as a path (no glyph, so it looks the
+ * same in every font): centred in `r`, `size` px wide, pointing up or down.
+ */
+export function chevronPoints(r: Rect, dir: "up" | "down", size = 44): [number, number][] {
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h / 2;
+  const half = size / 2;
+  const rise = size / 4;
+  const tip = dir === "up" ? cy - rise : cy + rise;
+  const base = dir === "up" ? cy + rise : cy - rise;
+  return [
+    [cx - half, base],
+    [cx, tip],
+    [cx + half, base],
+  ];
+}
+
+/** Where the conversation is scrolled: the first visible row, or pinned to the newest. */
+export interface ScrollView {
+  top: number;
+  pinned: boolean;
+  /** All rows, visible or not. */
+  total: number;
+}
+
+/**
+ * Scrolls by a number of rows (positive = later): the thumbstick and wheel step
+ * one row, a chevron a page. Returns null when nothing can move. Reaching the
+ * end pins the view, so new text keeps it at the bottom.
+ */
+export function scrollBy(view: ScrollView, rows: number, visible = VISIBLE_ROWS): { top: number; pinned: boolean } | null {
+  const step = Math.trunc(rows);
+  if (!step || view.total <= visible) return null;
+  const maxTop = view.total - visible;
+  const from = view.pinned ? maxTop : Math.min(Math.max(0, view.top), maxTop);
+  const top = Math.min(maxTop, Math.max(0, from + step));
+  return { top, pinned: top >= maxTop };
+}
+
+/** Which chevrons have somewhere to go. Both are off when everything fits. */
+export function scrollable(view: ScrollView, visible = VISIBLE_ROWS): { up: boolean; down: boolean } {
+  if (view.total <= visible) return { up: false, down: false };
+  const maxTop = view.total - visible;
+  const top = view.pinned ? maxTop : Math.min(Math.max(0, view.top), maxTop);
+  return { up: top > 0, down: top < maxTop };
 }
 
 /** The signature that decides whether a streaming change is worth a redraw (§8.3 Redraws). */

@@ -1097,7 +1097,7 @@ Measured in rig space: the eye is at 1.6 m and −Z is straight ahead.
    - Her turns start with a violet line, "{name} · Haiku → Opus · actions", followed by 38 px text.
    - Your turns are 36 px text with a blue bar beside them.
    - Markdown and audio tags are stripped.
-   - A scrollbar appears when there's more.
+   - A 112 px gutter on the right is always reserved, so text never re-wraps. When there's more than fits, it shows two chevron buttons (drawn as canvas paths, not glyphs) with the scrollbar between them. A press anywhere in the gutter's top or bottom half pages up or down by 14 rows (17 − 3), so a pinch alone scrolls; a chevron dims at its end.
 4. **Status line**
    - Voice states: "Listening… (point at the orb and press to send now)", "Got it…", "Thinking…", "Speaking… (press the orb to interrupt)", or "You: “…”" once it heard you.
    - Otherwise the live status, or "Replying…".
@@ -1109,7 +1109,7 @@ Measured in rig space: the eye is at 1.6 m and −Z is straight ahead.
    - "⌨ Type" or "⌨ Hide keys";
    - "🧠 Think harder", or "■ Stop" while busy.
 7. **Row two:** "🔈 Silent" or "🔊 Aloud", "⟲ Recenter", "🌅 Scene", "Exit VR".
-8. **Footer:** "A/X to talk · Thumbstick to scroll · Trigger or pinch to press".
+8. **Footer:** "Pinch or trigger to press · Arrows or thumbstick to scroll · Talk or A/X to speak".
 
 **Empty state**
 - With a key: "Hi, I'm {name}! {blurb}. Press Talk and just speak, press Type for the keyboard, or pick a suggestion." When voice isn't ready, add " (To talk out loud, exit VR and add an ElevenLabs key in Settings → Voice.)"
@@ -1160,7 +1160,9 @@ Measured in rig space: the eye is at 1.6 m and −Z is straight ahead.
 
 **Buttons and sticks**
 - **A/X:** a rising edge on `gamepad.buttons[4]`, tracked per input source, taps the orb. That starts voice, sends early or interrupts.
-- **Thumbstick:** `axes[3]`, deadzone .35, at most one row every .12 s.
+- **Thumbstick:** `axes[3]`, deadzone .35, at most one row every .12 s. The panel's `scroll(rows)` takes a row count: the thumbstick and the preview's wheel step one row, a chevron a page.
+
+**Hands (hands-first).** Everything works with tracked hands and no controller: a pinch fires `selectstart` like a trigger, so every panel button, the chevrons, the keyboard, the orb and the floor answer it. With hand tracking each tracked joint draws as a small sphere (one instanced mesh per hand, nothing loaded from the network); passthrough hides them. Beside Callie the orb is a 0.35-scale spark, so its hit sphere grows 1.6× inside it (about 15 cm across) to stay easy to pinch.
 
 **Moving her.** Point at empty floor 0.6–4 m away and press.
 - The reticle lies flat on the floor, scaled ×8.
