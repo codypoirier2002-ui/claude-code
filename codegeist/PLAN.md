@@ -27,7 +27,7 @@ to agents, the more the quality of the work item decides the quality of the resu
 
 ## What it does
 
-1. **Ready check.** Eight to nine explainable checks per work item: clear title, enough detail,
+1. **Ready check.** Nine explainable checks per work item: clear title, enough detail,
    acceptance criteria (or, for bugs, steps to reproduce plus expected and actual results), no open
    blockers, a purpose (parent epic or linked goal), reference docs, a size estimate, no unanswered
    question in the latest comment, and no pull request already open on it. The result is a 0–100
