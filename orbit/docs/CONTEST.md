@@ -90,8 +90,14 @@ production (no push needed; production is public, previews would sit behind a Ve
 login). `VITE_ORBIT_DEMO=1` is set for Production. The owner typed the two keys into the
 Vercel CLI's prompt on 2026-11-11 (Production, sensitive), and the site was redeployed.
 Checked live the same day: a chat turn through `/api/claude` (200, Claude Haiku 5.5, 1.6 s)
-and a speech turn through `/api/eleven` (200, 33 KB of MP3, 0.3 s). The Hobby plan is for
-non-commercial use; a contest entry with nothing for sale fits that.
+and a speech turn through `/api/eleven` (200, 33 KB of MP3, 0.3 s). Redeployed the same
+evening, with the owner's yes, from a050d72. That build skips voice chunks that have no
+words (ElevenLabs refused one, a lone `[giggles]` after her last sentence, with 400
+`input_text_empty`), and a refused chunk now falls back to the fast voice on its own. Before
+that, one such chunk switched expressive voice off for the visit and told the visitor it
+wasn't available on the account. The live chat and speech turns were checked again after
+the redeploy. The Hobby plan is for non-commercial use; a contest entry with nothing for
+sale fits that.
 
 To redeploy after a change or a key update, from `orbit/` (linked to the project):
 `vercel deploy --prod`.
