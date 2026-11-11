@@ -1,0 +1,130 @@
+modules:
+  jira:issueContext:
+    - key: groundwork-ready-check
+      resource: main
+      resolver:
+        function: panel-resolver
+      render: native
+      title: Groundwork ready check
+      label: Ready check
+
+  rovo:agent:
+    - key: groundwork-agent
+      name: Groundwork
+      description: >-
+        Checks whether Jira work items are ready to start, explains each gap with a fix, and builds
+        context packs for teammates and AI coding agents.
+      prompt: resource:agent-prompts;groundwork-agent.txt
+      conversationStarters:
+        - Is this work item ready to start?
+        - Build a context pack for this work item
+        - Which work items in this project are ready to start?
+        - Draft the missing acceptance criteria for this work item
+      actions:
+        - check-issue-readiness
+        - get-context-pack
+        - list-ready-issues
+      skills:
+        - ready-check
+
+  rovo:skill:
+    - key: ready-check
+      source:
+        dir: skills/ready-check
+      dependencies:
+        tools:
+          - check-issue-readiness
+          - get-context-pack
+
+  rovo:mcp:
+    - key: groundwork-mcp
+      name: Groundwork
+      tools:
+        - check-issue-readiness
+        - get-context-pack
+        - list-ready-issues
+
+  action:
+    - key: check-issue-readiness
+      name: Check work item readiness
+      function: check-issue-readiness-fn
+      actionVerb: GET
+      description: >-
+        Checks whether a Jira work item is ready to start. Returns a 0-100 readiness score, a verdict
+        (Ready to start, Almost ready, Not ready or Blocked), each gap with what was found and how to fix
+        it, and the people best placed to answer questions. Use it before a person or an AI agent starts
+        the work, or when someone asks what a work item is missing.
+      inputs:
+        issueKey:
+          title: Work item key
+          type: string
+          required: false
+          description: The Jira work item key, for example KAN-12. Leave empty to use the work item the user is viewing.
+    - key: get-context-pack
+      name: Get context pack
+      function: get-context-pack-fn
+      actionVerb: GET
+      description: >-
+        Builds a compact Markdown context pack for a Jira work item: readiness gaps, purpose (epic, goals
+        and owning team), description, acceptance criteria, linked work and blockers, linked docs, pull
+        requests, recent discussion and people to ask. Use it to hand a work item to a teammate or to an
+        AI coding agent before work starts.
+      inputs:
+        issueKey:
+          title: Work item key
+          type: string
+          required: false
+          description: The Jira work item key, for example KAN-12. Leave empty to use the work item the user is viewing.
+    - key: list-ready-issues
+      name: List ready work items
+      function: list-ready-issues-fn
+      actionVerb: GET
+      description: >-
+        Ranks the to-do work items in a Jira project by readiness, so a team or an agent can pick the next
+        item that can be started now. Returns each work item's score, verdict and biggest gap.
+      inputs:
+        projectKey:
+          title: Project key
+          type: string
+          required: false
+          description: The Jira project key, for example KAN. Leave empty to use the project the user is in.
+        limit:
+          title: Maximum work items
+          type: integer
+          required: false
+          description: How many to-do work items to scan, from 1 to 25. Defaults to 10.
+
+  function:
+    - key: panel-resolver
+      handler: index.resolver
+    - key: check-issue-readiness-fn
+      handler: index.checkIssueReadiness
+    - key: get-context-pack-fn
+      handler: index.getContextPack
+    - key: list-ready-issues-fn
+      handler: index.listReadyIssues
+
+resources:
+  - key: main
+    path: src/frontend/index.tsx
+  - key: agent-prompts
+    path: resources/agent
+
+permissions:
+  scopes:
+    - read:jira-work
+    - read:graph:issue:jira
+    - read:graph:project:jira
+    - read:graph:goal:atlassian
+    - read:graph:pull-request:external
+    - read:graph:page:confluence
+    - read:graph:user:atlassian
+    - read:graph:team:atlassian
+
+app:
+  # Placeholder. `forge register` replaces it with the owner's own app ID.
+  id: ari:cloud:ecosystem::app/00000000-0000-0000-0000-000000000000
+  runtime:
+    name: nodejs24.x
+    memoryMB: 256
+    architecture: arm64
