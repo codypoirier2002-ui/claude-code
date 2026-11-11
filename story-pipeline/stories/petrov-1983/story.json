@@ -1,0 +1,208 @@
+{
+  "title": "The Man Who Doubted the Machine",
+  "slug": "petrov-1983",
+  "claim": "In 1983 a Soviet duty officer judged a satellite launch warning to be false, and he was right.",
+  "render": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "engine": "EEVEE",
+    "samples": 32,
+    "test_scale": 50,
+    "test_samples": 8,
+    "chunk": 150
+  },
+  "voice": {
+    "backend": "piper",
+    "elevenlabs_voice_id": null,
+    "elevenlabs_model": "eleven_multilingual_v2",
+    "say_voice": "Daniel",
+    "say_rate": 175
+  },
+  "pacing": {
+    "lead_in": 0.5,
+    "gap": 0.3,
+    "tail": 0.9
+  },
+  "captions": {
+    "font": "Arial Black",
+    "size": 82,
+    "max_words": 3,
+    "max_chars": 16,
+    "margin_v_pct": 27,
+    "color": "FFFFFF",
+    "active_color": "FF4A3D",
+    "uppercase": true
+  },
+  "audio": {
+    "target_lufs": -14,
+    "true_peak": -1.5,
+    "music": null,
+    "music_db": -22,
+    "edge_fade_ms": 20
+  },
+  "loop": {
+    "enabled": true,
+    "min_ssim": 0.85,
+    "audio": "silent_edges"
+  },
+  "sfx": [],
+  "sources": [
+    {
+      "id": "wiki-incident",
+      "title": "1983 Soviet nuclear false alarm incident",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/1983_Soviet_nuclear_false_alarm_incident"
+    },
+    {
+      "id": "aps-2026",
+      "title": "September 1983: Soviet officer defies military protocol, averting potential nuclear war",
+      "publisher": "APS News",
+      "url": "https://www.aps.org/apsnews/2026/09/1983-averting-potential-nuclear-war"
+    },
+    {
+      "id": "wiki-kal007",
+      "title": "Korean Air Lines Flight 007",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Korean_Air_Lines_Flight_007"
+    }
+  ],
+  "beats": [
+    {
+      "id": "hook",
+      "shot": "orbit",
+      "text": "The computer said America had just launched a nuclear missile.",
+      "sources": [
+        "wiki-incident"
+      ],
+      "note": "One ICBM reported heading toward the Soviet Union from the United States.",
+      "cues": [
+        {
+          "name": "launch_flare",
+          "word": "launched"
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "shot": "bunker",
+      "text": "It's just after midnight, September 26th, 1983. Stanislav Petrov is on duty in a bunker outside Moscow.",
+      "sources": [
+        "wiki-incident"
+      ],
+      "note": "Wikipedia: 'Shortly after midnight, the bunker's computers reported that one intercontinental ballistic missile was heading toward the Soviet Union from the United States.' Petrov, a lieutenant colonel, was the officer on duty at Serpukhov-15 near Moscow.",
+      "cues": [
+        {
+          "name": "date_on",
+          "word": "September"
+        }
+      ]
+    },
+    {
+      "id": "context",
+      "shot": "bunker",
+      "text": "Weeks earlier, Soviet forces shot down a Korean airliner.",
+      "sources": [
+        "wiki-incident",
+        "wiki-kal007"
+      ],
+      "note": "KAL 007 was shot down on 1 September 1983.",
+      "cues": [
+        {
+          "name": "airliner_hit",
+          "word": "shot"
+        }
+      ]
+    },
+    {
+      "id": "alert",
+      "shot": "screen",
+      "text": "Then the screen lights up. One missile. Then four more.",
+      "sources": [
+        "wiki-incident"
+      ],
+      "note": "One ICBM reported first; later four more.",
+      "cues": [
+        {
+          "name": "alarm_on",
+          "word": "lights"
+        },
+        {
+          "name": "missile_1",
+          "word": "One"
+        },
+        {
+          "name": "missile_5",
+          "word": "four"
+        }
+      ]
+    },
+    {
+      "id": "duty",
+      "shot": "screen",
+      "text": "His job: watch the satellites and warn his superiors.",
+      "sources": [
+        "wiki-incident"
+      ],
+      "note": "He monitored the Oko satellite early-warning network; his responsibilities included notifying superiors of any impending nuclear missile attack."
+    },
+    {
+      "id": "reasoning",
+      "shot": "petrov",
+      "text": "But Petrov reasons that a real first strike would be massive. Five makes no sense.",
+      "sources": [
+        "wiki-incident"
+      ],
+      "note": "He cited his belief and training that any U.S. first strike would be massive, so five missiles seemed an illogical start."
+    },
+    {
+      "id": "wait",
+      "shot": "petrov",
+      "text": "So he waits for proof. None arrives.",
+      "sources": [
+        "wiki-incident"
+      ],
+      "note": "He decided to wait for corroborating evidence, of which none arrived.",
+      "cues": [
+        {
+          "name": "alarm_off",
+          "word": "None"
+        }
+      ]
+    },
+    {
+      "id": "cause",
+      "shot": "glint",
+      "text": "The cause? Sunlight glinting off high clouds, lined up with the satellites' orbits.",
+      "sources": [
+        "wiki-incident",
+        "aps-2026"
+      ],
+      "note": "A rare alignment of sunlight on high-altitude clouds and the satellites' Molniya orbits.",
+      "cues": [
+        {
+          "name": "glint",
+          "word": "glinting"
+        }
+      ]
+    },
+    {
+      "id": "aftermath",
+      "shot": "glint",
+      "text": "The world learned of it fifteen years later.",
+      "sources": [
+        "wiki-incident"
+      ],
+      "note": "General Yuri Votintsev first revealed it to the public in 1998."
+    },
+    {
+      "id": "button",
+      "shot": "outro",
+      "text": "One man trusted his doubt over a machine.",
+      "sources": [
+        "wiki-incident"
+      ],
+      "note": "Ends on the opening composition so the video loops into the hook."
+    }
+  ]
+}
