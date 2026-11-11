@@ -53,7 +53,7 @@ codegeist/
 ├── resources/agent/           The Rovo agent's prompt
 ├── skills/ready-check/        rovo:skill bundled with the app
 ├── agent-skills/              Open-source SKILL.md for outside agents
-├── test/                      Vitest unit tests
+├── test/                      Vitest unit tests, including the Forge manifest validator
 └── scripts/bundle-check.mjs   Bundles both entry points and checks the handlers
 ```
 
@@ -82,8 +82,10 @@ npm ci
 npm run check     # eslint, tsc, vitest and the bundle check, in that order
 ```
 
-You can also run them one at a time: `npm run lint`, `npm run typecheck`, `npm test`,
-`npm run bundle-check`, and `forge lint` for the Forge CLI's manifest checks.
+You can also run them one at a time: `npm run lint`, `npm run typecheck`, `npm test` and
+`npm run bundle-check`. The tests include the Forge CLI's own full manifest validator
+(`@forge/manifest`), so manifest mistakes fail here instead of at `forge deploy`. `forge lint` runs the
+same validator plus Forge's code rules, but it needs `forge login` first.
 
 ## Deploy and install
 

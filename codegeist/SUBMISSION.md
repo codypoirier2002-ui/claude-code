@@ -83,8 +83,9 @@ It works in three places, all backed by the same three read-only actions:
   calls, so the app runs entirely on Atlassian. No Forge LLM API, which keeps the platform cost at $0.
 - **Quality.** Vitest unit tests cover ADF parsing, every check, scoring and verdicts, people ranking,
   the pack builder, the graph parsers, the service layer (with fake Jira and graph clients) and the
-  action handlers. A manifest test checks the module wiring, the name limits, the skill format and the
-  scopes. ESLint, `tsc` and an esbuild bundle check run before every deploy.
+  action handlers. A manifest test runs Forge's own manifest validator, then checks the module wiring,
+  the name limits, the skill format and the scopes. ESLint, `tsc` and an esbuild bundle check run
+  before every deploy.
 
 ## Challenges we ran into
 

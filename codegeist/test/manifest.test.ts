@@ -53,6 +53,16 @@ function readSkill(dir: string): { front: Record<string, unknown>; body: string 
   return { front: parse(match[1]) as Record<string, unknown>, body: match[2] };
 }
 
+describe('Forge manifest validator', () => {
+  it('passes the full validation the Forge CLI runs before a deploy', async () => {
+    const { validate } = await import('@forge/manifest');
+    const result = await validate(false, join(root, 'manifest.yml'));
+    const problems = (result.errors ?? []).map((e) => `${e.level}: ${e.message} (${e.reference})`);
+    expect(problems).toEqual([]);
+    expect(result.success).toBe(true);
+  }, 120_000);
+});
+
 describe('manifest modules', () => {
   it('declares unique module keys', () => {
     const keys = Object.values(modules).flatMap((list) => (list as { key: string }[]).map((m) => m.key));
@@ -62,8 +72,10 @@ describe('manifest modules', () => {
 
   it('wires every action to a function and documents every input', () => {
     expect(modules.action.length).toBeLessThanOrEqual(50);
+    for (const fn of modules.function) expect(fn.key.length, fn.key).toBeLessThanOrEqual(23);
     for (const action of modules.action) {
       expect(action.key.length, action.key).toBeLessThan(64);
+      expect(action.description.length, action.key).toBeLessThanOrEqual(255);
       expect(functionKeys.has(action.function), action.key).toBe(true);
       expect(['GET', 'CREATE', 'UPDATE', 'DELETE', 'TRIGGER']).toContain(action.actionVerb);
       expect(action.actionVerb, `${action.key} must stay read-only`).toBe('GET');

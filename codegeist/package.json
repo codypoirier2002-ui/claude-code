@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@forge/manifest": "^13.9.0",
     "@types/node": "^24.19.2",
     "@types/react": "^18.3.31",
     "esbuild": "^0.28.2",

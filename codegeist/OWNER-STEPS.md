@@ -163,9 +163,17 @@ link. Pick the bonus prizes: **Best Agents** and **Best app with Atlassian MCP**
 Graph integration** if step 7 showed graph data. One entry can win at most one bonus prize.
 Read it all once more, then select **Submit** yourself before December 22, 12:00 pm Pacific.
 
+## What Claude verified locally
+
+- `npm run check` passes: ESLint, TypeScript (6.0, and also the Forge CLI's bundled 5.9), 108 unit
+  tests, and an esbuild bundle of both entry points.
+- `manifest.yml` passes the Forge CLI's own full manifest validator (`@forge/manifest` 13.9.0),
+  which runs offline as part of the tests.
+
 ## What Claude could not verify without your login
 
-- `forge register`, `forge deploy` and `forge install`, because they need your login.
+- `forge lint`, `forge register`, `forge deploy` and `forge install`, because each needs your login.
+  `forge lint` adds Forge's code rules on top of the manifest validator that already passed.
 - That the panel, the agent, the skill and the MCP tools render and run on a real site.
 - That the five Teamwork Graph queries match the live schema and return data on the demo site.
 - The distribution form, the installation link and the judges' install flow.

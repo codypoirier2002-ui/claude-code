@@ -47,13 +47,12 @@ modules:
   action:
     - key: check-issue-readiness
       name: Check work item readiness
-      function: check-issue-readiness-fn
+      function: readiness-fn
       actionVerb: GET
       description: >-
-        Checks whether a Jira work item is ready to start. Returns a 0-100 readiness score, a verdict
-        (Ready to start, Almost ready, Not ready or Blocked), each gap with what was found and how to fix
-        it, and the people best placed to answer questions. Use it before a person or an AI agent starts
-        the work, or when someone asks what a work item is missing.
+        Checks whether a Jira work item is ready to start. Returns a 0-100 score, a verdict, each gap
+        with a fix, and the people to ask. Use it before a person or an AI agent starts the work, or
+        when asked what a work item is missing.
       inputs:
         issueKey:
           title: Work item key
@@ -62,13 +61,12 @@ modules:
           description: The Jira work item key, for example KAN-12. Leave empty to use the work item the user is viewing.
     - key: get-context-pack
       name: Get context pack
-      function: get-context-pack-fn
+      function: context-pack-fn
       actionVerb: GET
       description: >-
-        Builds a compact Markdown context pack for a Jira work item: readiness gaps, purpose (epic, goals
-        and owning team), description, acceptance criteria, linked work and blockers, linked docs, pull
-        requests, recent discussion and people to ask. Use it to hand a work item to a teammate or to an
-        AI coding agent before work starts.
+        Builds a compact Markdown context pack for a Jira work item: gaps, purpose, description,
+        acceptance criteria, blockers, docs, pull requests, recent discussion and people to ask. Use it
+        to hand work to a teammate or an AI coding agent.
       inputs:
         issueKey:
           title: Work item key
@@ -77,7 +75,7 @@ modules:
           description: The Jira work item key, for example KAN-12. Leave empty to use the work item the user is viewing.
     - key: list-ready-issues
       name: List ready work items
-      function: list-ready-issues-fn
+      function: ready-issues-fn
       actionVerb: GET
       description: >-
         Ranks the to-do work items in a Jira project by readiness, so a team or an agent can pick the next
@@ -97,11 +95,11 @@ modules:
   function:
     - key: panel-resolver
       handler: index.resolver
-    - key: check-issue-readiness-fn
+    - key: readiness-fn
       handler: index.checkIssueReadiness
-    - key: get-context-pack-fn
+    - key: context-pack-fn
       handler: index.getContextPack
-    - key: list-ready-issues-fn
+    - key: ready-issues-fn
       handler: index.listReadyIssues
 
 resources:
