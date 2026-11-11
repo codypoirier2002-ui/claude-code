@@ -25,7 +25,7 @@ began September 24.
 Best Agentic Interaction (a voice-first spatial agent that acts with tools), and
 possibly Best Reason to Come Back (greetings, daily streak, a companion who remembers you).
 
-**Link for judges:** _OWNER_ the deployed demo URL (see "Hosting" below).
+**Link for judges:** https://orbit-demo-lake.vercel.app (see "Hosting" below).
 
 **Video:** _OWNER_ the public YouTube or Vimeo link (under 3 minutes; see `docs/VIDEO.md`).
 
@@ -62,29 +62,36 @@ pass is still on the owner's list.
 
 | Action | By pinch | Checked |
 |---|---|---|
-| Enter VR (2D page) | A normal page button; Quest Browser turns a pinch into a click | Code |
-| Talk / End voice | Panel button | Code |
-| Send now, interrupt | Pinch the orb (its hit sphere is enlarged beside Callie); she also stops when you talk over her | Code |
-| Type, and every key | Panel button, then keyboard keys | Code |
-| Think harder / Stop | Panel button | Code |
-| Mode switch (‹ ›) | Panel buttons | Code |
-| Prompt suggestions | Panel buttons | Code |
-| Aloud / Silent | Panel button | Code |
-| Recenter | Panel button | Code |
-| Scene | Panel button | Code |
-| Exit VR | Panel button | Code |
-| Scroll the chat | Up and down arrows in the chat's right gutter page by 14 rows; each answers a pinch anywhere in its half of the gutter | Code, unit tests |
-| Wave | Tracked wrist joint | Code |
-| Point to move Callie | Pinch on empty floor 0.6 to 4 m away | Code |
+| Enter VR (2D page) | A normal page button; Quest Browser turns a pinch into a click | Code; emulator (clicked) |
+| Talk / End voice | Panel button | Code, emulator |
+| Start, send now, interrupt | Pinch the orb (its hit sphere is enlarged beside Callie); she also stops when you talk over her | Code, emulator (start) |
+| Type, and every key | Panel button, then keyboard keys | Code, emulator ("hi" typed, then hidden) |
+| Think harder / Stop | Panel button | Code (needs a live reply) |
+| Mode switch (‹ ›) | Panel buttons | Code, emulator |
+| Prompt suggestions | Panel buttons | Code, emulator (sent) |
+| Aloud / Silent | Panel button | Code, emulator |
+| Recenter | Panel button | Code, emulator (after a 40 cm step) |
+| Scene | Panel button | Code, emulator |
+| Exit VR | Panel button | Code, emulator |
+| Scroll the chat | Up and down arrows in the chat's right gutter page by 14 rows; each answers a pinch anywhere in its half of the gutter | Code, unit tests, emulator |
+| Wave | Tracked wrist joint | Code, emulator (she cheers back) |
+| Point to move Callie | Pinch on empty floor 0.6 to 4 m away, with either hand | Code, emulator |
 
-_The emulator column is filled in after the emulator pass._
+The emulator pass ran on the live demo on 2026-11-11 with IWER 2.8.0 emulating a Meta Quest
+3 in hand mode, aiming each hand's real target ray and pinching. No controller was
+connected at any point.
 
 ## Hosting
 
-Plan: a Vercel project (Hobby plan) with root directory `orbit/`, the environment
-variable `VITE_ORBIT_DEMO=1`, and the two keys set by the owner in the Vercel dashboard
-as sensitive variables. The Hobby plan is for non-commercial use; a contest entry with
-nothing for sale fits that.
+Live at **https://orbit-demo-lake.vercel.app**: the Vercel project `orbit-demo` (Hobby
+plan), deployed on 2026-11-11 with the Vercel CLI straight from the `orbit/` folder to
+production (no push needed; production is public, previews would sit behind a Vercel
+login). `VITE_ORBIT_DEMO=1` is set for Production; the two keys are set by the owner in
+the Vercel dashboard as sensitive variables. The Hobby plan is for non-commercial use; a
+contest entry with nothing for sale fits that.
+
+To redeploy after a change or a key update, from `orbit/` (linked to the project):
+`vercel deploy --prod`.
 
 - `ANTHROPIC_API_KEY`: from a Claude Console workspace made for the demo, with a
   monthly spend limit of $10.
@@ -99,11 +106,10 @@ nothing for sale fits that.
    December gets its own $10 unless you lower it then.
 3. ElevenLabs: create a key for the demo (restricted as above, with a credit limit). The
    free plan works; on it Callie speaks with the free "Laura" voice.
-4. Say yes (or no) to creating the Vercel project and deploying, and which Vercel
-   account to use.
-5. Enter both keys in the Vercel dashboard yourself (Project → Settings → Environment
-   Variables, marked sensitive), then say so. I redeploy, then check one chat turn and
-   one voice turn on the live link.
+4. Done 2026-11-11: you said yes; `orbit-demo` is live on the CLI's Vercel account.
+5. Enter both keys in the Vercel dashboard yourself (team jnx6 → orbit-demo → Settings →
+   Environment Variables, Production, marked Sensitive), then say so. I redeploy, then
+   check one chat turn and one voice turn on the live link.
 6. On your Quest, with controllers put away: open the link, Enter VR, and try the
    hands-only table above. Note anything that misses.
 7. Watch the video (`docs/VIDEO.md` has the shot list), then upload it to YouTube or
