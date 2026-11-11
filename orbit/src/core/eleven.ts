@@ -14,7 +14,7 @@ export const FAST_MODEL = "eleven_flash_v2_5";
 export const EXPRESSIVE_MODEL = "eleven_v4";
 /** Laura, a premade voice every plan can use from apps (§5.2). */
 export const LAURA_VOICE_ID = "FGY2WhTYpPnrIDTdsKH5";
-/** previous_text carries the last 100 characters of the previous chunk. */
+/** previous_text carries the last 100 characters of the previous chunk; ElevenLabs refuses more (422). */
 export const PREVIOUS_TEXT_CHARS = 100;
 
 export type ElevenErrorKind =
@@ -242,7 +242,8 @@ export function createElevenClient(deps: ElevenClientDeps): ElevenClient {
 
     async synthesizeExpressive(text, voiceId, previousText, signal) {
       const body: Record<string, unknown> = { inputs: [{ text, voice_id: voiceId }], model_id: EXPRESSIVE_MODEL };
-      if (previousText) body.settings = { previous_text: previousText };
+      // Top level: this endpoint's `settings` has no previous_text and ignores one sent there.
+      if (previousText) body.previous_text = previousText;
       const res = await call(`/v1/text-to-dialogue/stream?output_format=${OUTPUT_FORMAT}`, json(body), "speech", signal);
       return res.arrayBuffer();
     },

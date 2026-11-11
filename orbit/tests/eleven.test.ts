@@ -164,7 +164,7 @@ describe("the client", () => {
     });
   });
 
-  it("expressive speech keeps tags, sends previous_text only when there is one, and no speed", async () => {
+  it("expressive speech keeps tags, sends previous_text at the top level only when there is one, and no speed", async () => {
     const { calls, fetch } = fakeFetch(audio);
     const client = createElevenClient({ getKey: () => "k", fetch });
     await client.synthesizeExpressive("[giggles] Hi.", LAURA_VOICE_ID, "Before.");
@@ -173,7 +173,7 @@ describe("the client", () => {
     expect(JSON.parse(calls[0].init.body as string)).toEqual({
       inputs: [{ text: "[giggles] Hi.", voice_id: LAURA_VOICE_ID }],
       model_id: "eleven_v4",
-      settings: { previous_text: "Before." },
+      previous_text: "Before.",
     });
     expect(JSON.parse(calls[1].init.body as string)).toEqual({ inputs: [{ text: "Next.", voice_id: "v2" }], model_id: "eleven_v4" });
   });

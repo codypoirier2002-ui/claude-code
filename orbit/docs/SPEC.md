@@ -459,8 +459,9 @@ The Quest Browser has no speech recognition, so voice runs through ElevenLabs st
   - Body: `{text, model_id: "eleven_flash_v2_5", voice_settings: {speed}}`, with audio tags stripped from the text.
   - The speed setting ranges 0.7–1.2, default 1.1.
 - **Expressive speech** (on by default): `POST /v1/text-to-dialogue/stream?output_format=mp3_44100_128`.
-  - Body: `{inputs: [{text, voice_id}], model_id: "eleven_v4", settings: {previous_text}}`, with audio tags kept in the text.
-  - `previous_text` is the plain text of the previous chunk, last 100 characters. Leave out `settings` when there is none.
+  - Body: `{inputs: [{text, voice_id}], model_id: "eleven_v4", previous_text}`, with audio tags kept in the text.
+  - `previous_text` is the plain text of the previous chunk, last 100 characters; ElevenLabs refuses more with a 422. Leave it out when there is none.
+  - `previous_text` goes at the top level. This endpoint's `settings` takes only `stability`, `similarity` and `clone_strength`, and ignores a `previous_text` inside it, so send no `settings`.
   - No speed is sent.
 - **Voices:** `GET /v1/voices`, mapped to `{id, name}`.
 

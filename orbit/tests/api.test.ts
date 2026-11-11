@@ -339,6 +339,7 @@ describe("the ElevenLabs proxy's allowlist", () => {
 
   it("counts the speech in both request shapes, context included", () => {
     expect(speechSize({ text: "hello", model_id: "m" })).toBe(5);
+    expect(speechSize({ inputs: [{ text: "ab", voice_id: "v" }], previous_text: "xyz" })).toBe(5);
     expect(speechSize({ inputs: [{ text: "ab", voice_id: "v" }, { text: "cde" }], settings: { previous_text: "xyz" } })).toBe(8);
     expect(speechSize(null)).toBe(0);
   });

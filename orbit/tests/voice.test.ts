@@ -125,6 +125,13 @@ const TEXT_EMPTY = {
 };
 /** A model id it doesn't know. */
 const MODEL_NOT_FOUND = { status: "model_not_found", message: "A model with model ID eleven_v0_probe does not exist ..." };
+/** A top-level previous_text over 100 characters (the echoed input left out). */
+const PREVIOUS_TOO_LONG = {
+  type: "string_too_long",
+  loc: ["body", "previous_text"],
+  msg: "String should have at most 100 characters",
+  ctx: { max_length: 100 },
+};
 /** Answers like ElevenLabs: an expressive chunk with nothing left once [tags] and emojis go is refused. */
 const elevenLike = (req: Req) =>
   isFast(req) || /[\p{L}\p{N}]/u.test(textOf(req).replace(/\[[^\]]*\]/g, "")) ? ok(req) : fail(400, TEXT_EMPTY);
@@ -510,12 +517,19 @@ describe("speaker", () => {
     expect(speaker.speaking).toBe(false);
   });
 
-  it("sends previous_text (last 100 plain chars) and keeps tags for the expressive voice", async () => {
+  it("sends previous_text (last 100 plain chars) at the top level and keeps tags for the expressive voice", async () => {
     const { reqs, speaker } = setup({ auto: ok });
     speaker.feed(`[giggles] ${S1} ${S2} `);
     await flush();
     expect(reqs[0].body).toEqual({ inputs: [{ text: `[giggles] ${S1}`, voice_id: "chosen" }], model_id: "eleven_v4" });
-    expect(reqs[1].body.settings).toEqual({ previous_text: S1 });
+    // Top level, where ElevenLabs reads it: `settings` has no previous_text and ignores one sent there.
+    expect(reqs[1].body).toEqual({ inputs: [{ text: S2, voice_id: "chosen" }], model_id: "eleven_v4", previous_text: S1 });
+    // ElevenLabs refuses more than 100 characters (PREVIOUS_TOO_LONG), so a long chunk lends only its end.
+    const long = `${"This sentence goes on and on, ".repeat(4)}and only its last hundred characters go along.`;
+    speaker.feed(`${long} ${S3} `);
+    await flush();
+    expect(reqs.map(textOf)).toEqual([`[giggles] ${S1}`, S2, long, S3]);
+    expect(reqs[3].body.previous_text).toBe(long.slice(-100));
   });
 
   it("never sends the tag left after her last sentence on its own (the 2026-11-11 demo reply)", async () => {
@@ -627,15 +641,17 @@ describe("speaker", () => {
   describe("fallbacks", () => {
     it("retries once without previous_text on 400/422 and stops sending it", async () => {
       const { reqs, speaker, notices, ctx, endCurrent } = setup({
-        auto: (req) => (req.body.settings ? fail(422, [{ msg: "previous_text invalid" }]) : ok(req)),
+        // Refuses every request that carries previous_text, with the body ElevenLabs sends for one too long.
+        auto: (req) => ("previous_text" in req.body ? fail(422, [PREVIOUS_TOO_LONG]) : ok(req)),
       });
       speaker.feed(`${S1} ${S2} ${S3} `);
       await flush();
       const expressive = reqs.filter((r) => !isFast(r));
       expect(expressive).toHaveLength(reqs.length);
       // S2 and S3 were both in flight with previous_text; each is retried once without it.
-      expect(reqs.filter((r) => r.body.settings)).toHaveLength(2);
+      expect(reqs.filter((r) => "previous_text" in r.body)).toHaveLength(2);
       expect(reqs).toHaveLength(5);
+      expect(reqs.some((r) => "settings" in r.body)).toBe(false);
       expect(notices).toEqual([]);
       await endCurrent();
       await endCurrent();
@@ -643,7 +659,7 @@ describe("speaker", () => {
       speaker.feed("One more sentence that is long enough to be its own chunk here. ");
       await flush();
       expect(reqs).toHaveLength(6);
-      expect(reqs[5].body.settings).toBeUndefined(); // stopped sending it for the session
+      expect(reqs[5].body.previous_text).toBeUndefined(); // stopped sending it for the session
     });
 
     it("switches to the fast voice for the session on 403, with a one-time notice", async () => {
@@ -673,7 +689,7 @@ describe("speaker", () => {
       speaker.feed(`${S1} ${S2} ${S3} `);
       await flush();
       // S2 carried previous_text, so it was tried once more without it before the fast voice took it.
-      expect(reqs.filter((r) => textOf(r) === S2).map((r) => [isFast(r), "settings" in r.body])).toEqual([
+      expect(reqs.filter((r) => textOf(r) === S2).map((r) => [isFast(r), "previous_text" in r.body])).toEqual([
         [false, true],
         [false, false],
         [true, false],
@@ -689,7 +705,7 @@ describe("speaker", () => {
       await flush();
       const last = reqs[reqs.length - 1];
       expect(isFast(last)).toBe(false);
-      expect(last.body.settings).toEqual({ previous_text: S3 });
+      expect(last.body.previous_text).toBe(S3);
     });
 
     it("sends just that chunk with the fast voice on a 422 that names no model or permission", async () => {
