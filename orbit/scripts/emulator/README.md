@@ -6,6 +6,8 @@ app: nothing here is bundled, type-checked or run by `npm test`.
 
 - `handspass.mjs` pinches every VR action and reports PASS/FAIL per action, with a
   screenshot of each (the table in `docs/CONTEST.md` came from it).
+- `thinkstop.mjs` pinches Stop during a live reply and Think harder after one (it needs
+  the demo server's keys and spends one short reply and one Opus re-answer).
 - `record.mjs` records the contest video (shot list in `docs/VIDEO.md`).
 - `xr.mjs` launches Chrome with IWER installed before the app loads, maps Orbit's
   panel and keyboard pixels to world points, and aims a hand's real target ray.
@@ -31,6 +33,7 @@ export IWER_JS="$TMP/orbit-emu/node_modules/iwer/build/iwer.js"
 
 ```sh
 node scripts/emulator/handspass.mjs https://orbit-demo-lake.vercel.app/ out/hands
+node scripts/emulator/thinkstop.mjs https://orbit-demo-lake.vercel.app/ out/thinkstop
 node scripts/emulator/record.mjs https://orbit-demo-lake.vercel.app/ out/video --dry
 ORBIT_ASK_WAV=/path/to/ask.wav node scripts/emulator/record.mjs https://orbit-demo-lake.vercel.app/ out/video
 ```

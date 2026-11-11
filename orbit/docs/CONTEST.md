@@ -66,7 +66,7 @@ pass is still on the owner's list.
 | Talk / End voice | Panel button | Code, emulator |
 | Start, send now, interrupt | Pinch the orb (its hit sphere is enlarged beside Callie); she also stops when you talk over her | Code, emulator (start) |
 | Type, and every key | Panel button, then keyboard keys | Code, emulator ("hi" typed, then hidden) |
-| Think harder / Stop | Panel button | Code (needs a live reply) |
+| Think harder / Stop | Panel button (it reads Stop while she answers) | Code, emulator with live replies: Stop mid-answer; Think harder re-answered with Claude Opus 5.5 |
 | Mode switch (‹ ›) | Panel buttons | Code, emulator |
 | Prompt suggestions | Panel buttons | Code, emulator (sent) |
 | Aloud / Silent | Panel button | Code, emulator |
@@ -79,16 +79,19 @@ pass is still on the owner's list.
 
 The emulator pass ran on the live demo on 2026-11-11 with IWER 2.8.0 emulating a Meta Quest
 3 in hand mode, aiming each hand's real target ray and pinching. No controller was
-connected at any point.
+connected at any point. Think harder / Stop was checked the same way once the demo server
+had its keys (`scripts/emulator/thinkstop.mjs`).
 
 ## Hosting
 
 Live at **https://orbit-demo-lake.vercel.app**: the Vercel project `orbit-demo` (Hobby
 plan), deployed on 2026-11-11 with the Vercel CLI straight from the `orbit/` folder to
 production (no push needed; production is public, previews would sit behind a Vercel
-login). `VITE_ORBIT_DEMO=1` is set for Production; the two keys are set by the owner in
-the Vercel dashboard as sensitive variables. The Hobby plan is for non-commercial use; a
-contest entry with nothing for sale fits that.
+login). `VITE_ORBIT_DEMO=1` is set for Production. The owner typed the two keys into the
+Vercel CLI's prompt on 2026-11-11 (Production, sensitive), and the site was redeployed.
+Checked live the same day: a chat turn through `/api/claude` (200, Claude Haiku 5.5, 1.6 s)
+and a speech turn through `/api/eleven` (200, 33 KB of MP3, 0.3 s). The Hobby plan is for
+non-commercial use; a contest entry with nothing for sale fits that.
 
 To redeploy after a change or a key update, from `orbit/` (linked to the project):
 `vercel deploy --prod`.
@@ -107,13 +110,13 @@ To redeploy after a change or a key update, from `orbit/` (linked to the project
 3. ElevenLabs: create a key for the demo (restricted as above, with a credit limit). The
    free plan works; on it Callie speaks with the free "Laura" voice.
 4. Done 2026-11-11: you said yes; `orbit-demo` is live on the CLI's Vercel account.
-5. Enter both keys in the Vercel dashboard yourself (team jnx6 → orbit-demo → Settings →
-   Environment Variables, Production, marked Sensitive), then say so. I redeploy, then
-   check one chat turn and one voice turn on the live link.
+5. Done 2026-11-11: you entered both keys; the site was redeployed and a live chat turn
+   and voice turn both work.
 6. On your Quest, with controllers put away: open the link, Enter VR, and try the
    hands-only table above. Note anything that misses.
-7. Watch the video (`docs/VIDEO.md` has the shot list), then upload it to YouTube or
-   Vimeo as public, or tell me to prepare it differently.
+7. Watch the video (sent to you on 2026-11-11 as `orbit-meta-vr-start-2026.mp4`, 2:04;
+   `docs/VIDEO.md` has the shot list and the upload title and description), then upload
+   it to YouTube or Vimeo as public, or tell me to prepare it differently.
 8. Fill in the Devpost form from this page: tagline, description, track (Productivity),
    division (New), link, video, hand interactions and target launch date. Submit before
    **November 18, 12:00 PT**.

@@ -109,21 +109,11 @@ if (!dry) {
   await sleep(14000);
 }
 
-// ---- 5. Scroll by pinch ----
-await cap("Arrows page through the chat: no thumbstick needed");
-await hover("scrollUp");
-await sleep(900);
-await press("scrollUp");
-await sleep(1300);
-await press("scrollUp");
-await sleep(1500);
-await press("scrollDown");
-await sleep(1100);
-await press("scrollDown");
-await rest();
-await sleep(1500);
+// No paging shot: by now the chat is about half a panel tall, so the page
+// arrows have nothing to page (they show once it overflows). The first take
+// recorded 17 s of nothing happening; that part was cut (VIDEO.md).
 
-// ---- 6. Scenes ----
+// ---- 5. Scenes ----
 await cap("Seven scenes, each with its own soundscape");
 await press("scene");
 await rest();
@@ -132,7 +122,7 @@ await press("scene");
 await rest();
 await sleep(5000);
 
-// ---- 7. Move her and wave ----
+// ---- 6. Move her and wave ----
 await cap("Point at the floor and pinch: she glides there");
 await pinchAt(page, { x: 0.85, y: 0, z: -1.45 }, { hand: "hand-right", from: { x: 0.25, y: 1.2, z: -0.4 } });
 await rest();
@@ -146,7 +136,7 @@ for (let i = 0; i < 12; i++) {
 await rest();
 await sleep(3500);
 
-// ---- 8. End card ----
+// ---- 7. End card ----
 await look(-0.25, 1.36, -1.2);
 await cap("Orbit · orbit-demo-lake.vercel.app", "Built with Claude Code · runs Claude Haiku 5.5 and Claude Opus 5.5 · keys stay on your headset");
 await sleep(5000);
