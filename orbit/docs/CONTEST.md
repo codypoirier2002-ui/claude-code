@@ -114,7 +114,8 @@ To redeploy after a change or a key update, from `orbit/` (linked to the project
    and voice turn both work.
 6. On your Quest, with controllers put away: open the link, Enter VR, and try the
    hands-only table above. Note anything that misses.
-7. Watch the video (sent to you on 2026-11-11 as `orbit-meta-vr-start-2026.mp4`, 2:04;
+7. Watch the video (sent to you on 2026-11-11 as `orbit-meta-vr-start-2026-final.mp4`, 1:52;
+   it replaces the 2:04 one sent earlier, whose sound drifts out of sync;
    `docs/VIDEO.md` has the shot list and the upload title and description), then upload
    it to YouTube or Vimeo as public, or tell me to prepare it differently.
 8. Fill in the Devpost form from this page: tagline, description, track (Productivity),

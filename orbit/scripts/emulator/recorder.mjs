@@ -33,6 +33,58 @@ export function recorderInit() {
     return out;
   };
 
+  // Her voice: Orbit plays each spoken chunk through a one-shot buffer source,
+  // and soundscapes through looping ones, so counting the one-shot sources
+  // that are playing tells when she speaks (loudness can't: the soundscape
+  // shares the output and ducks under her).
+  let voices = 0;
+  let voiceEndedAt = 0;
+  const origStart = AudioBufferSourceNode.prototype.start;
+  AudioBufferSourceNode.prototype.start = function (...a) {
+    if (!this.loop && !this.__rec) {
+      voices++;
+      this.addEventListener("ended", () => {
+        voices--;
+        voiceEndedAt = Date.now();
+      }, { once: true });
+    }
+    return origStart.apply(this, a);
+  };
+
+  // The microphone: a stream the script controls instead of a device. It is
+  // silent until the script says the request (__rec.say), which plays the WAV
+  // from the Node side into it; each open gets a fresh stream, because Orbit
+  // stops the tracks when it closes the mic. Opening is instant, unlike
+  // Chrome's file-backed fake device, which took about 10 s to open while
+  // recording. The WAV never reaches the page's output, so the assembly mixes
+  // it in at the logged time.
+  const micAt = [];
+  const micClosedAt = [];
+  let micCtx = null;
+  let micDest = null;
+  let askBuf = null;
+  const gum = navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices);
+  if (gum) {
+    navigator.mediaDevices.getUserMedia = async (c) => {
+      if (!c?.audio) return gum(c);
+      micCtx ??= new AudioContext({ sampleRate: 48000 });
+      if (micCtx.state !== "running") await micCtx.resume().catch(() => {});
+      micDest = micCtx.createMediaStreamDestination();
+      micAt.push(Date.now());
+      // Orbit stops the track when it closes the mic: note when.
+      const track = micDest.stream.getAudioTracks()[0];
+      const stopTrack = track.stop.bind(track);
+      track.stop = () => {
+        micClosedAt.push(Date.now());
+        stopTrack();
+      };
+      askBuf ??= typeof globalThis.__askWav === "function"
+        ? globalThis.__askWav().then((b64) => micCtx.decodeAudioData(Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0)).buffer))
+        : Promise.resolve(null);
+      return micDest.stream;
+    };
+  }
+
   const toB64 = (buf) => {
     let s = "";
     for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode(...buf.subarray(i, i + 0x8000));
@@ -74,6 +126,42 @@ export function recorderInit() {
 
   let state = null;
   globalThis.__rec = {
+    micAt,
+    micClosedAt,
+    /** Plays the request into the open mic; resolves with the wall-clock start, or null. */
+    async say() {
+      const buf = askBuf && (await askBuf);
+      if (!buf || !micDest) return null;
+      const src = micCtx.createBufferSource();
+      src.__rec = true; // not her voice
+      src.buffer = buf;
+      src.connect(micDest);
+      src.start();
+      return { at: Date.now(), ctx: micCtx.state, seconds: buf.duration };
+    },
+    /**
+     * Waits for her to start speaking (within `startWithin` ms), then for
+     * `quietMs` with nothing spoken. Times are ms from the call; started is
+     * null if she never spoke.
+     */
+    waitVoice({ startWithin = 8000, quietMs = 1500, max = 60000 } = {}) {
+      const t0 = Date.now();
+      return new Promise((resolve) => {
+        let started = voices > 0 ? t0 : null;
+        const iv = setInterval(() => {
+          const now = Date.now();
+          if (!started && voices > 0) started = now;
+          let out = null;
+          if (!started && now - t0 > startWithin) out = { started: null };
+          else if (started && voices === 0 && now - voiceEndedAt >= quietMs) out = { started: started - t0, ended: voiceEndedAt - t0 };
+          else if (now - t0 > max) out = { started: started && started - t0, timeout: true };
+          if (out) {
+            clearInterval(iv);
+            resolve(out);
+          }
+        }, 50);
+      });
+    },
     caption(text, sub = "") {
       cap.text = text;
       cap.sub = sub;
@@ -91,12 +179,32 @@ export function recorderInit() {
       let chain = Promise.resolve();
       let frames = 0;
       let dropped = 0;
+      // Encoded chunks go to Node in batches (every half second, or 512 KB):
+      // one call per frame kept the DevTools connection so busy that the
+      // script's own calls (aiming, pinching) waited up to 30 s behind them.
+      let pend = [];
+      let pendBytes = 0;
+      const flush = () => {
+        if (!pendBytes) return;
+        const all = new Uint8Array(pendBytes);
+        let o = 0;
+        for (const p of pend) {
+          all.set(p, o);
+          o += p.length;
+        }
+        pend = [];
+        pendBytes = 0;
+        const b64 = toB64(all);
+        chain = chain.then(() => globalThis.__saveVideo(b64));
+      };
+      const flusher = setInterval(flush, 500);
       const encoder = new VideoEncoder({
         output: (chunk) => {
           const buf = new Uint8Array(chunk.byteLength);
           chunk.copyTo(buf);
-          const b64 = toB64(buf);
-          chain = chain.then(() => globalThis.__saveVideo(b64));
+          pend.push(buf);
+          pendBytes += buf.length;
+          if (pendBytes > 512 * 1024) flush();
         },
         error: (e) => console.log("encoder error", e.message),
       });
@@ -156,6 +264,8 @@ export function recorderInit() {
         stop: async () => {
           on = false;
           await encoder.flush();
+          clearInterval(flusher);
+          flush();
           encoder.close();
           await chain;
           if (audioRec) {

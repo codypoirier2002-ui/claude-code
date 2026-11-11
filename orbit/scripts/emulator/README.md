@@ -40,8 +40,13 @@ ORBIT_ASK_WAV=/path/to/ask.wav node scripts/emulator/record.mjs https://orbit-de
 
 `--dry` skips the voice and reply shots (no keys needed). The full take needs the
 demo server's keys, and a WAV of the spoken request: 16-bit PCM, about a second of
-silence, the request, then 20 seconds of silence. Chrome plays it once into the fake
-microphone when Orbit opens the mic.
+silence, the request, then some silence. The recorder hands Orbit a microphone stream
+it controls: silent until the script says the request (after her greeting), when it
+plays the WAV into it. The same WAV is mixed into the soundtrack at that moment, since
+the mic's sound never reaches the page's output.
+
+A take stops early (exit code 1, nothing assembled) if the request never reaches the
+chat or she never answers, so a failed take spends little.
 
 ## Things that were not obvious
 
@@ -59,3 +64,27 @@ microphone when Orbit opens the mic.
   The page's own audio is tapped at every AudioContext destination and recorded
   alongside; both carry wall-clock start times for ffmpeg.
 - Chrome's screencast is used only for the 2D page, which barely moves.
+- Under the recording's load, the emulator's audio clock stalls for seconds at a
+  time when a scene loads for the first time (13 s once). The picture carries on, and
+  the recorded sound gets holes. The page's audio timestamps are wall-clock, so the
+  assembly fills each hole with silence where it is (`aresample=async=1`). Packing
+  the samples together instead makes the sound run ahead of the picture by the total
+  of the holes; the first two takes did that. To keep holes from happening, every
+  scene is visited once before recording starts.
+- The encoded video goes to Node in batches (every half second, or 512 KB). Sent one
+  frame per call, it kept the DevTools connection so busy that the script's own calls
+  queued behind it: a Talk pinch once landed 30 s late, and saving took minutes after
+  the last shot.
+- Chrome's file-backed fake microphone took about 10 s to open while recording, and
+  it starts playing its file the moment it opens, over her greeting. Hence the
+  controlled microphone stream.
+- The first Talk of a visit starts with her greeting, whose expressive voice can take
+  seconds to arrive; a request said before it plays barges into it, and barge-in keeps
+  only the end of the request. So the script uses the greeting up (a Talk and End voice)
+  before recording starts. It also pinches End voice within a few seconds of her answer:
+  the listen step gives up after 9 s of silence, and a later pinch starts a new session.
+- The script follows her voice by counting one-shot audio buffer sources that are
+  playing: Orbit plays her speech through those and the soundscapes through looping
+  ones. Loudness can't tell them apart, since the soundscape ducks under her voice.
+- The end checks that the soundtrack decodes to the picture's length and that the
+  video is under 3 minutes.
