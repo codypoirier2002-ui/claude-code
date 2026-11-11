@@ -40,7 +40,21 @@ node --version     # should print v24.22.3
 forge --version    # should print 15.1.0 or later
 ```
 
-`forge --version` can take a minute on a slow connection, because it checks for updates first.
+Claude ran these lines on this machine. `forge --version` printed `15.1.0` after 30 seconds to
+2.5 minutes, depending on the connection. Every `forge` command has that start-up delay, so give it
+time. Without the first line, `forge`
+either isn't found or runs under Node 26, which the Forge CLI does not support.
+
+**If that folder is gone.** The work lives on the git branch `claude/codegeist-2026-17e000` in
+`C:\Users\codyp\Code\claude-code`; the folder above is only a working copy of it. To get it back:
+
+```powershell
+cd C:\Users\codyp\Code\claude-code
+git worktree prune
+git worktree add ..\groundwork claude/codegeist-2026-17e000
+cd ..\groundwork\codegeist
+npm ci
+```
 
 ## 3. Create an API token and log in (you, 5 minutes)
 
@@ -71,7 +85,8 @@ forge register
 
 Name it **Groundwork**. This swaps the placeholder app ID in `manifest.yml` for your own. If the
 CLI shows developer terms or asks you to create a developer space, read the terms and answer
-yourself.
+yourself. Afterwards, `manifest.yml` has changed: tell Claude "yes, commit the app ID" (or commit it
+yourself), so the branch keeps your real app ID.
 
 **Billing safety:** never add a payment method in the developer console. With no payment method,
 Atlassian cannot charge you anything. Groundwork's expected use is a tiny fraction of the free
@@ -168,7 +183,11 @@ Read it all once more, then select **Submit** yourself before December 22, 12:00
 - `npm run check` passes: ESLint, TypeScript (6.0, and also the Forge CLI's bundled 5.9), 108 unit
   tests, and an esbuild bundle of both entry points.
 - `manifest.yml` passes the Forge CLI's own full manifest validator (`@forge/manifest` 13.9.0),
-  which runs offline as part of the tests.
+  which runs offline as part of the tests. Its schema covers `rovo:agent` (including `skills`),
+  `rovo:skill`, `rovo:mcp`, `action` and the UI Kit `jira:issueContext`. It does not read the
+  `SKILL.md` files; a separate unit test checks those against the documented format.
+- The PowerShell lines in step 2 run on this machine: Node 24.22.3, and `forge --version` printed
+  15.1.0.
 
 ## What Claude could not verify without your login
 
@@ -178,3 +197,8 @@ Read it all once more, then select **Submit** yourself before December 22, 12:00
 - That the five Teamwork Graph queries match the live schema and return data on the demo site.
 - The distribution form, the installation link and the judges' install flow.
 - What the seeded demo data looks like.
+- That Rovo agents, Rovo Studio, `rovo:mcp` tools and the Teamwork Graph all work on the free demo
+  site at no cost. This comes from Atlassian's documentation (2026-11-11): the Codegeist resources
+  page says the demo site includes Rovo Enterprise and Studio, the Rovo MCP tutorial needs only
+  Rovo activated, and the Forge pricing page says a developer is never charged for Rovo credits.
+  None of it has been tested on a real site yet.

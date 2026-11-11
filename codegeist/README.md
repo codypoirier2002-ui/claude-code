@@ -139,9 +139,11 @@ The owner of a demo site is its org admin.
 - All scopes are read-only, and actions use the `GET` verb.
 - There is no storage, no outside network access, no Forge LLM API (which has no free tier) and no
   containers.
-- Each check runs one function of about a second at 256 MB. Forge's free allowance is 200,000
-  GB-seconds a month, so normal use costs **$0**. Rovo's own AI usage is billed to the site's Rovo
-  allowance, not to the app developer.
+- Each check is one function run at 256 MB that makes up to 3 Jira calls and 9 Teamwork Graph
+  calls. Its duration has not been measured on a live site yet. Even at a pessimistic 5 seconds, that
+  is 1.25 GB-seconds a check, and Forge's free allowance of 200,000 GB-seconds a month covers about
+  160,000 checks. Expected cost is **$0**. Rovo's own AI usage is billed to the site's Rovo allowance,
+  not to the app developer.
 - `PRIVACY.md` has the full privacy statement.
 
 ## Troubleshooting
@@ -149,6 +151,7 @@ The owner of a demo site is its org admin.
 | Symptom | Fix |
 | --- | --- |
 | `forge` is not recognized, or says the Node version is unsupported | Run the `$env:Path` line above in the window first. |
+| A `forge` command seems to hang | Every command takes from 30 seconds to a few minutes to start on a slow connection. Wait before you cancel it. |
 | The panel says the work item was not found | The signed-in user cannot view it, or the app is not installed on that site. |
 | The footer says "no linked goals, pull requests, page owners or teams" | Either nothing is linked yet, or the graph scopes were not granted. In admin.atlassian.com, check **Connected apps**, **Groundwork**, **Permissions**. |
 | Groundwork does not appear in Rovo Studio tools | Re-run `forge deploy` and `forge install --upgrade`, then reload Rovo. |

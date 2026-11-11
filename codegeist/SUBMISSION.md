@@ -17,9 +17,10 @@ after deploying.
 - **Installation link:** `<from the developer console, Distribution, Sharing>`
 - **Code (optional):** `<GitHub link to the codegeist folder, if pushed>`
 
-**AI assistance:** Groundwork was built with AI assistance. Claude Code (Anthropic's coding agent)
-wrote the code, tests and documentation under the entrant's direction. The entrant reviewed,
-deployed, tested and presented it.
+**AI assistance** (owner: edit the second sentence so it matches what you actually did before you
+submit): Groundwork was built with AI assistance. Claude Code, Anthropic's coding agent, proposed the
+idea and wrote the code, tests and documentation; `<describe your own part, for example "I chose the
+direction, reviewed the code, deployed and tested the app on my site, and recorded the demo">`.
 
 ---
 
@@ -227,6 +228,10 @@ has).
 
 **Recording notes**
 
+- If the panel footer shows no Teamwork Graph data on your site, keep shot 6 but change its line to:
+  "Story A is ready. When goals, page owners and teams are linked in the Teamwork Graph, they show up
+  here and in the pack too." Don't claim graph data the screen doesn't show, and in that case leave
+  the Teamwork Graph bonus unticked.
 - Record at 1920×1080. Zoom the browser to 125% so the panel is readable.
 - Create the demo data first. Run each prompt once before recording, so Rovo's answers are familiar.
 - Show only Atlassian products and Groundwork, with no other companies' logos or tools. Use no music,
