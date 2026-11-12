@@ -36,6 +36,12 @@ export const EOS_TICK_MS = 50;
 export const EOS_LEARN_MS = 300;
 export const BARGE_TICK_MS = 40;
 export const PREROLL_SEGMENT_MS = 1500;
+/**
+ * Speech requests one speaker keeps in flight. ElevenLabs refuses requests past
+ * the plan's concurrency limit with 429 (5 on the demo's account, shared by its
+ * visitors), and a briefing alone is cut into six chunks or so.
+ */
+export const MAX_SPEECH_IN_FLIGHT = 3;
 export const RECORDER_TYPES: readonly string[] = [
   "audio/webm;codecs=opus",
   "audio/webm",
@@ -207,6 +213,53 @@ interface Chunk {
   controller: AbortController;
 }
 
+/**
+ * Runs at most `max` tasks at once, starting the rest in the order they came.
+ * A task still waiting when its signal aborts never runs and rejects with an
+ * AbortError.
+ */
+function createSlots(max: number) {
+  let running = 0;
+  const waiting: { start: () => void; signal: AbortSignal; onAbort: () => void }[] = [];
+  const next = () => {
+    while (running < max && waiting.length > 0) {
+      const w = waiting.shift()!;
+      w.signal.removeEventListener("abort", w.onAbort);
+      running++;
+      w.start();
+    }
+  };
+  return async function run<T>(signal: AbortSignal, task: () => Promise<T>): Promise<T> {
+    if (running < max && waiting.length === 0) {
+      running++;
+    } else {
+      await new Promise<void>((resolve, reject) => {
+        const abort = () => reject(new DOMException("The speech request was stopped.", "AbortError"));
+        if (signal.aborted) {
+          abort();
+          return;
+        }
+        const w = {
+          start: resolve,
+          signal,
+          onAbort: () => {
+            waiting.splice(waiting.indexOf(w), 1);
+            abort();
+          },
+        };
+        signal.addEventListener("abort", w.onAbort, { once: true });
+        waiting.push(w);
+      });
+    }
+    try {
+      return await task();
+    } finally {
+      running--;
+      next();
+    }
+  };
+}
+
 function isAbort(err: unknown): boolean {
   return (err instanceof Error || (typeof err === "object" && err !== null)) &&
     (err as { name?: string }).name === "AbortError";
@@ -249,6 +302,7 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
   let pumpGen = -1;
   let previousPlain = "";
   let synthPending = 0;
+  const speechSlots = createSlots(MAX_SPEECH_IN_FLIGHT);
 
   let source: AudioBufferSourceNode | null = null;
   let endPlayback: (() => void) | null = null;
@@ -367,10 +421,10 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
   }
 
   async function synthesize(text: string, previous: string, gen: number, signal: AbortSignal): Promise<AudioBuffer | null> {
-    const s = deps.getSettings();
-    const data = s.expressiveVoice && !expressiveDisabled
-      ? await expressive(text, previous, signal)
-      : await fast(text, signal);
+    // The voice is decided when the request starts: expressive may have been switched off while it waited.
+    const data = await speechSlots(signal, () =>
+      deps.getSettings().expressiveVoice && !expressiveDisabled ? expressive(text, previous, signal) : fast(text, signal),
+    );
     if (gen !== generation) return null;
     const ctx = deps.audioContext();
     const buffer = await ctx.decodeAudioData(data);

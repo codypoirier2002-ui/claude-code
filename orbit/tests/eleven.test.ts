@@ -178,6 +178,62 @@ describe("the client", () => {
     expect(JSON.parse(calls[1].init.body as string)).toEqual({ inputs: [{ text: "Next.", voice_id: "v2" }], model_id: "eleven_v4" });
   });
 
+  /** ElevenLabs' 429 when the account's plan has too many requests running (5 on the demo's key, seen 2026-11-11). */
+  const tooManyAtOnce = (init: ResponseInit = {}) =>
+    Response.json(
+      {
+        detail: {
+          type: "rate_limit_error",
+          code: "concurrent_limit_exceeded",
+          message: "Too many concurrent requests. Your current subscription is associated with a maximum of 5 concurrent requests (running in parallel).",
+          status: "too_many_concurrent_requests",
+        },
+      },
+      { status: 429, ...init },
+    );
+
+  it("retries ElevenLabs' too-many-at-once 429 after a wait, honouring retry-after", async () => {
+    let n = 0;
+    const { calls, fetch } = fakeFetch(() => (++n === 1 ? tooManyAtOnce() : n === 2 ? tooManyAtOnce({ headers: { "retry-after": "2" } }) : audio()));
+    const waits: number[] = [];
+    const client = createElevenClient({ getKey: () => "k", fetch, wait: async (ms) => void waits.push(ms) });
+    const buf = await client.synthesizeExpressive("Hi.", "v");
+    expect(buf.byteLength).toBe(3);
+    expect(calls).toHaveLength(3);
+    expect(calls[2].init.body).toBe(calls[0].init.body);
+    expect(waits).toEqual([400, 2000]);
+  });
+
+  it("gives up after three retries, and never retries the demo server's own per-visitor limit", async () => {
+    const waits: number[] = [];
+    const busy = fakeFetch(() => tooManyAtOnce());
+    const client = createElevenClient({ getKey: () => "k", fetch: busy.fetch, wait: async (ms) => void waits.push(ms) });
+    await expect(client.synthesizeFast("Hi.", "v", 1)).rejects.toMatchObject({ kind: "rate_limit", status: 429 });
+    expect(busy.calls).toHaveLength(4);
+    expect(waits).toEqual([400, 900, 1800]);
+
+    const yours = fakeFetch(() =>
+      Response.json(
+        { detail: { status: "too_many_requests", message: "The demo server is busy with you. Try again in 120 s." } },
+        { status: 429, headers: { "retry-after": "120" } },
+      ),
+    );
+    const demo = createElevenClient({ getKey: () => "", fetch: yours.fetch, demo: true, wait: () => Promise.reject(new Error("no wait expected")) });
+    await expect(demo.synthesizeFast("Hi.", "v", 1)).rejects.toMatchObject({ kind: "rate_limit" });
+    expect(yours.calls).toHaveLength(1);
+  });
+
+  it("stops waiting to retry when the request is aborted", async () => {
+    const { calls, fetch } = fakeFetch(() => tooManyAtOnce());
+    const client = createElevenClient({ getKey: () => "k", fetch });
+    const controller = new AbortController();
+    const speech = client.synthesizeFast("Hi.", "v", 1, controller.signal);
+    await new Promise((r) => setTimeout(r, 0)); // the 429 is in, and the wait has started
+    controller.abort();
+    await expect(speech).rejects.toMatchObject({ name: "AbortError" });
+    expect(calls).toHaveLength(1);
+  });
+
   it("listVoices maps to {id, name}", async () => {
     const { calls, fetch } = fakeFetch(() =>
       Response.json({ voices: [{ voice_id: "a", name: "Ann", extra: 1 }, { voice_id: "b", name: "Bo" }, { name: "no id" }] }),

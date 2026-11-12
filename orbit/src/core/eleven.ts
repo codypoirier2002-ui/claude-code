@@ -16,6 +16,18 @@ export const EXPRESSIVE_MODEL = "eleven_v4";
 export const LAURA_VOICE_ID = "FGY2WhTYpPnrIDTdsKH5";
 /** previous_text carries the last 100 characters of the previous chunk; ElevenLabs refuses more (422). */
 export const PREVIOUS_TEXT_CHARS = 100;
+/**
+ * Waits before each retry of a 429 that means "too much at once" (§5.3); a
+ * retry-after in the answer wins, up to RETRY_AFTER_MAX_MS.
+ */
+export const RETRY_DELAYS_MS: readonly number[] = [400, 900, 1800];
+export const RETRY_AFTER_MAX_MS = 4000;
+/**
+ * ElevenLabs' 429 statuses for "too much at once": the plan's concurrency limit
+ * (5 requests on the demo's account) or a busy system. Not the demo server's
+ * own per-visitor limit ("too_many_requests"), which lasts minutes.
+ */
+const RETRY_STATUSES = new Set(["too_many_concurrent_requests", "system_busy"]);
 
 export type ElevenErrorKind =
   | "invalid_key"
@@ -175,6 +187,36 @@ export interface ElevenClientDeps {
   fetch?: FetchLike;
   /** A demo build (§21): with no key, calls go through the host's proxy. Defaults to the build flag. */
   demo?: boolean;
+  /** Waits `ms` before a retry, rejecting with an AbortError if `signal` aborts. Defaults to a timer with ±25% jitter. */
+  wait?: (ms: number, signal?: AbortSignal) => Promise<void>;
+}
+
+const abortError = () => new DOMException("The request was aborted.", "AbortError");
+
+/** A timer that rejects with an AbortError as soon as `signal` aborts. */
+function pause(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(abortError());
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(id);
+      reject(abortError());
+    };
+    const id = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+/** The wait before retry `attempt` (0-based): the answer's retry-after if it gives one, else the next step. */
+function retryDelay(res: Response, attempt: number): number {
+  const seconds = Number(res.headers.get("retry-after"));
+  if (Number.isFinite(seconds) && seconds > 0) return Math.min(seconds * 1000, RETRY_AFTER_MAX_MS);
+  return RETRY_DELAYS_MS[attempt];
 }
 
 export interface Voice {
@@ -191,14 +233,16 @@ export interface ElevenClient {
 
 export function createElevenClient(deps: ElevenClientDeps): ElevenClient {
   const doFetch: FetchLike = deps.fetch ?? ((input, init) => globalThis.fetch(input, init));
+  const wait = deps.wait ?? ((ms: number, signal?: AbortSignal) => pause(ms * (0.75 + Math.random() * 0.5), signal));
 
   async function call(path: string, init: RequestInit, feature: ElevenFeature, signal?: AbortSignal): Promise<Response> {
     const headers = new Headers(init.headers);
     const key = cleanElevenKey(deps.getKey());
     const route = elevenRoute(ELEVEN_BASE, path, key, deps.demo ?? DEMO_BUILD);
     if (route.sendKey) headers.set("xi-api-key", key);
-    const res = await doFetch(route.url, { ...init, headers, ...(signal ? { signal } : {}) });
-    if (!res.ok) {
+    for (let attempt = 0; ; attempt++) {
+      const res = await doFetch(route.url, { ...init, headers, ...(signal ? { signal } : {}) });
+      if (res.ok) return res;
       const raw = await res.text().catch(() => "");
       let body: unknown = raw;
       try {
@@ -206,9 +250,12 @@ export function createElevenClient(deps: ElevenClientDeps): ElevenClient {
       } catch {
         // keep the raw text
       }
-      throw ElevenError.from(res.status, body, feature);
+      const err = ElevenError.from(res.status, body, feature);
+      // Too much at once on the account: the requests ahead finish in a second or so, so wait and try again.
+      const busy = res.status === 429 && err.detailStatus !== undefined && RETRY_STATUSES.has(err.detailStatus);
+      if (!busy || attempt >= RETRY_DELAYS_MS.length) throw err;
+      await wait(retryDelay(res, attempt), signal);
     }
-    return res;
   }
 
   const json = (body: unknown): RequestInit => ({

@@ -517,6 +517,43 @@ describe("speaker", () => {
     expect(speaker.speaking).toBe(false);
   });
 
+  // ElevenLabs refuses requests past the plan's concurrency limit with 429 (5 on the demo's key),
+  // and a briefing alone is cut into six chunks or so.
+  const S4 = "A fourth sentence arrives here, and it is long enough as well.";
+  const S5 = "And a fifth one, so two chunks have to wait for their turn.";
+
+  it("keeps at most three speech requests in flight, starting the rest in order", async () => {
+    const { ctx, reqs, speaker, endCurrent } = setup();
+    speaker.feed(`${S1} ${S2} ${S3} ${S4} ${S5} `);
+    await flush();
+    expect(reqs.map(textOf)).toEqual([S1, S2, S3]);
+    expect(speaker.speaking).toBe(true);
+    reqs[1].resolve(ok(reqs[1]));
+    await flush();
+    expect(reqs.map(textOf)).toEqual([S1, S2, S3, S4]);
+    reqs[0].resolve(ok(reqs[0]));
+    await flush();
+    expect(reqs.map(textOf)).toEqual([S1, S2, S3, S4, S5]);
+    for (const r of reqs.slice(2)) r.resolve(ok(r));
+    await flush();
+    for (let i = 0; i < 5; i++) await endCurrent();
+    expect(ctx.played).toEqual([S1, S2, S3, S4, S5]);
+    expect(speaker.speaking).toBe(false);
+  });
+
+  it("stop() drops the chunks still waiting for a request slot", async () => {
+    const { reqs, speaker } = setup();
+    speaker.feed(`${S1} ${S2} ${S3} ${S4} ${S5} `);
+    await flush();
+    speaker.stop();
+    for (const r of reqs.slice()) r.resolve(ok(r)); // the three in flight finish after the stop
+    await flush();
+    expect(reqs).toHaveLength(3); // S4 and S5 never went out
+    speaker.say("A new reply starts at once.");
+    await flush();
+    expect(reqs.map(textOf).slice(3)).toEqual(["A new reply starts at once."]);
+  });
+
   it("sends previous_text (last 100 plain chars) at the top level and keeps tags for the expressive voice", async () => {
     const { reqs, speaker } = setup({ auto: ok });
     speaker.feed(`[giggles] ${S1} ${S2} `);

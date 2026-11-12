@@ -491,7 +491,8 @@ Read each response in full (`arrayBuffer`, then `decodeAudioData`). Speech start
     - release any `whenIdle()` waiters.
   - Also `speaking`, `whenIdle()` and `level()`.
 - **Pipelining:**
-  - Each chunk's request starts as soon as it is queued. Playback is strictly in order, through one shared `AnalyserNode` (fftSize 1024) connected to the destination.
+  - Each chunk's request starts as soon as it is queued, at most three at a time (`MAX_SPEECH_IN_FLIGHT`); the rest start in order as those finish. ElevenLabs refuses requests past the plan's concurrency limit with 429. The demo's account allows 5, shared by its visitors, and a briefing alone is about six chunks. A chunk still waiting when `stop()` runs is never sent.
+  - Playback is strictly in order, through one shared `AnalyserNode` (fftSize 1024) connected to the destination.
   - `level()` is `min(1, RMS × 5)` while audio plays. It drives lip-sync.
   - Re-check the generation after every await, so an old playback loop can never consume a new reply's queue.
 - **No ElevenLabs key:** use the browser's `speechSynthesis` at rate 1.05. The level stays 0.
@@ -516,6 +517,8 @@ Read each response in full (`arrayBuffer`, then `decodeAudioData`). Speech start
 6. Anything else → other.
 
 ElevenLabs also returns 401 for restricted keys and for an empty balance, so never treat every 401 as a bad key.
+
+**Too much at once.** A 429 whose `detail.status` is `too_many_concurrent_requests` (the plan's concurrency limit) or `system_busy` is sent again, up to three times. The waits are 0.4, 0.9 and 1.8 s (±25%), or the `retry-after` the answer names, at most 4 s. Only then does it become rate_limit. A wait ends at once when the request is aborted. The demo server's own per-visitor 429 (`too_many_requests`, §21) is not retried: its wait is minutes.
 
 **Messages:**
 - invalid_key: "ElevenLabs says this key isn't valid. Copy it again from elevenlabs.io → Developers → API keys (it starts with sk_) and paste only the key."
