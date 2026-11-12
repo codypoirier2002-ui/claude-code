@@ -1,0 +1,14 @@
+{
+  "name": "model-scale",
+  "version": "0.1.0",
+  "description": "Routes work to the cheapest Claude model and effort that should do it well: scores each prompt on a six-level scale (haiku to fable), sets the thinking effort per turn, optionally picks the model for a new conversation, gives general-purpose subagents the model their task means, and shows an estimated saving with /scale.",
+  "userConfig": {
+    "agentTypes": {
+      "type": "string",
+      "title": "Subagent types to route",
+      "description": "Comma-separated agent types whose spawns get a model from their task (when the Agent call names none). Other types keep the model they have. Default: general-purpose.",
+      "required": false,
+      "default": "general-purpose"
+    }
+  }
+}
