@@ -1,0 +1,28 @@
+{
+  "packageId": "com.REPLACE_ORG.orbit",
+  "host": "REPLACE_DOMAIN",
+  "name": "Orbit: AI Assistant",
+  "launcherName": "Orbit",
+  "display": "standalone",
+  "orientation": "landscape",
+  "themeColor": "#0f1218",
+  "navigationColor": "#0f1218",
+  "backgroundColor": "#0f1218",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://REPLACE_DOMAIN/icons/icon-512.png",
+  "maskableIconUrl": "https://REPLACE_DOMAIN/icons/icon-512-maskable.png",
+  "webManifestUrl": "https://REPLACE_DOMAIN/manifest.webmanifest",
+  "fullScopeUrl": "https://REPLACE_DOMAIN/",
+  "splashScreenFadeOutDuration": 300,
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signingKey": {
+    "path": "REPLACE_WITH_ABSOLUTE_PATH_TO_YOUR_KEYSTORE_OUTSIDE_THIS_REPO",
+    "alias": "REPLACE_WITH_YOUR_KEY_ALIAS"
+  },
+  "isMetaQuest": true,
+  "horizonOSAppMode": "2D",
+  "minSdkVersion": 23,
+  "fallbackType": "customtabs"
+}
