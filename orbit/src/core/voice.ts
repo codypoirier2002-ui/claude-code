@@ -55,10 +55,36 @@ const CLOSED_FENCE = /(^|\n)[ \t]{0,3}(`{3,}|~{3,})[^\n]*\n(?:[\s\S]*?\n)?[ \t]{
 const OPEN_FENCE_TAIL = /(^|\n)[ \t]{0,3}(`{3,}|~{3,})[\s\S]*$/;
 const FENCE_LINE = /^[ \t]{0,3}(`{3,}|~{3,})/gm;
 
+/** A bulleted or numbered list item's start. */
+const LIST_ITEM = /^[ \t]*(?:[-*+•]|\d{1,3}[.)])[ \t]+/;
+/** A line that ends in a spoken pause, closing quotes and brackets allowed after it. */
+const ENDS_PAUSED = /[.!?:;,…]["'”’)\]]*$/;
+
+/**
+ * A list is heard, not seen: each item ends in a period, and the line leading
+ * into it in a colon, unless they already end in punctuation. Without that,
+ * "- Finish the essay\n- Email Sam" is read as "Finish the essay Email Sam".
+ */
+function pauseLists(text: string): string {
+  const lines = text.split("\n").map((l) => l.replace(/[ \t]+$/, ""));
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!/[\p{L}\p{N}]/u.test(line) || ENDS_PAUSED.test(line)) continue;
+    if (LIST_ITEM.test(line)) {
+      lines[i] = `${line}.`;
+      continue;
+    }
+    const next = lines.slice(i + 1).find((l) => l.trim() !== "");
+    if (next !== undefined && LIST_ITEM.test(next)) lines[i] = `${line}:`;
+  }
+  return lines.join("\n");
+}
+
 /**
  * Text as it should be heard (§5.2): tags stripped unless kept, closed code
- * fences replaced with " (code omitted) ", markdown emphasis, backticks and
- * line-start bullets removed, links reduced to their label, whitespace collapsed.
+ * fences replaced with " (code omitted) ", links reduced to their label,
+ * markdown emphasis and backticks removed, list items given a pause and their
+ * bullets removed, whitespace collapsed.
  */
 export function speakable(text: string, keepTags = false): string {
   let t = keepTags ? text : stripAudioTags(text);
@@ -66,8 +92,9 @@ export function speakable(text: string, keepTags = false): string {
   // A fence that never closed (a reply cut off mid-code) is not read aloud either.
   t = t.replace(OPEN_FENCE_TAIL, "$1 (code omitted) ");
   t = t.replace(/\[([^\]\n]*)\]\([^)\n]*\)/g, "$1");
-  t = t.replace(/^[ \t]*(?:[-*+•])[ \t]+/gm, "");
   t = t.replace(/\*\*|__|`/g, "");
+  t = pauseLists(t);
+  t = t.replace(/^[ \t]*(?:[-*+•])[ \t]+/gm, "");
   return t.replace(/\s+/g, " ").trim();
 }
 

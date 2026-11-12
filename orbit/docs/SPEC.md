@@ -476,7 +476,8 @@ Read each response in full (`arrayBuffer`, then `decodeAudioData`). Speech start
 - **`speakable(text, keepTags = false)`:**
   - Strip audio tags unless `keepTags` is set.
   - Replace closed code fences with " (code omitted) ".
-  - Remove `**`, `__`, backticks and bullets at line starts.
+  - Remove `**`, `__` and backticks.
+  - Lists: end each bulleted or numbered item with a period, and the line leading into a list with a colon, unless it already ends in punctuation; then remove the bullets. Without the pauses, "- Finish the essay" and "- Email Sam" are read as "Finish the essay Email Sam".
   - Turn `[label](url)` into `label`, and collapse whitespace.
 - **API:**
   - `feed(delta)` and `flush()`.

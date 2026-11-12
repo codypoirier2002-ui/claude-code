@@ -173,10 +173,25 @@ describe("speakable", () => {
   it("omits closed code fences and removes markdown", () => {
     expect(speakable("Try this:\n```js\nconst a = 1;\n```\nDone.")).toBe("Try this: (code omitted) Done.");
     expect(speakable("**Bold** and __under__ and `code`.")).toBe("Bold and under and code.");
-    expect(speakable("- one\n* two\n+ three")).toBe("one two three");
+    expect(speakable("- one\n* two\n+ three")).toBe("one. two. three.");
     expect(speakable("See [the docs](https://x.dev/a) now.")).toBe("See the docs now.");
     expect(speakable("  lots \n\n of\tspace  ")).toBe("lots of space");
     expect(speakable("arr[i] stays")).toBe("arr[i] stays");
+  });
+
+  it("gives every list item a pause, so a list isn't read as one run-on line", () => {
+    // A briefing's to-dos, which used to come out as "Finish the essay draft Email Sam about…".
+    expect(speakable("Your top to-dos:\n- Finish the essay draft\n- Email Sam about Friday's plan\n- Pick up groceries")).toBe(
+      "Your top to-dos: Finish the essay draft. Email Sam about Friday's plan. Pick up groceries.",
+    );
+    // Items that end in punctuation keep it, emphasis and closing quotes included.
+    expect(speakable('- **Done!**\n- Ready?\n- Read "Dune."')).toBe('Done! Ready? Read "Dune."');
+    // A line leading into a list gets a colon, numbered lists keep their numbers, and blank lines don't matter.
+    expect(speakable("Here's what I found\n\n1. The essay is due Friday\n2) Sam replied")).toBe(
+      "Here's what I found: 1. The essay is due Friday. 2) Sam replied.",
+    );
+    // Prose without a list is left alone.
+    expect(speakable("Two lines\nof prose")).toBe("Two lines of prose");
   });
 });
 
