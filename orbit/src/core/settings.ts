@@ -1,5 +1,6 @@
 // Settings (§9): localStorage `orbit:settings`, schema version 4.
 
+import { DEMO_BUILD } from "./demo";
 import { readJSON, writeJSON } from "./store";
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
@@ -169,10 +170,12 @@ export function assistantName(s: Pick<Settings, "assistantName">): string {
   return cleaned || DEFAULT_ASSISTANT_NAME;
 }
 
-export function isConfigured(s: Pick<Settings, "apiKey" | "baseURL">): boolean {
-  return s.apiKey.trim() !== "" || s.baseURL.trim() !== "";
+/** Claude can be reached: a key, a proxy, or (demo builds, §21) the host's demo server. */
+export function isConfigured(s: Pick<Settings, "apiKey" | "baseURL">, demo = DEMO_BUILD): boolean {
+  return demo || s.apiKey.trim() !== "" || s.baseURL.trim() !== "";
 }
 
-export function hasVoiceKey(s: Pick<Settings, "elevenLabsKey">): boolean {
-  return s.elevenLabsKey.trim() !== "";
+/** ElevenLabs can be reached: a key, or (demo builds, §21) the host's demo server. */
+export function hasVoiceKey(s: Pick<Settings, "elevenLabsKey">, demo = DEMO_BUILD): boolean {
+  return demo || s.elevenLabsKey.trim() !== "";
 }

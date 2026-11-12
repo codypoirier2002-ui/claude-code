@@ -1,7 +1,10 @@
 // ElevenLabs client (§5.1) and error handling (§5.3). Every call goes straight
 // from the browser to https://api.elevenlabs.io with the user's key in the
-// xi-api-key header. All browser dependencies are injectable for tests.
+// xi-api-key header; in a demo build with no key it goes to the host's
+// same-origin proxy instead (§21, ./demo). All browser dependencies are
+// injectable for tests.
 
+import { DEMO_BUILD, elevenRoute } from "./demo";
 import { stripAudioTags } from "./tags";
 
 export const ELEVEN_BASE = "https://api.elevenlabs.io";
@@ -11,8 +14,20 @@ export const FAST_MODEL = "eleven_flash_v2_5";
 export const EXPRESSIVE_MODEL = "eleven_v4";
 /** Laura, a premade voice every plan can use from apps (§5.2). */
 export const LAURA_VOICE_ID = "FGY2WhTYpPnrIDTdsKH5";
-/** previous_text carries the last 100 characters of the previous chunk. */
+/** previous_text carries the last 100 characters of the previous chunk; ElevenLabs refuses more (422). */
 export const PREVIOUS_TEXT_CHARS = 100;
+/**
+ * Waits before each retry of a 429 that means "too much at once" (§5.3); a
+ * retry-after in the answer wins, up to RETRY_AFTER_MAX_MS.
+ */
+export const RETRY_DELAYS_MS: readonly number[] = [400, 900, 1800];
+export const RETRY_AFTER_MAX_MS = 4000;
+/**
+ * ElevenLabs' 429 statuses for "too much at once": the plan's concurrency limit
+ * (5 requests on the demo's account) or a busy system. Not the demo server's
+ * own per-visitor limit ("too_many_requests"), which lasts minutes.
+ */
+const RETRY_STATUSES = new Set(["too_many_concurrent_requests", "system_busy"]);
 
 export type ElevenErrorKind =
   | "invalid_key"
@@ -31,6 +46,12 @@ export interface ElevenErrorInfo {
   detail: string;
   /** The permission name captured for missing_permission, e.g. "speech_to_text". */
   permission?: string;
+  /**
+   * ElevenLabs' own error status from the body (`detail.status`), e.g.
+   * "input_text_empty" or "model_not_found", when it sends one. Not the body's
+   * `code` ("invalid_parameters"), which is broader.
+   */
+  detailStatus?: string;
 }
 
 const FEATURE_LABEL: Record<ElevenFeature, string> = {
@@ -63,24 +84,24 @@ function readDetail(body: unknown): { status: string; message: string } {
 export function classifyElevenError(status: number, body: unknown): ElevenErrorInfo {
   const { status: dStatus, message } = readDetail(body);
   const text = `${dStatus} ${message}`.toLowerCase();
-  const detail = message || dStatus;
+  const base = { detail: message || dStatus, ...(dStatus ? { detailStatus: dStatus } : {}) };
 
   if (/missing_permission|missing the permission/.test(text)) {
     // Prefer the message: "missing_permission <The...>" in the status would capture "the".
     const m = /permission\s+([a-z_]+)/i.exec(message) ?? /permission\s+([a-z_]+)/i.exec(text);
-    return { kind: "missing_permission", detail, ...(m ? { permission: m[1].toLowerCase() } : {}) };
+    return { kind: "missing_permission", ...base, ...(m ? { permission: m[1].toLowerCase() } : {}) };
   }
-  if (/quota|credits|character limit/.test(text)) return { kind: "quota", detail };
+  if (/quota|credits|character limit/.test(text)) return { kind: "quota", ...base };
   if (
     status === 402 ||
     /library voice|paid (plan|subscription)|upgrade your subscription|payment_required/.test(text) ||
     /voice_not_found|voice.*(not found|does not exist)/.test(text)
   ) {
-    return { kind: "voice_unavailable", detail };
+    return { kind: "voice_unavailable", ...base };
   }
-  if (status === 401 || /invalid_api_key|invalid api key/.test(text)) return { kind: "invalid_key", detail };
-  if (status === 429) return { kind: "rate_limit", detail };
-  return { kind: "other", detail };
+  if (status === 401 || /invalid_api_key|invalid api key/.test(text)) return { kind: "invalid_key", ...base };
+  if (status === 429) return { kind: "rate_limit", ...base };
+  return { kind: "other", ...base };
 }
 
 /** The feature named in the missing_permission message, from the captured permission name. */
@@ -123,6 +144,7 @@ export class ElevenError extends Error {
   readonly kind: ElevenErrorKind;
   readonly detail: string;
   readonly permission?: string;
+  readonly detailStatus?: string;
   readonly feature: ElevenFeature;
 
   constructor(status: number, info: ElevenErrorInfo, feature: ElevenFeature) {
@@ -132,6 +154,7 @@ export class ElevenError extends Error {
     this.kind = info.kind;
     this.detail = info.detail;
     if (info.permission) this.permission = info.permission;
+    if (info.detailStatus) this.detailStatus = info.detailStatus;
     this.feature = feature;
   }
 
@@ -162,6 +185,38 @@ export interface ElevenClientDeps {
   getKey: () => string;
   /** Defaults to globalThis.fetch. */
   fetch?: FetchLike;
+  /** A demo build (§21): with no key, calls go through the host's proxy. Defaults to the build flag. */
+  demo?: boolean;
+  /** Waits `ms` before a retry, rejecting with an AbortError if `signal` aborts. Defaults to a timer with ±25% jitter. */
+  wait?: (ms: number, signal?: AbortSignal) => Promise<void>;
+}
+
+const abortError = () => new DOMException("The request was aborted.", "AbortError");
+
+/** A timer that rejects with an AbortError as soon as `signal` aborts. */
+function pause(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(abortError());
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(id);
+      reject(abortError());
+    };
+    const id = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+/** The wait before retry `attempt` (0-based): the answer's retry-after if it gives one, else the next step. */
+function retryDelay(res: Response, attempt: number): number {
+  const seconds = Number(res.headers.get("retry-after"));
+  if (Number.isFinite(seconds) && seconds > 0) return Math.min(seconds * 1000, RETRY_AFTER_MAX_MS);
+  return RETRY_DELAYS_MS[attempt];
 }
 
 export interface Voice {
@@ -178,12 +233,16 @@ export interface ElevenClient {
 
 export function createElevenClient(deps: ElevenClientDeps): ElevenClient {
   const doFetch: FetchLike = deps.fetch ?? ((input, init) => globalThis.fetch(input, init));
+  const wait = deps.wait ?? ((ms: number, signal?: AbortSignal) => pause(ms * (0.75 + Math.random() * 0.5), signal));
 
   async function call(path: string, init: RequestInit, feature: ElevenFeature, signal?: AbortSignal): Promise<Response> {
     const headers = new Headers(init.headers);
-    headers.set("xi-api-key", cleanElevenKey(deps.getKey()));
-    const res = await doFetch(ELEVEN_BASE + path, { ...init, headers, ...(signal ? { signal } : {}) });
-    if (!res.ok) {
+    const key = cleanElevenKey(deps.getKey());
+    const route = elevenRoute(ELEVEN_BASE, path, key, deps.demo ?? DEMO_BUILD);
+    if (route.sendKey) headers.set("xi-api-key", key);
+    for (let attempt = 0; ; attempt++) {
+      const res = await doFetch(route.url, { ...init, headers, ...(signal ? { signal } : {}) });
+      if (res.ok) return res;
       const raw = await res.text().catch(() => "");
       let body: unknown = raw;
       try {
@@ -191,9 +250,12 @@ export function createElevenClient(deps: ElevenClientDeps): ElevenClient {
       } catch {
         // keep the raw text
       }
-      throw ElevenError.from(res.status, body, feature);
+      const err = ElevenError.from(res.status, body, feature);
+      // Too much at once on the account: the requests ahead finish in a second or so, so wait and try again.
+      const busy = res.status === 429 && err.detailStatus !== undefined && RETRY_STATUSES.has(err.detailStatus);
+      if (!busy || attempt >= RETRY_DELAYS_MS.length) throw err;
+      await wait(retryDelay(res, attempt), signal);
     }
-    return res;
   }
 
   const json = (body: unknown): RequestInit => ({
@@ -227,7 +289,8 @@ export function createElevenClient(deps: ElevenClientDeps): ElevenClient {
 
     async synthesizeExpressive(text, voiceId, previousText, signal) {
       const body: Record<string, unknown> = { inputs: [{ text, voice_id: voiceId }], model_id: EXPRESSIVE_MODEL };
-      if (previousText) body.settings = { previous_text: previousText };
+      // Top level: this endpoint's `settings` has no previous_text and ignores one sent there.
+      if (previousText) body.previous_text = previousText;
       const res = await call(`/v1/text-to-dialogue/stream?output_format=${OUTPUT_FORMAT}`, json(body), "speech", signal);
       return res.arrayBuffer();
     },

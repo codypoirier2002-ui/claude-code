@@ -459,8 +459,9 @@ The Quest Browser has no speech recognition, so voice runs through ElevenLabs st
   - Body: `{text, model_id: "eleven_flash_v2_5", voice_settings: {speed}}`, with audio tags stripped from the text.
   - The speed setting ranges 0.7–1.2, default 1.1.
 - **Expressive speech** (on by default): `POST /v1/text-to-dialogue/stream?output_format=mp3_44100_128`.
-  - Body: `{inputs: [{text, voice_id}], model_id: "eleven_v4", settings: {previous_text}}`, with audio tags kept in the text.
-  - `previous_text` is the plain text of the previous chunk, last 100 characters. Leave out `settings` when there is none.
+  - Body: `{inputs: [{text, voice_id}], model_id: "eleven_v4", previous_text}`, with audio tags kept in the text.
+  - `previous_text` is the plain text of the previous chunk, last 100 characters; ElevenLabs refuses more with a 422. Leave it out when there is none.
+  - `previous_text` goes at the top level. This endpoint's `settings` takes only `stability`, `similarity` and `clone_strength`, and ignores a `previous_text` inside it, so send no `settings`.
   - No speed is sent.
 - **Voices:** `GET /v1/voices`, mapped to `{id, name}`.
 
@@ -475,7 +476,8 @@ Read each response in full (`arrayBuffer`, then `decodeAudioData`). Speech start
 - **`speakable(text, keepTags = false)`:**
   - Strip audio tags unless `keepTags` is set.
   - Replace closed code fences with " (code omitted) ".
-  - Remove `**`, `__`, backticks and bullets at line starts.
+  - Remove `**`, `__` and backticks.
+  - Lists: end each bulleted or numbered item with a period, and the line leading into a list with a colon, unless it already ends in punctuation; then remove the bullets. Without the pauses, "- Finish the essay" and "- Email Sam" are read as "Finish the essay Email Sam".
   - Turn `[label](url)` into `label`, and collapse whitespace.
 - **API:**
   - `feed(delta)` and `flush()`.
@@ -490,13 +492,15 @@ Read each response in full (`arrayBuffer`, then `decodeAudioData`). Speech start
     - release any `whenIdle()` waiters.
   - Also `speaking`, `whenIdle()` and `level()`.
 - **Pipelining:**
-  - Each chunk's request starts as soon as it is queued. Playback is strictly in order, through one shared `AnalyserNode` (fftSize 1024) connected to the destination.
+  - Each chunk's request starts as soon as it is queued, at most three at a time (`MAX_SPEECH_IN_FLIGHT`); the rest start in order as those finish. ElevenLabs refuses requests past the plan's concurrency limit with 429. The demo's account allows 5, shared by its visitors, and a briefing alone is about six chunks. A chunk still waiting when `stop()` runs is never sent.
+  - Playback is strictly in order, through one shared `AnalyserNode` (fftSize 1024) connected to the destination.
   - `level()` is `min(1, RMS × 5)` while audio plays. It drives lip-sync.
   - Re-check the generation after every await, so an old playback loop can never consume a new reply's queue.
 - **No ElevenLabs key:** use the browser's `speechSynthesis` at rate 1.05. The level stays 0.
+- **Nothing to say:** a chunk with no letter or digit outside square brackets is never queued. Examples: a tag after her last sentence, which `flush()` sends on its own once the splitter has cut after that sentence, or an emoji on its own. ElevenLabs drops every tag and emoji, and refuses an expressive chunk with nothing left (400 `input_text_empty`).
 - **Fallbacks:**
-  - Expressive request fails with 400/422 while it carried `previous_text`: retry once without it, and stop sending it for the session.
-  - Expressive fails with 400/403/404/422: switch to the fast voice for the session, and show once: "Expressive voice isn't available on this ElevenLabs account, so Orbit is using the fast voice."
+  - The account can't use the expressive model: `missing_permission`, a 403 or 404, or a 400/422 whose detail says the model isn't available (`model_not_found`, "A model with model ID … does not exist") or names a permission. Switch to the fast voice for the session, and show once: "Expressive voice isn't available on this ElevenLabs account, so Orbit is using the fast voice."
+  - Any other 400/422 is about the request. If it carried `previous_text`, retry once without it, and stop sending it for the session only if that retry works. Otherwise send just that chunk with the fast voice; expressive voice stays on, with no notice.
   - Network errors and 5xx: send just that chunk with the fast voice.
   - The chosen voice isn't available to the account (free plans can't use library voices from apps):
     - re-synthesize with Laura, `FGY2WhTYpPnrIDTdsKH5`;
@@ -514,6 +518,8 @@ Read each response in full (`arrayBuffer`, then `decodeAudioData`). Speech start
 6. Anything else → other.
 
 ElevenLabs also returns 401 for restricted keys and for an empty balance, so never treat every 401 as a bad key.
+
+**Too much at once.** A 429 whose `detail.status` is `too_many_concurrent_requests` (the plan's concurrency limit) or `system_busy` is sent again, up to three times. The waits are 0.4, 0.9 and 1.8 s (±25%), or the `retry-after` the answer names, at most 4 s. Only then does it become rate_limit. A wait ends at once when the request is aborted. The demo server's own per-visitor 429 (`too_many_requests`, §21) is not retried: its wait is minutes.
 
 **Messages:**
 - invalid_key: "ElevenLabs says this key isn't valid. Copy it again from elevenlabs.io → Developers → API keys (it starts with sk_) and paste only the key."
@@ -1097,7 +1103,7 @@ Measured in rig space: the eye is at 1.6 m and −Z is straight ahead.
    - Her turns start with a violet line, "{name} · Haiku → Opus · actions", followed by 38 px text.
    - Your turns are 36 px text with a blue bar beside them.
    - Markdown and audio tags are stripped.
-   - A scrollbar appears when there's more.
+   - A 112 px gutter on the right is always reserved, so text never re-wraps. When there's more than fits, it shows two chevron buttons (drawn as canvas paths, not glyphs) with the scrollbar between them. A press anywhere in the gutter's top or bottom half pages up or down by 14 rows (17 − 3), so a pinch alone scrolls; a chevron dims at its end.
 4. **Status line**
    - Voice states: "Listening… (point at the orb and press to send now)", "Got it…", "Thinking…", "Speaking… (press the orb to interrupt)", or "You: “…”" once it heard you.
    - Otherwise the live status, or "Replying…".
@@ -1109,7 +1115,7 @@ Measured in rig space: the eye is at 1.6 m and −Z is straight ahead.
    - "⌨ Type" or "⌨ Hide keys";
    - "🧠 Think harder", or "■ Stop" while busy.
 7. **Row two:** "🔈 Silent" or "🔊 Aloud", "⟲ Recenter", "🌅 Scene", "Exit VR".
-8. **Footer:** "A/X to talk · Thumbstick to scroll · Trigger or pinch to press".
+8. **Footer:** "Pinch or trigger to press · Arrows or thumbstick to scroll · Talk or A/X to speak".
 
 **Empty state**
 - With a key: "Hi, I'm {name}! {blurb}. Press Talk and just speak, press Type for the keyboard, or pick a suggestion." When voice isn't ready, add " (To talk out loud, exit VR and add an ElevenLabs key in Settings → Voice.)"
@@ -1160,7 +1166,9 @@ Measured in rig space: the eye is at 1.6 m and −Z is straight ahead.
 
 **Buttons and sticks**
 - **A/X:** a rising edge on `gamepad.buttons[4]`, tracked per input source, taps the orb. That starts voice, sends early or interrupts.
-- **Thumbstick:** `axes[3]`, deadzone .35, at most one row every .12 s.
+- **Thumbstick:** `axes[3]`, deadzone .35, at most one row every .12 s. The panel's `scroll(rows)` takes a row count: the thumbstick and the preview's wheel step one row, a chevron a page.
+
+**Hands (hands-first).** Everything works with tracked hands and no controller: a pinch fires `selectstart` like a trigger, so every panel button, the chevrons, the keyboard, the orb and the floor answer it. With hand tracking each tracked joint draws as a small sphere (one instanced mesh per hand, nothing loaded from the network); passthrough hides them. Beside Callie the orb is a 0.35-scale spark, so its hit sphere grows 1.6× inside it (about 15 cm across) to stay easy to pinch.
 
 **Moving her.** Point at empty floor 0.6–4 m away and press.
 - The reticle lies flat on the floor, scaled ×8.
@@ -1408,7 +1416,8 @@ Each scene has an id, name, note, image `skies/{id}.jpg`, thumbnail `skies/thumb
 - **Nothing else leaves the device.** The only network calls are:
   - the Claude API (or the proxy);
   - ElevenLabs;
-  - the app's own static files.
+  - the app's own static files;
+  - in a demo build only (§21), for a service with no key entered, the host's same-origin `/api/` functions instead.
 - **Untrusted text is labelled as data.**
   - Memories, the greeting context and suggestion excerpts are marked as data, not instructions.
   - Memory writes are blocked right after a web search.
@@ -1737,3 +1746,39 @@ Each phase ends green with screenshots, then a commit.
   - Callie as a hologram (or a VRM body) who blinks, talks, smiles, thinks and wows, sways her hair, faces you, waves back and moves where you point.
 - It installs as a PWA, works offline for the shell, deploys to Vercel with the headers in §12, and has Quest-store templates for the 2D and immersive builds.
 - No secrets are committed or logged, and keys never leave the device except to their own APIs.
+
+## 21. Demo builds (`demo.ts`, `api/`)
+
+A build made with `VITE_ORBIT_DEMO=1` is for a hosted link that works without keys (the Meta VR Start Developer Competition entry). Ordinary builds are unchanged: the flag defaults off, and every check below takes it as an injectable argument so the tests cover both.
+
+**In the page**
+- Per service, a key the visitor entered always wins and goes straight to its own API. With none (and, for Claude, no proxy URL):
+  - Claude calls go to `<origin>/api/claude` (absolute, because the SDK needs one) with the placeholder key `proxy-managed`;
+  - ElevenLabs calls go to `/api/eleven?path=<encodeURIComponent(path + query)>` with no `xi-api-key` header.
+- `isConfigured` and `hasVoiceKey` are true, so the app opens ready: no key prompts, no voice card, Talk works.
+- The demo server tops out at Opus, so a Fable request asks for Opus, the VR strip says "◆ Auto: Haiku · Opus", and Settings says so beside the model picker. Escalation logic is untouched.
+- Speech chunks are split below 1,000 characters (the server takes 1,200).
+- The key fields in Settings say they are optional here.
+- The service worker never handles anything under `/api/`.
+
+**On the server** (two self-contained Vercel Functions with Web-standard `fetch` handlers and no local imports; keys from `ANTHROPIC_API_KEY` and `ELEVENLABS_API_KEY`)
+- Both:
+  - same origin only: `Sec-Fetch-Site: same-origin`, or with no such header an `Origin` whose host is the request's host;
+  - a per-IP sliding-window limit in the instance's memory: 90 Claude calls and 240 voice calls per 10 minutes;
+  - request bodies up to 4 MB;
+  - the upstream answer streams back with only `content-type`, `request-id`, `retry-after` and `x-should-retry` (never `content-encoding` or `content-length`), plus `cache-control: no-store`;
+  - the request's abort signal is passed upstream, so Stop and barge-in stop the call;
+  - no visitor headers (cookies, keys) are forwarded and no bodies are logged.
+- `api/claude/v1/messages.ts`:
+  - models: `claude-haiku-5-5` and `claude-opus-5-5`; any `claude-fable-*` runs on Opus; anything else is a 400;
+  - `max_tokens` at most 16,000; `web_search*` tools at most 3 uses; `speed` dropped; `fallbacks` kept only as `"default"`;
+  - at most 400,000 characters of text per request (base64 `data` not counted);
+  - `anthropic-version`, `anthropic-beta` and the `beta` query pass through;
+  - its own errors use the Anthropic shape with `x-should-retry: false` (a 502 for an unreachable API may be retried).
+- `api/eleven.ts`:
+  - exactly `POST /v1/speech-to-text`, `POST /v1/text-to-speech/{voice}/stream?output_format=…`, `POST /v1/text-to-dialogue/stream?output_format=…` and `GET /v1/voices`, checked after URL normalization (fixed upstream origin, exact paths, a voice id of letters and digits, no other query);
+  - at most 1,200 characters of speech per call (`text`, `inputs[].text` and any previous, next or future text);
+  - ElevenLabs' own errors pass through untouched; a refused host key becomes a 502;
+  - each error answer from ElevenLabs is logged as one line of codes, for the owner's Vercel logs. The line holds the call, the status, and `detail.status`, `type`, `code` and `param`, or each validation error's `loc` and `type`. It never holds the message or input, which can echo the visitor's text;
+  - its own errors use ElevenLabs' `{detail: {status, message}}` shape with statuses the page treats as a plain failure (413, 429, 503), never 400/403/404/422 on an allowed call: a 403 or 404 would switch expressive voice off for the visit, and a 400 or 422 would send that chunk to the fast voice.
+- These are speed bumps. The real caps are the Claude Console workspace's spend limit and the ElevenLabs key's credit limit.

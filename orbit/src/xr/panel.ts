@@ -5,6 +5,7 @@
 
 import * as THREE from "three";
 import { modelsLabel } from "../core/assistant";
+import { usesDemoServer } from "../core/demo";
 import { MODES, modeById } from "../core/modes";
 import { assistantName, isConfigured } from "../core/settings";
 import { stripAudioTags } from "../core/tags";
@@ -13,27 +14,34 @@ import { markdownToPlain } from "../ui/markdown";
 import type { XrHost } from "./bridge";
 import {
   MESSAGE_MS,
+  PAGE_ROWS,
   PANEL_H,
   PANEL_TEXT,
   PANEL_W,
+  ROW_H,
+  VISIBLE_ROWS,
   buttonLabels,
+  chevronPoints,
   cutLabel,
   emptyText,
   hitAt,
   modelLine,
   promptLabels,
   sceneMessage,
+  scrollBy,
+  scrollLayout,
+  scrollable,
   statusLine,
   streamSignature,
   timerLine,
   uvToPixel,
   type HitRect,
+  type Rect,
 } from "./panelModel";
 
 export const PANEL_SIZE = { w: 0.9, h: 1.125 } as const;
-/** Conversation geometry (§8.3): 17 visible rows of 50 px; the last 14 turns. */
-export const VISIBLE_ROWS = 17;
-export const ROW_H = 50;
+/** Conversation geometry (§8.3): 17 visible rows of 50 px (in panelModel); the last 14 turns. */
+export { ROW_H, VISIBLE_ROWS };
 export const MAX_TURNS = 14;
 /** Streaming redraws at most this often. */
 const STREAM_GAP_MS = 100;
@@ -73,6 +81,12 @@ const L = {
   btnH: 90,
   footer: 1522,
 } as const;
+/** The conversation: a text column plus the right gutter with the scroll chevrons (§8.3). */
+const CONV = scrollLayout({ x: PAD, y: L.convTop, w: INNER_W, h: VISIBLE_ROWS * ROW_H });
+/** Her lines start 4 px in; leave a little air before the gutter. */
+const HER_W = CONV.text.w - 16;
+/** Your lines start 30 px in, after the blue bar. */
+const YOU_W = HER_W - 30;
 
 type ButtonId =
   | "mode-prev"
@@ -87,6 +101,8 @@ type ButtonId =
   | "recenter"
   | "scene"
   | "exit"
+  | "scroll-up"
+  | "scroll-down"
   | "conv";
 
 export interface PanelActions {
@@ -247,17 +263,16 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
     const lines: Line[] = [];
     const herFont = `400 38px ${FONT}`;
     const youFont = `400 36px ${FONT}`;
-    const textW = INNER_W - 40;
     rows.forEach((row, i) => {
       if (i > 0) lines.push({ kind: "gap", text: "" });
       if (row.role === "assistant") {
         lines.push({ kind: "head", text: herHead(row, name) });
         const plain = markdownToPlain(stripAudioTags(row.text));
-        const body = wrap(plain, herFont, textW);
+        const body = wrap(plain, herFont, HER_W);
         if (body.length) for (const t of body) lines.push({ kind: "her", text: t });
         else if (row.live) lines.push({ kind: "her", text: "…" });
       } else {
-        const body = wrap(row.text, youFont, textW - 30);
+        const body = wrap(row.text, youFont, YOU_W);
         if (row.image) lines.push({ kind: "you", text: "🖼 Image" });
         for (const t of body) lines.push({ kind: "you", text: t });
       }
@@ -265,11 +280,31 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
     return lines;
   }
 
+  /** A chevron button in the gutter, its arrow drawn as a path; a press counts over half the gutter. */
+  function chevron(id: "scroll-up" | "scroll-down", r: Rect, hit: Rect, enabled: boolean): void {
+    if (enabled) hits.push({ id, ...hit });
+    const hot = enabled && hovered === id;
+    roundRect(r.x, r.y, r.w, r.h, 24);
+    ctx.fillStyle = hot ? C.btnHover : C.btn;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = hot ? "rgba(255,181,71,.7)" : C.btnLine;
+    ctx.stroke();
+    const pts = chevronPoints(r, id === "scroll-up" ? "up" : "down");
+    ctx.beginPath();
+    pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.lineWidth = 9;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = enabled ? (hot ? C.accent : C.text) : "rgba(233,237,243,.22)";
+    ctx.stroke();
+  }
+
   function drawConversation(lines: Line[]): void {
-    const x0 = PAD;
-    const yTop = L.convTop;
-    const height = VISIBLE_ROWS * ROW_H;
-    hits.push({ id: "conv", x: x0, y: yTop, w: INNER_W, h: height });
+    const { text: area } = CONV;
+    const x0 = area.x;
+    const yTop = area.y;
+    hits.push({ id: "conv", ...area });
     totalRows = lines.length;
     const maxTop = Math.max(0, totalRows - VISIBLE_ROWS);
     top = pinned ? maxTop : Math.min(Math.max(0, top), maxTop);
@@ -278,7 +313,7 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
 
     ctx.save();
     ctx.beginPath();
-    ctx.rect(x0, yTop, INNER_W, height);
+    ctx.rect(area.x, area.y, area.w, area.h);
     ctx.clip();
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
@@ -289,7 +324,7 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
           const font = `650 28px ${FONT}`;
           ctx.font = font;
           ctx.fillStyle = C.violet;
-          ctx.fillText(fit(ln.text, font, INNER_W - 40), x0 + 4, yMid + 4);
+          ctx.fillText(fit(ln.text, font, HER_W), x0 + 4, yMid + 4);
           break;
         }
         case "her":
@@ -315,15 +350,18 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
     });
     ctx.restore();
 
-    // Scrollbar when there's more.
+    // When there's more: the chevrons (pinch-friendly) with the scrollbar between them.
     if (totalRows > VISIBLE_ROWS) {
-      const trackX = PANEL_W - PAD - 10;
-      roundRect(trackX, yTop + 6, 8, height - 12, 4);
+      const can = scrollable({ top, pinned, total: totalRows });
+      chevron("scroll-up", CONV.up, CONV.upHit, can.up);
+      chevron("scroll-down", CONV.down, CONV.downHit, can.down);
+      const t = CONV.track;
+      roundRect(t.x, t.y, t.w, t.h, 4);
       ctx.fillStyle = "rgba(255,255,255,.07)";
       ctx.fill();
-      const thumbH = Math.max(48, (height - 12) * (VISIBLE_ROWS / totalRows));
-      const thumbY = yTop + 6 + (height - 12 - thumbH) * (maxTop ? top / maxTop : 1);
-      roundRect(trackX, thumbY, 8, thumbH, 4);
+      const thumbH = Math.min(t.h, Math.max(40, t.h * (VISIBLE_ROWS / totalRows)));
+      const thumbY = t.y + (t.h - thumbH) * (maxTop ? top / maxTop : 1);
+      roundRect(t.x, thumbY, t.w, thumbH, 4);
       ctx.fillStyle = "rgba(255,255,255,.35)";
       ctx.fill();
     }
@@ -367,7 +405,7 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
     const rightW = right ? ctx.measureText(right).width : 0;
     ctx.textAlign = "left";
     ctx.fillStyle = C.violet;
-    ctx.fillText(fit(modelLine(st, s), stripFont, INNER_W - rightW - 30), PAD + 4, L.strip);
+    ctx.fillText(fit(modelLine(st, s, usesDemoServer(s)), stripFont, INNER_W - rightW - 30), PAD + 4, L.strip);
     if (right) {
       ctx.textAlign = "right";
       ctx.fillStyle = C.mint;
@@ -384,7 +422,7 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
     const shown = [...stored.slice(-MAX_TURNS), ...live];
     if (shown.length === 0) {
       const text = emptyText(name, mode.blurb, v.ready, configured);
-      const lines = wrap(text, `400 38px ${FONT}`, INNER_W - 40).map((t): Line => ({ kind: "empty", text: t }));
+      const lines = wrap(text, `400 38px ${FONT}`, HER_W).map((t): Line => ({ kind: "empty", text: t }));
       drawConversation([{ kind: "gap", text: "" }, ...lines]);
     } else {
       drawConversation(conversationLines(shown, name));
@@ -435,9 +473,10 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
 
     // 8. Footer
     ctx.textAlign = "center";
-    ctx.font = `500 25px ${FONT}`;
+    const footerFont = `500 25px ${FONT}`;
+    ctx.font = footerFont;
     ctx.fillStyle = C.dim;
-    ctx.fillText(PANEL_TEXT.footer, PANEL_W / 2, L.footer);
+    ctx.fillText(fit(PANEL_TEXT.footer, footerFont, INNER_W), PANEL_W / 2, L.footer);
 
     texture.needsUpdate = true;
     lastDraw = now;
@@ -527,9 +566,24 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
       case "exit":
         actions.exit();
         return;
+      case "scroll-up":
+        scroll(-PAGE_ROWS);
+        return;
+      case "scroll-down":
+        scroll(PAGE_ROWS);
+        return;
       case "conv":
         return;
     }
+  }
+
+  /** Scroll by whole rows (positive = later): one row per thumbstick step or wheel notch, a page per chevron. */
+  function scroll(rows: number): void {
+    const next = scrollBy({ top, pinned, total: totalRows }, rows);
+    if (!next) return;
+    top = next.top;
+    pinned = next.pinned;
+    dirty = true;
   }
 
   return {
@@ -554,14 +608,7 @@ export function createPanel(host: XrHost, actions: PanelActions): Panel {
       }
     },
     press,
-    scroll(delta: number): void {
-      if (!delta || totalRows <= VISIBLE_ROWS) return;
-      const maxTop = Math.max(0, totalRows - VISIBLE_ROWS);
-      const from = pinned ? maxTop : top;
-      top = Math.min(maxTop, Math.max(0, from + Math.sign(delta)));
-      pinned = top >= maxTop;
-      dirty = true;
-    },
+    scroll,
     message,
     update,
     setAnisotropy(n: number): void {

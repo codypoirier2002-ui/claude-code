@@ -9,6 +9,13 @@ import type { OrbMood } from "./bridge";
 export type { OrbMood };
 
 export const ORB_RADIUS = 0.11;
+/**
+ * Beside Callie the orb is a 0.35-scale spark, which would leave a hit sphere
+ * under 10 cm across. Its hit sphere grows by this much inside the spark (to
+ * about 15 cm), so a pinch ray from a tracked hand still lands on it: the orb
+ * is where "send now" and "interrupt" live.
+ */
+export const SPARK_HIT_BOOST = 1.6;
 export const ORB_DETAIL = 24;
 export const MOTE_COUNT = 160;
 
