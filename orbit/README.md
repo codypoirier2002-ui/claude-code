@@ -67,6 +67,8 @@ What the demo server allows:
 - **ElevenLabs:** exactly the four calls the app makes (speech to text, the two
   streaming speech calls, the voice list), at most 4 MB per request and 1,200
   characters of speech per call. The app splits long replies to stay under that.
+  When ElevenLabs answers with an error, the function logs one line of its codes (such
+  as `input_text_empty`) for the host, never the message or anything that was said.
 - **Both:** same-origin requests only, and a per-IP limit (90 Claude calls and 240
   voice calls per 10 minutes).
 

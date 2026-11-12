@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
-import { LAURA_VOICE_ID } from "../src/core/eleven";
+import { LAURA_VOICE_ID, createElevenClient } from "../src/core/eleven";
 import {
   BargeDetector,
   EXPRESSIVE_FALLBACK_NOTICE,
@@ -554,6 +554,33 @@ describe("speaker", () => {
     for (let i = 0; i < 5; i++) await endCurrent();
     expect(ctx.played).toEqual([S1, S2, S3, S4, S5]);
     expect(speaker.speaking).toBe(false);
+  });
+
+  it("a reply survives ElevenLabs' too-many-at-once 429: that chunk is sent again, and every chunk plays", async () => {
+    const ctx = new FakeAudioContext();
+    let refused = 0;
+    const { reqs, fetch } = fakeFetch((req) =>
+      textOf(req) === S2 && refused++ === 0
+        ? fail(429, { type: "rate_limit_error", code: "concurrent_limit_exceeded", status: "too_many_concurrent_requests", message: "Too many concurrent requests." })
+        : ok(req),
+    );
+    const errors: string[] = [];
+    const speaker = createSpeaker({
+      audioContext: () => ctx as unknown as AudioContext,
+      getSettings: () => ({ elevenLabsKey: "sk_k", voiceId: "chosen", voiceSpeed: 1.1, expressiveVoice: true }),
+      eleven: createElevenClient({ getKey: () => "sk_k", fetch, wait: async () => undefined }),
+      speechSynthesis: null,
+      onError: (m) => errors.push(m),
+    });
+    speaker.feed(`${S1} ${S2} ${S3} `);
+    await flush();
+    expect(reqs.map(textOf)).toEqual([S1, S2, S3, S2]);
+    for (let i = 0; i < 3; i++) {
+      ctx.current?.end();
+      await flush();
+    }
+    expect(ctx.played).toEqual([S1, S2, S3]);
+    expect(errors).toEqual([]);
   });
 
   it("stop() drops the chunks still waiting for a request slot", async () => {
