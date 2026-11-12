@@ -341,6 +341,8 @@ describe("the ElevenLabs proxy's allowlist", () => {
     expect(speechSize({ text: "hello", model_id: "m" })).toBe(5);
     expect(speechSize({ inputs: [{ text: "ab", voice_id: "v" }], previous_text: "xyz" })).toBe(5);
     expect(speechSize({ inputs: [{ text: "ab", voice_id: "v" }, { text: "cde" }], settings: { previous_text: "xyz" } })).toBe(8);
+    // text-to-dialogue's forward context is future_text (next_text belongs to text-to-speech).
+    expect(speechSize({ inputs: [{ text: "ab", voice_id: "v" }], future_text: "wxyz" })).toBe(6);
     expect(speechSize(null)).toBe(0);
   });
 });
@@ -414,17 +416,52 @@ describe("the ElevenLabs proxy", () => {
 
   it("passes ElevenLabs' own errors through, so quota and voice fallbacks still work", async () => {
     const quota = JSON.stringify({ detail: { status: "quota_exceeded", message: "This request exceeds your quota." } });
-    const up = upstream(() => new Response(quota, { status: 400, headers: { "content-type": "application/json" } }));
-    const res = await createElevenProxy({ env, fetch: up.fetch })(post(elevenUrl(TTS), { text: "hi" }));
+    const up = upstream(() => new Response(quota, { status: 400, headers: { "content-type": "application/json", "retry-after": "1" } }));
+    const res = await createElevenProxy({ env, fetch: up.fetch, log: () => undefined })(post(elevenUrl(TTS), { text: "hi" }));
     expect(res.status).toBe(400);
+    expect(res.headers.get("content-type")).toBe("application/json");
+    expect(res.headers.get("retry-after")).toBe("1");
     expect(await res.text()).toBe(quota);
   });
 
+  it("logs ElevenLabs' error codes for the owner, never the message or the visitor's text", async () => {
+    const lines: string[] = [];
+    // As ElevenLabs answered on 2026-11-11: a lone tag, and a previous_text over 100 characters.
+    const empty = JSON.stringify({
+      detail: {
+        type: "validation_error",
+        code: "invalid_parameters",
+        message: "Input at position 0 has empty text. All inputs must include non-empty text after removing speaker tags and emojis.",
+        status: "input_text_empty",
+        param: "text",
+      },
+    });
+    const tooLong = JSON.stringify({
+      detail: [{ type: "string_too_long", loc: ["body", "previous_text"], msg: "String should have at most 100 characters", input: "the visitor's own words" }],
+    });
+    const answers = [empty, tooLong];
+    const up = upstream(() =>
+      answers.length > 0 ? new Response(answers.shift(), { status: answers.length === 1 ? 400 : 422 }) : new Response(new Uint8Array([1])),
+    );
+    const handle = createElevenProxy({ env, fetch: up.fetch, log: (line) => lines.push(line) });
+    const first = await handle(post(elevenUrl(DIALOGUE), { inputs: [{ text: "[giggles]", voice_id: "v" }], model_id: "eleven_v4" }));
+    expect(first.status).toBe(400);
+    expect(await first.text()).toBe(empty);
+    expect((await handle(post(elevenUrl(DIALOGUE), { inputs: [{ text: "Hi.", voice_id: "v" }], previous_text: "x" }))).status).toBe(422);
+    expect((await handle(post(elevenUrl(DIALOGUE), { inputs: [{ text: "Hi.", voice_id: "v" }] }))).status).toBe(200);
+    expect(lines).toEqual([
+      "eleven text-to-dialogue 400 status=input_text_empty type=validation_error code=invalid_parameters param=text",
+      "eleven text-to-dialogue 422 loc=body.previous_text type=string_too_long",
+    ]);
+  });
+
   it("turns a refused host key into a server error, not a request for the visitor's key", async () => {
+    const lines: string[] = [];
     const up = upstream(() => new Response(JSON.stringify({ detail: { status: "invalid_api_key" } }), { status: 401 }));
-    const res = await createElevenProxy({ env, fetch: up.fetch })(post(elevenUrl(TTS), { text: "hi" }));
+    const res = await createElevenProxy({ env, fetch: up.fetch, log: (line) => lines.push(line) })(post(elevenUrl(TTS), { text: "hi" }));
     expect(res.status).toBe(502);
     expect(classifyElevenError(res.status, await res.json()).kind).toBe("other");
+    expect(lines).toEqual(["eleven text-to-speech 401 status=invalid_api_key"]);
   });
 
   it("says so when the host key is missing, and rate-limits per IP", async () => {

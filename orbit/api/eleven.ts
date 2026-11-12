@@ -15,7 +15,8 @@
 // limit kept in this instance's memory, a 4 MB body and 1,200 characters of
 // speech per call. ElevenLabs' own answers, errors included, pass through
 // untouched (the page reacts to quota and voice errors), except a rejected
-// host key, which is not the visitor's to fix.
+// host key, which is not the visitor's to fix. Each error answer is also
+// logged for the owner, as codes only: never a message or the visitor's text.
 //
 // Self-contained on purpose: Vercel bundles each file under api/ on its own.
 
@@ -38,6 +39,8 @@ export interface ProxyDeps {
   env: Env;
   fetch: FetchFn;
   now: () => number;
+  /** One line per error answer from ElevenLabs, for the owner's Vercel logs. Defaults to console.warn. */
+  log: (line: string) => void;
 }
 
 // ---- Shared guards (duplicated in api/claude/v1/messages.ts: no local imports) ----
@@ -176,19 +179,52 @@ export function speechSize(body: unknown): number {
   if (typeof body !== "object" || body === null) return 0;
   const b = body as Record<string, unknown>;
   const len = (v: unknown) => (typeof v === "string" ? v.length : 0);
-  let n = len(b.text) + len(b.previous_text) + len(b.next_text);
+  // next_text is text-to-speech's forward context, future_text text-to-dialogue's.
+  let n = len(b.text) + len(b.previous_text) + len(b.next_text) + len(b.future_text);
   if (Array.isArray(b.inputs)) for (const i of b.inputs) n += typeof i === "object" && i !== null ? len((i as Record<string, unknown>).text) : 0;
   if (typeof b.settings === "object" && b.settings !== null) {
     const s = b.settings as Record<string, unknown>;
-    n += len(s.previous_text) + len(s.next_text);
+    n += len(s.previous_text) + len(s.next_text) + len(s.future_text);
   }
   return n;
+}
+
+/**
+ * The codes in an ElevenLabs error body, as " status=… type=… code=… param=…"
+ * (or " loc=… type=…" per validation error). Only identifier-like values are
+ * kept, never `message`, `msg` or `input`: those can echo the visitor's text.
+ */
+export function errorCodes(raw: string): string {
+  let body: unknown;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return "";
+  }
+  const word = (v: unknown): string =>
+    typeof v === "number" && Number.isInteger(v) ? String(v) : typeof v === "string" && /^[\w.-]{1,64}$/.test(v) ? v : "";
+  const pick = (o: Record<string, unknown>, keys: string[]) => keys.map((k) => (word(o[k]) ? ` ${k}=${word(o[k])}` : "")).join("");
+  const detail = typeof body === "object" && body !== null ? (body as Record<string, unknown>).detail : undefined;
+  if (Array.isArray(detail)) {
+    return detail
+      .slice(0, 3)
+      .map((d) => {
+        if (typeof d !== "object" || d === null) return "";
+        const o = d as Record<string, unknown>;
+        const loc = Array.isArray(o.loc) ? o.loc.map(word).filter(Boolean).join(".") : "";
+        return `${loc ? ` loc=${loc}` : ""}${pick(o, ["type"])}`;
+      })
+      .join("");
+  }
+  if (typeof detail === "object" && detail !== null) return pick(detail as Record<string, unknown>, ["status", "type", "code", "param"]);
+  return "";
 }
 
 export function createElevenProxy(deps: Partial<ProxyDeps> = {}) {
   const env = deps.env ?? ((globalThis as { process?: { env?: Env } }).process?.env ?? {});
   const doFetch: FetchFn = deps.fetch ?? ((input, init) => globalThis.fetch(input, init));
   const now = deps.now ?? Date.now;
+  const log = deps.log ?? ((line: string) => console.warn(line));
   const limited = createLimiter(ELEVEN_LIMITS.perIp, ELEVEN_LIMITS.windowMs);
 
   return async function handle(req: Request): Promise<Response> {
@@ -236,10 +272,15 @@ export function createElevenProxy(deps: Partial<ProxyDeps> = {}) {
       if (req.signal.aborted) return new Response(null, { status: 499 });
       return elevenError(502, "unreachable", "The demo server couldn't reach ElevenLabs.");
     }
-    // The host's key was refused: say so plainly rather than ask the visitor for a new key.
-    if (upstream.status === 401) {
-      await upstream.body?.cancel().catch(() => {});
-      return elevenError(502, "demo_key_rejected", "The demo server's ElevenLabs key was refused. Its owner needs to check it.");
+    if (upstream.status >= 400) {
+      // An error answer is small JSON: read it, log its codes, then pass it on as it came.
+      const raw = await upstream.text().catch(() => "");
+      log(`eleven ${target.call} ${upstream.status}${errorCodes(raw)}`);
+      // The host's key was refused: say so plainly rather than ask the visitor for a new key.
+      if (upstream.status === 401) {
+        return elevenError(502, "demo_key_rejected", "The demo server's ElevenLabs key was refused. Its owner needs to check it.");
+      }
+      return passBack(new Response(raw, { status: upstream.status, headers: upstream.headers }));
     }
     return passBack(upstream);
   };

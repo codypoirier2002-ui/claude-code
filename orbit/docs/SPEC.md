@@ -1777,7 +1777,8 @@ A build made with `VITE_ORBIT_DEMO=1` is for a hosted link that works without ke
   - its own errors use the Anthropic shape with `x-should-retry: false` (a 502 for an unreachable API may be retried).
 - `api/eleven.ts`:
   - exactly `POST /v1/speech-to-text`, `POST /v1/text-to-speech/{voice}/stream?output_format=…`, `POST /v1/text-to-dialogue/stream?output_format=…` and `GET /v1/voices`, checked after URL normalization (fixed upstream origin, exact paths, a voice id of letters and digits, no other query);
-  - at most 1,200 characters of speech per call (`text`, `inputs[].text` and any previous or next text);
+  - at most 1,200 characters of speech per call (`text`, `inputs[].text` and any previous, next or future text);
   - ElevenLabs' own errors pass through untouched; a refused host key becomes a 502;
+  - each error answer from ElevenLabs is logged as one line of codes, for the owner's Vercel logs. The line holds the call, the status, and `detail.status`, `type`, `code` and `param`, or each validation error's `loc` and `type`. It never holds the message or input, which can echo the visitor's text;
   - its own errors use ElevenLabs' `{detail: {status, message}}` shape with statuses the page treats as a plain failure (413, 429, 503), never 400/403/404/422 on an allowed call: a 403 or 404 would switch expressive voice off for the visit, and a 400 or 422 would send that chunk to the fast voice.
 - These are speed bumps. The real caps are the Claude Console workspace's spend limit and the ElevenLabs key's credit limit.
