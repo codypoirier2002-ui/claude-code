@@ -532,6 +532,17 @@ describe("speaker", () => {
     expect(reqs[3].body.previous_text).toBe(long.slice(-100));
   });
 
+  it("never starts previous_text with half of an emoji", async () => {
+    const { reqs, speaker } = setup({ auto: ok });
+    // 101 UTF-16 units: the last 100 would begin with the emoji's second half, a lone surrogate.
+    const first = `😊${"a".repeat(98)}.`;
+    expect(first.length).toBe(101);
+    speaker.announce(first);
+    speaker.announce("Then a second chunk to carry it.");
+    await flush();
+    expect(reqs[1].body.previous_text).toBe(first.slice(2));
+  });
+
   it("never sends the tag left after her last sentence on its own (the 2026-11-11 demo reply)", async () => {
     // Her answer in the contest take, reconstructed: the third chunk's text was never recovered.
     // The panel hides listed tags, so a tag such as "[giggles]" after "this!" fits: the cut after

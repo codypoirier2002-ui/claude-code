@@ -76,6 +76,16 @@ export function hasSpokenText(text: string): boolean {
   return /[\p{L}\p{N}]/u.test(text.replace(/\[[^\]]*\]/g, ""));
 }
 
+/**
+ * The last `n` UTF-16 units of `text`, without a leading half of an emoji. A cut
+ * through a surrogate pair would send a lone surrogate, which isn't valid text;
+ * if ElevenLabs refused it, previous_text would stop for the rest of the session.
+ */
+function lastChars(text: string, n: number): string {
+  const tail = text.slice(-n);
+  return /^[\uDC00-\uDFFF]/.test(tail) ? tail.slice(1) : tail;
+}
+
 function insideOpenFence(head: string): boolean {
   let n = 0;
   FENCE_LINE.lastIndex = 0;
@@ -458,7 +468,7 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
     const gen = generation;
     const controller = new AbortController();
     const previous = previousPlain;
-    previousPlain = stripAudioTags(chunk).slice(-PREVIOUS_TEXT_CHARS);
+    previousPlain = lastChars(stripAudioTags(chunk), PREVIOUS_TEXT_CHARS);
     const audio = synthesize(chunk, previous, gen, controller.signal);
     audio.catch(() => undefined); // handled in pump; avoid unhandled-rejection noise for dropped chunks
     queue.push({ gen, audio, controller });
