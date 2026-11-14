@@ -5,6 +5,29 @@ Publish it with these capabilities: `{ db: { rules: [ { path: "", read: "interac
 
 Status: **published (private)** at https://claude.ai/artifact/L6WRBp81kTiuP26jbv4M8E. `BRIEF.md` is the build brief and `SPEC.md` is the porting spec of the original app.
 
+## Rejection reasons and the Feedback log (2026-11-14)
+
+Why: every rejection in the live station was recorded with no reason, so the agents could not learn what the owner did not want.
+
+- **Reject needs a reason.** The approval card has a reason picker:
+  - too generic;
+  - wrong tone;
+  - missed the brief;
+  - repeats earlier work;
+  - not usable as written;
+  - wrong or risky claims;
+  - wrong length or format;
+  - other.
+
+  Reject stays disabled until one is chosen. The reason is saved on the approval and on the task (`verdict`).
+- **Feedback log** (`memory/feedback`, owner-editable in Memory): the station appends a line for each approval, change request and rejection (with reason and note). Automatic approvals are not logged, since they are not the owner's judgement. Commander, Writer and Reviewer get the newest 20 lines on every task, inside a `VERDICTS` data block, because the titles in it are agent-written.
+- **Auto-content rests a format** whose last 5 verdicts hold 3 or more rejections and no approval; the other formats take its turns.
+
+Checked with 3 more Playwright tests (23 in all, all passing):
+- a rejection needs a reason and reaches a later draft prompt;
+- an approval is logged;
+- auto-content skips a format that keeps being rejected.
+
 ## Content route (2026-11-14)
 
 Why: in the live station, 58 of 64 tasks were creative briefs (video scripts, captions, ads, emails) with no sources, and all of them ran the research-report route. The copy came out shaped like a hedged report: a "No verified sources" banner, summary/findings/open-questions structure, bracketed placeholders for every specific, and notes about checking written into the copy itself. 20 of 53 final drafts were rejected.
