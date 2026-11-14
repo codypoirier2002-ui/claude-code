@@ -5,6 +5,32 @@ Publish it with these capabilities: `{ db: { rules: [ { path: "", read: "interac
 
 Status: **published (private)** at https://claude.ai/artifact/L6WRBp81kTiuP26jbv4M8E. `BRIEF.md` is the build brief and `SPEC.md` is the porting spec of the original app.
 
+## Content route (2026-11-14)
+
+Why: in the live station, 58 of 64 tasks were creative briefs (video scripts, captions, ads, emails) with no sources, and all of them ran the research-report route. The copy came out shaped like a hedged report: a "No verified sources" banner, summary/findings/open-questions structure, bracketed placeholders for every specific, and notes about checking written into the copy itself. 20 of 53 final drafts were rejected.
+
+What changed:
+- **A third task kind, `content`**, chosen in the New task form ("Content": format, product or topic, optional brief, facts, audience and tone), or set by auto-content. Formats: TikTok/Reels, YouTube Short, YouTube video, Instagram captions, Facebook/Marketplace ad, email, Pinterest pins, blog post, other. Each has a format guide (structure and length) the Writer follows.
+- **Its own route: Plan → (Sources, only if facts or material were given) → Draft → Review → approval.** There is no Research stage, so a content task makes 3 agent calls instead of 6 or 7.
+- **Content programs** for the Commander (creative director: one angle, one audience, the CTA), Writer (copywriter: hook first, write around unknown specifics, nothing about the writing inside the copy) and Reviewer (editor: scores hook, clarity, platform fit, CTA and originality from 1 to 5, and any score under 3 forces a revision). They are picked by stage, so solo mode also gets a copywriter for the draft.
+- **Memory on content tasks**: a new owner-editable note, **Content style** (`memory/content`), replaces Goals, which is written for reports. The Rules note is still sent, minus the rules about sources, citations, report structure and marking uncertainty.
+- **Station checks in code** (they force a revision): more than 3 fill-in slots; notes about the writing inside the copy; invented proof (star ratings, review or sales counts, "bestseller", guarantees, income); health or environmental claims and "made in" claims the facts do not give; spoken length or word count far outside the format's range. Stage directions such as `[SHOT: …]` are not counted as fill-ins.
+- **Output**: "Ready to post" copy with a **Copy content** button, a short "Before you post" checklist (fill-ins, facts, spoken length), and the Writer's notes kept separate from the copy. There is no "No verified sources" banner: the copy states no specifics it was not given. The approval card shows the copy itself, the editor's scores and the length.
+- **The Commander can route a plain request to content** when it asks for copy rather than research, but only when no sources were pasted, so a sourced report always keeps its quote checks. The route is stored on the task (`request.kind`), so recovery and retries take the same path. Tasks already queued in the old shape run as before.
+- **Auto-content** now queues `content` tasks that rotate format, angle and niche, instead of report briefs that demanded a placeholder for every specific.
+- Researcher findings are no longer cut off at 600 characters (now 1,500).
+
+How it was checked: 20 Playwright tests (the 13 from the second pass and 7 new ones). The new tests cover:
+- the content route's 3 calls and its prompts (no citation or report-structure rule; format guide present);
+- the approval card and the saved output;
+- facts reaching the Writer;
+- Commander routing, and a sourced report not being rerouted;
+- station checks forcing a revision;
+- auto-content tasks using the route;
+- a Demo Mode content run.
+
+The real draft prompts for three formats were also answered by a fresh model and read against two earlier live outputs.
+
 ## Fixed after review
 
 All five findings below are fixed in `agentstation.html`:
