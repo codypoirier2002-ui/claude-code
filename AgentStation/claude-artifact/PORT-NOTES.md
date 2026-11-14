@@ -15,7 +15,7 @@ All five findings below are fixed in `agentstation.html`:
 4. Stage handoff is recoverable. Completing a step sets `status: 'completed'` and `handoff: 'pending'` in one write, and a decided approval stores its follow-up with `handoff: 'pending'`. Every follow-up is idempotent: steps are keyed by `parentKey`, and approvals get deterministic ids. `tick()` runs `recoverHandoffs()`, which finishes any handoff left pending for over 60 s, and a failed handoff is logged as `engine_error`. `retryTask` adds the step before re-queueing the task.
 5. `htmlToText` walks the parsed DOM. Closing block tags and `<br>` become newlines, and other tag edges become spaces, as in the original `sources.ts`.
 
-Also fixed from the unverified list: the lease holder id is fresh per page load instead of coming from sessionStorage (duplicated tabs no longer share it); `subscribeRuns`' day timer is cleared before it is restarted; pruning keeps the run records of open tasks; the task-counter lease lasts 3 s instead of 10 s.
+Also fixed then, from the unverified list: the lease holder id is fresh per page load instead of coming from sessionStorage (duplicated tabs no longer share it); `subscribeRuns`' day timer is cleared before it is restarted; pruning keeps the run records of open tasks; the task-counter lease lasts 3 s instead of 10 s.
 
 How it was checked: `node --check` on the inline script; no innerHTML, eval, fetch or storage APIs, and no hosts besides the two Google Fonts ones. A Playwright run in Chromium against a fake `window.claude` (in-memory db with write-fault injection, scripted agents) covered:
 - HTML paste conversion;
@@ -56,45 +56,56 @@ After publishing, an `interact`-level write was refused by the db rules. Not yet
 - Scenario: htmlToText parses the paste with DOMParser and reads `doc.body.innerText`. A DOMParser document is never rendered, and for an element that is not being rendered innerText returns the same value as textContent. All element boundaries therefore collapse with no newline or space. Example: pasting a PyPI-style page containing `<li>Requires Python >=3.8</li><li>License: MIT</li>` stores the single line `Requires Python >=3.8License: MIT`. The original sources.ts htmlToText turned `</p|div|li|h1-6|tr|section|article|br>` into '\n' and other tags into spaces, so `License: MIT` was a line of its own. A Researcher finding that quotes `License: MIT` (12 normalized characters) used to verify through quoteIsSpecific's whole-line rule. Now it is not a whole line and is shorter than 20 characters, so it is marked unverified and dropped from the Writer's and Reviewer's prompts. If every finding is short metadata like this, parseResearch throws `none of the N findings had a quote that matches its source text`, and the task fails after 2 attempts. The agents also see words glued together across paragraphs and table cells, which garbles the claims.
 - Fix: Port the original conversion: strip script/style/noscript/svg/nav/footer/header, replace closing block tags and <br> with '\n', replace other tags with ' ', decode entities, then collapse spaces and blank lines. Alternatively, walk the parsed DOM and insert '\n' after block-level elements and ' ' between inline and table-cell nodes before reading textContent.
 
-## Not yet verified (the reviewers reported them, but verification stopped when the org spend limit was hit)
+## Second pass: the unverified findings (checked and fixed 2026-11-14)
 
-Check each one against the code before fixing. Items now fixed are listed under "Fixed after review": the sessionStorage holder, the stage handoff, the day-timer restart, run pruning and the counter lease.
+Each finding below was checked against the code and the runtime contract (0.2.96 `db.d.ts` and `sample.d.ts`). All of them were real except where noted, and all are fixed in `agentstation.html`.
 
-- **[resolved]** runtime-contract: Lease holder comes from sessionStorage, so a duplicated tab shares it and leases stop excluding it: running steps get requeued and run twice
-- **[resolved]** runtime-contract: A db failure in outcome.next() after the step is marked completed is swallowed and leaves the task stranded
-- runtime-contract: callAgent treats db write failures after a successful sample() as Claude failures and asks Claude again
-- runtime-contract: The 1 s tick writes a date- and time-zone-derived queueBlock string, so two owner tabs overwrite each other every second and log an event each time
-- runtime-contract: A rate_limited hold is cleared automatically when any concurrent call succeeds, so the page re-sends without the viewer
-- runtime-contract: Unbounded one-document-per-item storage with no way to free space; quota_exceeded then strands tasks
-- runtime-contract: Read-then-full-set updates (settings, daily/project notes, decisions) lose concurrent changes
-- runtime-contract: empty_completion is re-sent unchanged automatically
-- runtime-contract: A page-side stage timeout aborts in-progress Claude calls and re-sends them
-- runtime-contract: sample() is called from the 1 s queue timer as soon as the page loads
-- **[resolved]** runtime-contract: The task-number lease is never released, so the 8-try acquire loop fails for another tab for up to 10 s
-- hard-rules: Rule 3: the daily call limit can be passed (the check runs before the runs snapshot arrives, and several calls can start from one stale count)
-- hard-rules: Rule 5: leaving live mode for Demo Mode can still start a real sample() call
-- hard-rules: Rule 4: tasks and steps still show as running and 'Writing…' while the page shows Disconnected
-- hard-rules: Rule 8: closing the page mid-run uses up step attempts, so a task can fail instead of resuming
-- **[resolved]** hard-rules: Rule 8 lease: the holder id comes from sessionStorage, so duplicated tabs share it and both run the same task
-- hard-rules: Rule 6: task briefs are labelled trusted, and agent output is reinserted outside data delimiters
-- hard-rules: Rules 4/8: a step shows as working for up to 7.5 minutes after the owner's tab is gone
-- hard-rules: Rule 7: the built-in rules sent to every agent describe fetched sources, approved domains and Slack sending that do not exist here
-- page-contract-ui: Queue and Activity show 'No open tasks' / 'No activity yet' before the db answers and when there is no db, instead of a loading or disconnected state
-- page-contract-ui: Browser offline at load shows 'Connecting…' forever, never 'Disconnected'
-- page-contract-ui: The Stop button and the detail panel are rebuilt on every streamed chunk: clicks on Stop get lost, opened <details> collapse, focus is dropped
-- page-contract-ui: Queue list is rebuilt every 15 s and approvals every 30 s, dropping keyboard focus and moving the caret in a note being typed
-- page-contract-ui: Live 'Thinking…/Writing…' and Running state still show in the Output viewer while the page says Disconnected
-- page-contract-ui: Checkbox keyboard focus is nearly invisible
-- page-contract-ui: Segmented-control focus ring is clipped by .seg { overflow: hidden }
-- page-contract-ui: Pasted-source controls use index-based ids that shift on removal; copy-fallback textarea has no id
-- **[resolved]** logic-bugs: Stage handoff is not atomic, so a task can be left with no runnable step and no way to recover
-- **[resolved]** logic-bugs: A duplicated tab shares the sessionStorage holder id, so lease exclusion and the completion compare-and-set stop working
-- logic-bugs: The daily call limit can be exceeded by one call (checked once per tick, while the run record is written later)
-- logic-bugs: Read-modify-write appends to memory documents lose entries when two tasks finish at the same time
-- logic-bugs: writeSettings does a full read-modify-write, so concurrent settings changes overwrite each other
-- **[resolved]** logic-bugs: reconnect() starts a new day-rollover interval without clearing the old one
-- **[resolved]** logic-bugs: Pruning deletes run records of tasks that are still open, which resets their per-task call count
-- **[resolved]** logic-bugs: The task-counter lease is never released, so a second tab cannot create a task for about 10 seconds
+Claude calls (`sample()`):
+- **Called from the queue timer as soon as the page loaded.** The contract says to call `sample()` on a viewer action, never from a timer at load. Agents now start in a view only after the owner acts there: "Start agents" (a banner shows it when Claude work is queued), queuing a task, deciding an approval, retrying a task, or "Try Claude again". Station-only work (sources, finalize, recovery) still runs on its own.
+- **A db write failing after a successful call was treated as a Claude failure, so Claude was asked again.** The run-record and raw-reply writes after a call are now bookkeeping: a failure there is logged as `engine_error` and the answer is used.
+- **A `rate_limited` hold was cleared when another call that was already running succeeded.** A success now clears only `unknown`/`warn`. A hold stays until the owner presses "Try Claude again", and an unknown error no longer turns a hold into `warn`.
+- **`empty_completion` was re-sent unchanged.** It is no longer retried automatically; the task fails with a message to shorten the input and retry.
+- **The stage timeout aborted an answer that was still streaming, then re-sent it.** The timeout now measures silence: every streamed chunk restarts it. A silent call still gets the one automatic retry the original station gave.
+- **Leaving live mode for Demo Mode could still start a real call** (the tick was mid-claim when `stop()` ran). `execute` aborts a step that starts after `stop()`, and `callAgent` refuses to call once the station is stopped or the step is aborted.
+
+Limits and storage:
+- **The daily call limit could be passed** (the tick ran before the runs snapshot arrived, and several calls started from one count). Claude steps wait for the runs snapshot, and the tick counts each call it starts, plus calls in flight whose run record is not written yet.
+- **The 1 s tick wrote a date-, time-zone- and locale-derived `queueBlock` into settings.** The field is gone; the tab logs the on-hold/off-hold change from memory.
+- **Unbounded storage; `quota_exceeded` stranded tasks.** Controls has a new "Storage" row: delete completed, failed and cancelled tasks older than 1, 7 or 30 days, with their steps, sources, inputs, approvals, drafts, outputs and older run records (40 per press, oldest first; today's run records stay because they are today's call count). A handoff that fails with `quota_exceeded` puts a hold message on the task instead of logging an error every 15 s, and the task carries on once space is freed.
+- **Read-then-full-set writes lost concurrent changes.** Settings are merge-updated field by field. Daily, project and decision appends run through `withLock`: an in-tab queue per document plus a 5 s cooperative lease (`leases/lock~…`) so a second owner tab waits. Saving a note in the memory editor is refused if the note changed after editing started (for example, the station appended an entry), instead of overwriting it.
+
+Recovery and status:
+- **Closing the page mid-run used up step attempts, so a task could fail instead of resuming.** An interrupted step is requeued without using an attempt. A step interrupted 5 times fails, and calls it already made still count against the per-task limit.
+- **A step showed as working for up to 7.5 minutes after the owner's tab was gone.** A step's `leaseExpiresAt` is now 60 s and is renewed with the task lease every 20 s.
+- **Tasks and steps showed as running, and "Writing…", while the page said Disconnected.** While disconnected, a stored "running" shows as "last known: running" and no live progress is drawn.
+- **Opening the page offline showed "Connecting…" forever.** After 10 s with no first answer (or at once when the browser is offline) the page says Disconnected and offers "Reconnect now".
+- **Queue and Activity said "No open tasks" / "No activity yet" before the db answered or with no db.** They now say Loading…, Not connected, or Could not be loaded.
+
+Prompts:
+- **The built-in rules described fetched sources, approved domains and Slack.** The built-in rules now describe pasted sources, and say that the station never sends or publishes anything. A version the owner saved earlier keeps its own text; the memory help says to use "Reset to built-in".
+- **Task briefs labelled trusted; agent output reinserted outside data delimiters.** Partly valid. The request is the owner's own text, so it stays trusted. The Commander's plan (objective, criteria, outline) is now labelled as the Commander's plan, written from the operator's request, wherever later prompts quote it. Drafts, previous drafts, findings, feedback and project notes were already data blocks.
+
+Page and accessibility:
+- **The Stop button and the detail panel were rebuilt on every streamed chunk.** Streaming text (phase and character count) is patched in place. Cards are rebuilt only when a call starts or ends, open "Raw agent reply" sections stay open, and focus is kept.
+- **The queue was rebuilt every 15 s and approvals every 30 s, dropping focus and moving the caret.** The time buckets are gone: "x min ago" texts update in place. Lists that are rebuilt keep keyboard focus and the caret position.
+- **Checkbox focus was nearly invisible, and segmented-control focus rings were clipped.** Checkboxes get a solid `:focus-visible` outline, and `.seg` buttons draw theirs inside the button.
+- **Pasted-source fields used index-based ids that shifted on removal.** Each source keeps its own id, and Remove moves focus to the next source or to "Add a source". The copy-fallback textarea has an id.
+
+How this pass was checked: `node --check` on the inline script, and the same scan for innerHTML, eval, fetch and storage APIs (no matches outside a comment). Then 12 Playwright tests in Chromium against a fake `window.claude` (in-memory db with fault injection, scripted and streaming agents), all passing:
+- arming: no call on load; Start agents runs plan → research → draft → review; approve saves the output;
+- daily limit 1 with two queued tasks: exactly one call;
+- `rate_limited` on one call while another succeeds: the hold stays and no third call starts;
+- `empty_completion`: one call, task failed;
+- a failed run-record write after a successful plan call: plan asked once;
+- an orphaned step on its last attempt: requeued, attempt not used;
+- a db that never answers: Loading…, then Disconnected and "could not be loaded" after 10 s;
+- streaming: the Stop button survives thinking → writing and the character count updates;
+- two approvals decided at once: both completions reach the daily note;
+- memory editor: a save after the note changed is refused and the newer text kept;
+- delete finished tasks (old task's documents gone, open task kept); a team-mode change keeps the limits and writes no `queueBlock`;
+- a full Demo Mode run at 400 px wide with no horizontal scroll, no Claude call, no page errors.
+
+Not covered by those tests: the Demo Mode switch during a claim, the silence timeout, the `quota_exceeded` hold, the "last known" chips, and the focus styles. These were checked by reading the code only. Still not exercised on the real platform: `sample()` and its consent dialog, real leases, and real db latency.
 
 ## Builder's report (historical snapshot, before the fixes above)
 
