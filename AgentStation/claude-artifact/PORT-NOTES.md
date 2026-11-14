@@ -61,7 +61,7 @@ After publishing, an `interact`-level write was refused by the db rules. Not yet
 Each finding below was checked against the code and the runtime contract (0.2.96 `db.d.ts` and `sample.d.ts`). All of them were real except where noted, and all are fixed in `agentstation.html`.
 
 Claude calls (`sample()`):
-- **Called from the queue timer as soon as the page loaded.** The contract says to call `sample()` on a viewer action, never from a timer at load. Agents now start in a view only after the owner acts there: "Start agents" (a banner shows it, and the top bar says "Waiting for Start agents", only when Claude work is queued), queuing a task, deciding an approval, retrying a task, or "Try Claude again". Station-only work (sources, finalize, recovery) still runs on its own.
+- **Called from the queue timer as soon as the page loaded.** The contract says to call `sample()` on a viewer action, never from a timer at load. Agents now start in a view only after the owner acts there: "Start agents" (a banner shows it, and the top bar says "Waiting for Start agents", only when Claude work is queued), queuing a task, deciding an approval, retrying a task, or "Try Claude again". Station-only work (sources, finalize, recovery) still runs on its own. The published page also carried "Auto-generate content" (Controls → Ideas), which had been published without reaching git. It is now in `agentstation.html`, unchanged except that it starts only after the owner starts agents in the view, like everything else that calls Claude. While it is on and agents are not started, the page shows the Start agents banner.
 - **A db write failing after a successful call was treated as a Claude failure, so Claude was asked again.** The run-record and raw-reply writes after a call are now bookkeeping: a failure there is logged as `engine_error` and the answer is used.
 - **A `rate_limited` hold was cleared when another call that was already running succeeded.** A success now clears only `unknown`/`warn`. A hold stays until the owner presses "Try Claude again", and an unknown error no longer turns a hold into `warn`.
 - **`empty_completion` was re-sent unchanged.** It is no longer retried automatically; the task fails with a message to shorten the input and retry.
@@ -91,7 +91,7 @@ Page and accessibility:
 - **Checkbox focus was nearly invisible, and segmented-control focus rings were clipped.** Checkboxes get a solid `:focus-visible` outline, and `.seg` buttons draw theirs inside the button.
 - **Pasted-source fields used index-based ids that shifted on removal.** Each source keeps its own id, and Remove moves focus to the next source or to "Add a source". The copy-fallback textarea has an id.
 
-How this pass was checked: `node --check` on the inline script, and the same scan for innerHTML, eval, fetch and storage APIs (no matches outside a comment). Then 12 Playwright tests in Chromium against a fake `window.claude` (in-memory db with fault injection, scripted and streaming agents), all passing:
+How this pass was checked: `node --check` on the inline script, and the same scan for innerHTML, eval, fetch and storage APIs (no matches outside a comment). Then 13 Playwright tests in Chromium against a fake `window.claude` (in-memory db with fault injection, scripted and streaming agents), all passing:
 - arming: no call on load and the top bar says "Waiting for Start agents"; Start agents runs plan → research → draft → review; approve saves the output; an empty queue says "Ready";
 - daily limit 1 with two queued tasks: exactly one call;
 - `rate_limited` on one call while another succeeds: the hold stays and no third call starts;
@@ -103,7 +103,8 @@ How this pass was checked: `node --check` on the inline script, and the same sca
 - two approvals decided at once: both completions reach the daily note;
 - memory editor: a save after the note changed is refused and the newer text kept;
 - delete finished tasks (old task's documents gone, open task kept); a team-mode change keeps the limits and writes no `queueBlock`;
-- a full Demo Mode run at 400 px wide with no horizontal scroll, no Claude call, no page errors.
+- a full Demo Mode run at 400 px wide with no horizontal scroll, no Claude call, no page errors;
+- "Auto-generate content" on: nothing is queued or called until Start agents, then one task is queued and run.
 
 Not covered by those tests: the Demo Mode switch during a claim, the silence timeout, the `quota_exceeded` hold, the "last known" chips, and the focus styles. These were checked by reading the code only. Still not exercised on the real platform: `sample()` and its consent dialog, real leases, and real db latency.
 

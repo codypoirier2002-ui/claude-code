@@ -362,6 +362,9 @@ details.raw-wrap summary { cursor: pointer; color: var(--cyan); font-size: 12px;
           <h3 class="ctl-h">Listings</h3>
           <div class="settings-row"><span>Auto-approve clean listings</span><div class="seg" role="group" aria-label="Auto-approve clean listings"><button type="button" id="autoOff" class="on">Off</button><button type="button" id="autoOn">On</button></div></div>
           <p class="muted small" id="autoNote" hidden>Automatic decisions appear in Activity and in each task's history.</p>
+          <h3 class="ctl-h">Ideas</h3>
+          <div class="settings-row"><span>Auto-generate content</span><div class="seg" role="group" aria-label="Auto-generate ideas"><button type="button" id="ideasOff" class="on">Off</button><button type="button" id="ideasOn">On</button></div></div>
+          <p class="muted small" id="ideasNote" hidden>When the queue is empty, Commander starts a content brief on its own (up to 200 a day). Agents now make content only, no idea or research briefs. Each one rotates the format (listing, TikTok script, Marketplace ad, captions, email, Pinterest, Shorts, comparison), the angle and the product niche, and is told every earlier product and headline so it writes something new each time. Specs and prices stay as placeholders for you to fill. Results still wait for your approval. In each visit it starts only after you press “Start agents” (or queue, approve or retry a task).</p>
           <h3 class="ctl-h">Where agents run</h3>
           <p class="muted small">Agents run in your browser through your Claude plan, and only while you keep this page open. Each time you open the page they wait until you press “Start agents” (or queue, approve or retry a task). Close it and queued work waits; a task left mid-run resumes from its last saved stage when you come back. Agents have no web access and no tools. Nothing they write leaves this page: approving a result only marks it approved and gives you a Copy button.</p>
           <h3 class="ctl-h">Storage</h3>
@@ -1647,7 +1650,37 @@ async function demoRun(input, { signal, onText } = {}) {
 // Every read and write below goes to this instance's own store, so a Demo
 // run can never touch the real database.
 // =====================================================================
-const DEFAULT_SETTINGS = { limits: { ...DEFAULT_LIMITS }, teamMode: 'team', autoApproveListings: false, paused: false };
+const DEFAULT_SETTINGS = { limits: { ...DEFAULT_LIMITS }, teamMode: 'team', autoApproveListings: false, autoIdeas: false, autoIdeasPerDay: 200, paused: false };
+// Auto-content only (operator request): every auto brief produces ready-to-post
+// content, never ideas or research. Variety comes from rotating format x angle
+// x niche and from a "do not repeat" list built from earlier auto tasks.
+const AUTO_CONTENT_FORMATS = [
+  'Etsy/eBay listing: title under 140 characters, 5 benefit bullets, a 120-180 word description, and 13 tags of 20 characters or fewer',
+  'TikTok/Reels pack: 3 different scroll-stopping hooks, one full 30-second script with on-screen text and shot list, and a caption with 5 hashtags',
+  'Facebook Marketplace ad plus a Facebook/Instagram carousel: ad text under 80 words, and 5 carousel slides (headline + one line each)',
+  'Instagram post set: 3 captions in different tones (playful, practical, premium), each under 120 words, with a call to action',
+  'Short email or newsletter blurb: 3 subject lines, a 90-120 word body, and one call to action',
+  'Pinterest pack: 5 pin titles, 5 pin descriptions under 300 characters, and 3 text-overlay ideas',
+  'YouTube Shorts / product demo script: hook, 4 demo beats, objection handled on camera, and closing line',
+  'Comparison post: "this vs that" angle with 4 honest comparison points and a caption',
+];
+const AUTO_CONTENT_ANGLES = [
+  'gift idea for a specific occasion', 'problem it solves in daily life', 'before/after or transformation', 'budget-friendly alternative to a pricier product',
+  'seasonal hook tied to the current month', 'small-space or organisation hack', 'myth vs fact', 'a quick how-to using the product',
+  'unboxing / first impressions', 'who it is NOT for (honest framing)', 'local Canadian buyer angle', 'bundle or upsell pairing',
+];
+const AUTO_CONTENT_NICHES = [
+  'home and kitchen', 'pet accessories', 'phone and desk accessories', 'fitness and outdoor', 'car accessories', 'beauty tools (no health claims)',
+  'kids toys and crafts (age labels as placeholders)', 'gaming setup', 'travel gear', 'stationery and planners', 'garden and plants', 'seasonal decor',
+];
+function autoContentBrief(n, avoid, day) {
+  const format = AUTO_CONTENT_FORMATS[n % AUTO_CONTENT_FORMATS.length];
+  const angle = AUTO_CONTENT_ANGLES[(n * 5 + 3) % AUTO_CONTENT_ANGLES.length];
+  const niche = AUTO_CONTENT_NICHES[(n * 7 + 1) % AUTO_CONTENT_NICHES.length];
+  let avoidText = '';
+  for (const t of avoid) { const line = `\n- ${t}`; if (avoidText.length + line.length > 1400) break; avoidText += line; }
+  return `Auto-content #${n + 1} (${day}). Produce CONTENT ONLY: no business ideas, no research questions, no strategy advice. Without waiting for operator input, pick ONE low-cost product in the "${niche}" niche that a small reseller or dropshipper could realistically source, and write brand-new, ready-to-post content for it. Format: ${format}. Angle: ${angle}. Then add 3 headline/hook variations to A/B test. Everything must be NEW: a different product and different wording from all earlier content. Already covered, do NOT reuse these products, hooks or headlines:${avoidText || '\n- (nothing yet)'}\nAlso check the Ideas project note and do not repeat anything there. Rules: write every product spec (size, material, capacity, origin) and price as a [BRACKETED PLACEHOLDER]; never invent reviews, ratings, sales numbers, or "handmade"/"made in" claims; no health or safety claims; Canadian spelling, metric first. Start the output with a one-line title naming the product, format and angle. End with a 3-line checklist of what the operator must verify before posting.`;
+}
 // Shown on a task whose next stage could not be saved because the database is full.
 const QUOTA_HOLD = 'The station’s database is full, so the next stage could not be saved. Delete old tasks under “Storage”; this task then carries on by itself.';
 // Interruptions (page closed mid-step) do not use attempts; this many fail the task.
@@ -1837,7 +1870,9 @@ function createStation(cfg) {
     return null;
   }
   // Claude work queued here that waits only for the owner to start agents in this view.
-  const waitingForStart = () => !demo && state.isOwner && !state.armed && state.activeSteps.some((x) => x.status === 'queued' && x.executor === 'claude');
+  // (or that "Auto-generate content" would start).
+  const waitingForStart = () => !demo && state.isOwner && !state.armed && !state.settings.paused
+    && (!!state.settings.autoIdeas || state.activeSteps.some((x) => x.status === 'queued' && x.executor === 'claude'));
   async function countTaskRuns(label) { return (await qget(coll('runs').where('taskId', '==', label))).length; }
   // The queue asks this every tick for held tasks; a short cache keeps the
   // read rate low. Starting a call drops the cached count for that task.
@@ -1965,6 +2000,7 @@ function createStation(cfg) {
       await recoverHandoffs();
       if (state.settings.paused) return;
       await autoApprove();
+      await autoIdeas();
       const runningNow = state.activeSteps.filter(liveRunning).length;
       const free = QUEUE.maxWorkers - Math.max(runningNow, state.inFlight.size);
       const runsReady = demo || !!state.got.runs;
@@ -2702,6 +2738,28 @@ function createStation(cfg) {
     }
     throw new Error('Another tab is creating a task right now. Try again in a few seconds.');
   }
+  // Operator setting "Auto-generate content": when nothing is open, queue one
+  // content brief. Only after the owner started agents in this view, so opening
+  // the page never sets Claude work going on its own.
+  async function autoIdeas() {
+    const st = state.settings;
+    if (!st.autoIdeas || !state.armed || dailyBlock() || localBlock()) return;
+    if (state.pending.length || state.tasks.some((t) => !TERMINAL.includes(t.status))) return;
+    const day = stationDay();
+    const prefix = `auto-idea-${day}-`;
+    const made = state.tasks.filter((t) => String(t.idempotencyKey || '').startsWith(prefix)).length;
+    const cap = 200; // operator request: 200 auto-ideas per day (still bounded by the daily agent-call limit)
+    if (made >= cap) return;
+    const autoTasks = state.tasks.filter((t) => String(t.idempotencyKey || '').startsWith('auto-idea-'));
+    const total = autoTasks.length;
+    const avoid = autoTasks.filter((t) => t.status !== 'cancelled').map((t) => String(t.title || '').trim()).filter((x) => x && !/^Auto-(idea|content)/.test(x)).slice(0, 60);
+    const r = await createTask({ description: autoContentBrief(total, avoid, day), project: 'Ideas', idempotencyKey: `${prefix}${made + 1}` });
+    if (r.created) await logEvent({ taskId: r.label, agent: 'commander', type: 'auto_idea', message: `Auto-content queued ${r.label} (${made + 1} of ${cap} today). Results still wait for your approval.` });
+  }
+  async function setAutoIdeas(on) {
+    await writeSettings({ autoIdeas: on });
+    await logEvent({ type: 'settings_changed', message: `Operator changed settings: auto-ideas → ${on ? 'ON' : 'off'}.` });
+  }
   async function createTask(input) {
     const description = String(input.description || '').trim();
     if (description.length < 10) throw new Error('Describe the task in at least 10 characters.');
@@ -2890,7 +2948,7 @@ function createStation(cfg) {
   return {
     state, start, stop, reconnect, selectTask, tick,
     linkOk, connected, claudeUsable, dailyBlock, localBlock, agentViews, loadTimedOut, waitingForStart,
-    createTask, cancelTask: (l) => cancelTask(l), retryTask, decideApproval, setPaused, saveLimits, setTeamMode, setAutoApprove,
+    createTask, cancelTask: (l) => cancelTask(l), retryTask, decideApproval, setPaused, saveLimits, setTeamMode, setAutoApprove, setAutoIdeas,
     saveMemory, listMemoryDocs, getDoc, stopCall, retryClaude, startAgents, deleteFinishedTasks,
   };
 }
@@ -3324,7 +3382,7 @@ function renderBanners() {
   }
   if (s && ui.station.linkOk() && isLive() && s.claude.state !== 'unavailable' && ui.station.waitingForStart()) {
     out.push(h('div', { class: 'banner hold', role: 'status' },
-      h('span', { text: 'Queued agent work is waiting. Agents start in this view only when you say so; each agent step uses your Claude plan.' }),
+      h('span', { text: `${s.activeSteps.some((x) => x.status === 'queued' && x.executor === 'claude') ? 'Queued agent work is waiting.' : '“Auto-generate content” is on.'} Agents start in this view only when you say so; each agent step uses your Claude plan.` }),
       h('button', { class: 'btn small primary', type: 'button', onclick: () => { ui.station.startAgents(); scheduleRender(); }, text: 'Start agents' })));
   }
   if (s && ui.station.linkOk()) {
@@ -3708,7 +3766,13 @@ function renderControls() {
   $('autoOn').setAttribute('aria-pressed', String(auto));
   $('autoOff').setAttribute('aria-pressed', String(!auto));
   $('autoNote').hidden = !auto;
-  for (const id of ['teamSolo', 'teamTeam', 'autoOn', 'autoOff']) $(id).disabled = !op || ui.busy.has('settings');
+  const ideas = up && !!s.settings.autoIdeas;
+  $('ideasOn').className = ideas ? 'on' : '';
+  $('ideasOff').className = ideas ? '' : 'on';
+  $('ideasOn').setAttribute('aria-pressed', String(ideas));
+  $('ideasOff').setAttribute('aria-pressed', String(!ideas));
+  $('ideasNote').hidden = !ideas;
+  for (const id of ['teamSolo', 'teamTeam', 'autoOn', 'autoOff', 'ideasOn', 'ideasOff']) $(id).disabled = !op || ui.busy.has('settings');
   $('pruneBtn').disabled = !op || ui.busy.has('prune');
   $('fPruneAge').disabled = !op;
 }
@@ -3996,6 +4060,8 @@ function bindControls() {
   $('teamSolo').addEventListener('click', () => act('settings', async () => { await ui.station.setTeamMode('solo'); saved('Team mode'); }));
   $('teamTeam').addEventListener('click', () => act('settings', async () => { await ui.station.setTeamMode('team'); saved('Team mode'); }));
   $('autoOff').addEventListener('click', () => act('settings', async () => { await ui.station.setAutoApprove(false); saved('Auto-approve'); }));
+  $('ideasOff').addEventListener('click', () => act('settings', async () => { await ui.station.setAutoIdeas(false); saved('Auto-ideas'); }));
+  $('ideasOn').addEventListener('click', () => act('settings', async () => { await ui.station.setAutoIdeas(true); saved('Auto-ideas'); await ui.station.tick(); }));
   $('autoOn').addEventListener('click', async () => {
     if (st()?.settings.autoApproveListings) return;
     if (!(await confirmBox('Approve listing copy automatically when the Reviewer passes it and every station check passes? Flagged listings and all reports still wait for you.', 'Turn on'))) return;
