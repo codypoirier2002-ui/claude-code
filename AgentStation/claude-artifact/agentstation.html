@@ -1719,7 +1719,9 @@ function createStation(cfg) {
   function withLock(path, fn) {
     const prev = locks.get(path) || Promise.resolve();
     const run = prev.catch(() => {}).then(async () => {
-      const key = `leases/lock~${path.replace(/\//g, '~')}`;
+      // One lock per collection (daily, projects, memory, settings), so the
+      // lock documents do not pile up one per day or per project.
+      const key = `leases/lock~${path.split('/')[0]}`;
       for (let i = 0; ; i++) {
         const r = await retryOnce(() => S.doc(key).acquire({ holder, ttlMs: 5000 }));
         if (r && r.acquired) break;
@@ -1832,9 +1834,10 @@ function createStation(cfg) {
   function localBlock() {
     if (demo) return null;
     if (state.claude.state === 'unavailable' || state.claude.state === 'hold') return `Claude is not available: ${state.claude.message}`;
-    if (!state.armed) return 'Agents have not been started in this view. Press “Start agents” to let queued work use your Claude plan.';
     return null;
   }
+  // Claude work queued here that waits only for the owner to start agents in this view.
+  const waitingForStart = () => !demo && state.isOwner && !state.armed && state.activeSteps.some((x) => x.status === 'queued' && x.executor === 'claude');
   async function countTaskRuns(label) { return (await qget(coll('runs').where('taskId', '==', label))).length; }
   // The queue asks this every tick for held tasks; a short cache keeps the
   // read rate low. Starting a call drops the cached count for that task.
@@ -1974,7 +1977,8 @@ function createStation(cfg) {
         lastDailyBlocked = !!daily;
       }
       if (free <= 0) return;
-      const block = daily || localBlock();
+      // Until the owner starts agents in this view, only station steps run.
+      const block = daily || localBlock() || (!demo && !state.armed ? 'agents not started in this view' : null);
       // Counted per call started, so one stale snapshot cannot let several calls past the limit.
       let dailyUsed = state.runsToday.length + unrecordedCalls();
       const now = Date.now();
@@ -2009,6 +2013,9 @@ function createStation(cfg) {
         if (stopped || !(await claim(s))) continue;
         started++;
         if (s.executor === 'claude') dailyUsed++;
+        // Registered before execute's first await, so the next tick counts this
+        // call against the daily limit and the worker slots even before it starts.
+        state.inFlight.set(s.id, { ctl: new AbortController(), label: s.taskId, stage: s.stage, agent: s.agent, claude: s.executor === 'claude', runRecorded: false });
         execute(s.id);
       }
     } catch (err) {
@@ -2099,8 +2106,10 @@ function createStation(cfg) {
   }
   async function execute(stepId) {
     let step;
-    try { step = await dget(`steps/${stepId}`); } catch (e) { cfg.onError(e); return; }
-    if (!step) return;
+    try { step = await dget(`steps/${stepId}`); } catch (e) { state.inFlight.delete(stepId); cfg.onError(e); return; }
+    if (!step) { state.inFlight.delete(stepId); return; }
+    // stop() may have aborted the placeholder tick() registered.
+    const wasAborted = !!state.inFlight.get(stepId)?.ctl.signal.aborted;
     const ctl = new AbortController();
     let timedOut = false;
     let timer = null;
@@ -2112,7 +2121,7 @@ function createStation(cfg) {
     startRenew(step.taskId);
     changed();
     // stop() ran while this step was being claimed: put it back, call nothing.
-    if (stopped) ctl.abort('shutdown');
+    if (stopped || wasAborted) ctl.abort('shutdown');
     // The first Claude call of a view may wait on the consent dialog, so the
     // stage timeout starts counting only once consent is settled (or text arrives).
     if (step.executor === 'station' || consentKnown) armTimer();
@@ -2791,7 +2800,13 @@ function createStation(cfg) {
       if (n >= 40) break;
       if (!TERMINAL.includes(t.status) || needed.has(t.label) || state.detail.label === t.label) continue;
       if (!(Date.parse(t.completedAt || t.updatedAt || 0) < cutoff)) continue;
-      for (const c of ['steps', 'sources', 'inputs', 'approvals']) for (const d of await qget(coll(c).where('taskId', '==', t.label))) await ddel(`${c}/${d.id}`);
+      for (const c of ['steps', 'sources', 'inputs', 'approvals']) {
+        for (const d of await qget(coll(c).where('taskId', '==', t.label))) {
+          await ddel(`${c}/${d.id}`);
+          if (c === 'approvals') await ddel(`leases/approval-${d.id}`);
+        }
+      }
+      await ddel(`leases/${t.label}`);
       // Today's run records stay: they are today's agent-call count.
       for (const r of await qget(coll('runs').where('taskId', '==', t.label))) if (r.day !== today) await ddel(`runs/${r.id}`);
       await ddel(`outputs/${t.label}`);
@@ -2874,7 +2889,7 @@ function createStation(cfg) {
 
   return {
     state, start, stop, reconnect, selectTask, tick,
-    linkOk, connected, claudeUsable, dailyBlock, localBlock, agentViews, loadTimedOut,
+    linkOk, connected, claudeUsable, dailyBlock, localBlock, agentViews, loadTimedOut, waitingForStart,
     createTask, cancelTask: (l) => cancelTask(l), retryTask, decideApproval, setPaused, saveLimits, setTeamMode, setAutoApprove,
     saveMemory, listMemoryDocs, getDoc, stopCall, retryClaude, startAgents, deleteFinishedTasks,
   };
@@ -3269,6 +3284,7 @@ function renderTop() {
     if (s.settings.paused) { q = 'Paused'; warnQ = true; }
     else if (block) { q = 'On hold'; warnQ = true; }
     else if (running) q = `Working (${running}/${QUEUE.maxWorkers})`;
+    else if (ui.station.waitingForStart()) { q = 'Waiting for Start agents'; warnQ = true; }
     else q = 'Ready';
   }
   const qt = $('queueText');
@@ -3306,8 +3322,7 @@ function renderBanners() {
   if (s && s.isOwner && isLive() && ui.station.linkOk() && s.claude.state === 'unavailable') {
     out.push(h('div', { class: 'banner', role: 'alert' }, h('span', null, h('strong', { class: 'k', text: 'Disconnected' }), `: Claude is not available in this view (${s.claude.message.replace(/^Claude is not available in this view, /, '').replace(/\.$/, '')}). Agents are offline; queued work waits.`)));
   }
-  if (s && ui.station.linkOk() && s.isOwner && isLive() && !s.armed && s.claude.state !== 'unavailable'
-    && s.activeSteps.some((x) => x.status === 'queued' && x.executor === 'claude')) {
+  if (s && ui.station.linkOk() && isLive() && s.claude.state !== 'unavailable' && ui.station.waitingForStart()) {
     out.push(h('div', { class: 'banner hold', role: 'status' },
       h('span', { text: 'Queued agent work is waiting. Agents start in this view only when you say so; each agent step uses your Claude plan.' }),
       h('button', { class: 'btn small primary', type: 'button', onclick: () => { ui.station.startAgents(); scheduleRender(); }, text: 'Start agents' })));
