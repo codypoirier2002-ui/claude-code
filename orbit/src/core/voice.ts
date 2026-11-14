@@ -12,6 +12,7 @@ import {
   type ElevenClient,
   type FetchLike,
 } from "./eleven";
+import { DEMO_BUILD, DEMO_SPEECH_MAX_CHARS, splitSpeech } from "./demo";
 import { hasVoiceKey, type Settings } from "./settings";
 import { stripAudioTags } from "./tags";
 
@@ -35,6 +36,12 @@ export const EOS_TICK_MS = 50;
 export const EOS_LEARN_MS = 300;
 export const BARGE_TICK_MS = 40;
 export const PREROLL_SEGMENT_MS = 1500;
+/**
+ * Speech requests one speaker keeps in flight. ElevenLabs refuses requests past
+ * the plan's concurrency limit with 429 (5 on the demo's account, shared by its
+ * visitors), and a briefing alone is cut into six chunks or so.
+ */
+export const MAX_SPEECH_IN_FLIGHT = 3;
 export const RECORDER_TYPES: readonly string[] = [
   "audio/webm;codecs=opus",
   "audio/webm",
@@ -48,10 +55,36 @@ const CLOSED_FENCE = /(^|\n)[ \t]{0,3}(`{3,}|~{3,})[^\n]*\n(?:[\s\S]*?\n)?[ \t]{
 const OPEN_FENCE_TAIL = /(^|\n)[ \t]{0,3}(`{3,}|~{3,})[\s\S]*$/;
 const FENCE_LINE = /^[ \t]{0,3}(`{3,}|~{3,})/gm;
 
+/** A bulleted or numbered list item's start. */
+const LIST_ITEM = /^[ \t]*(?:[-*+•]|\d{1,3}[.)])[ \t]+/;
+/** A line that ends in a spoken pause, closing quotes and brackets allowed after it. */
+const ENDS_PAUSED = /[.!?:;,…]["'”’)\]]*$/;
+
+/**
+ * A list is heard, not seen: each item ends in a period, and the line leading
+ * into it in a colon, unless they already end in punctuation. Without that,
+ * "- Finish the essay\n- Email Sam" is read as "Finish the essay Email Sam".
+ */
+function pauseLists(text: string): string {
+  const lines = text.split("\n").map((l) => l.replace(/[ \t]+$/, ""));
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!/[\p{L}\p{N}]/u.test(line) || ENDS_PAUSED.test(line)) continue;
+    if (LIST_ITEM.test(line)) {
+      lines[i] = `${line}.`;
+      continue;
+    }
+    const next = lines.slice(i + 1).find((l) => l.trim() !== "");
+    if (next !== undefined && LIST_ITEM.test(next)) lines[i] = `${line}:`;
+  }
+  return lines.join("\n");
+}
+
 /**
  * Text as it should be heard (§5.2): tags stripped unless kept, closed code
- * fences replaced with " (code omitted) ", markdown emphasis, backticks and
- * line-start bullets removed, links reduced to their label, whitespace collapsed.
+ * fences replaced with " (code omitted) ", links reduced to their label,
+ * markdown emphasis and backticks removed, list items given a pause and their
+ * bullets removed, whitespace collapsed.
  */
 export function speakable(text: string, keepTags = false): string {
   let t = keepTags ? text : stripAudioTags(text);
@@ -59,9 +92,31 @@ export function speakable(text: string, keepTags = false): string {
   // A fence that never closed (a reply cut off mid-code) is not read aloud either.
   t = t.replace(OPEN_FENCE_TAIL, "$1 (code omitted) ");
   t = t.replace(/\[([^\]\n]*)\]\([^)\n]*\)/g, "$1");
-  t = t.replace(/^[ \t]*(?:[-*+•])[ \t]+/gm, "");
   t = t.replace(/\*\*|__|`/g, "");
+  t = pauseLists(t);
+  t = t.replace(/^[ \t]*(?:[-*+•])[ \t]+/gm, "");
   return t.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * True when a chunk has words to say: a letter or digit outside square
+ * brackets. ElevenLabs drops every [tag], listed or not, and every emoji, and
+ * refuses an expressive chunk with nothing left (400 input_text_empty). A tag
+ * after her last sentence becomes such a chunk once the splitter has cut after
+ * that sentence: flush() then sends the tag on its own.
+ */
+export function hasSpokenText(text: string): boolean {
+  return /[\p{L}\p{N}]/u.test(text.replace(/\[[^\]]*\]/g, ""));
+}
+
+/**
+ * The last `n` UTF-16 units of `text`, without a leading half of an emoji. A cut
+ * through a surrogate pair would send a lone surrogate, which isn't valid text;
+ * if ElevenLabs refused it, previous_text would stop for the rest of the session.
+ */
+function lastChars(text: string, n: number): string {
+  const tail = text.slice(-n);
+  return /^[\uDC00-\uDFFF]/.test(tail) ? tail.slice(1) : tail;
 }
 
 function insideOpenFence(head: string): boolean {
@@ -71,11 +126,18 @@ function insideOpenFence(head: string): boolean {
   return n % 2 === 1;
 }
 
-/** Cuts streamed text into speakable chunks of at least `minChars`, at sentence ends outside code fences. */
+/**
+ * Cuts streamed text into speakable chunks of at least `minChars`, at sentence
+ * ends outside code fences. A finite `maxChars` (demo builds, §21) also splits
+ * any chunk longer than that.
+ */
 export class SentenceSplitter {
   private buffer = "";
 
-  constructor(readonly minChars = 60) {}
+  constructor(
+    readonly minChars = 60,
+    readonly maxChars = Infinity,
+  ) {}
 
   /** Adds text and returns the chunks that are ready (already passed through speakable(…, true)). */
   feed(delta: string): string[] {
@@ -86,7 +148,7 @@ export class SentenceSplitter {
       if (cut < 0) break;
       const chunk = speakable(this.buffer.slice(0, cut), true);
       this.buffer = this.buffer.slice(cut);
-      if (chunk) out.push(chunk);
+      if (chunk) out.push(...this.limit(chunk));
     }
     return out;
   }
@@ -95,7 +157,11 @@ export class SentenceSplitter {
   flush(): string[] {
     const chunk = speakable(this.buffer, true);
     this.buffer = "";
-    return chunk ? [chunk] : [];
+    return chunk ? this.limit(chunk) : [];
+  }
+
+  private limit(chunk: string): string[] {
+    return Number.isFinite(this.maxChars) ? splitSpeech(chunk, this.maxChars) : [chunk];
   }
 
   clear(): void {
@@ -174,6 +240,53 @@ interface Chunk {
   controller: AbortController;
 }
 
+/**
+ * Runs at most `max` tasks at once, starting the rest in the order they came.
+ * A task still waiting when its signal aborts never runs and rejects with an
+ * AbortError.
+ */
+function createSlots(max: number) {
+  let running = 0;
+  const waiting: { start: () => void; signal: AbortSignal; onAbort: () => void }[] = [];
+  const next = () => {
+    while (running < max && waiting.length > 0) {
+      const w = waiting.shift()!;
+      w.signal.removeEventListener("abort", w.onAbort);
+      running++;
+      w.start();
+    }
+  };
+  return async function run<T>(signal: AbortSignal, task: () => Promise<T>): Promise<T> {
+    if (running < max && waiting.length === 0) {
+      running++;
+    } else {
+      await new Promise<void>((resolve, reject) => {
+        const abort = () => reject(new DOMException("The speech request was stopped.", "AbortError"));
+        if (signal.aborted) {
+          abort();
+          return;
+        }
+        const w = {
+          start: resolve,
+          signal,
+          onAbort: () => {
+            waiting.splice(waiting.indexOf(w), 1);
+            abort();
+          },
+        };
+        signal.addEventListener("abort", w.onAbort, { once: true });
+        waiting.push(w);
+      });
+    }
+    try {
+      return await task();
+    } finally {
+      running--;
+      next();
+    }
+  };
+}
+
 function isAbort(err: unknown): boolean {
   return (err instanceof Error || (typeof err === "object" && err !== null)) &&
     (err as { name?: string }).name === "AbortError";
@@ -182,6 +295,26 @@ function isAbort(err: unknown): boolean {
 const isElevenStatus = (err: unknown, ...codes: number[]): boolean =>
   err instanceof ElevenError && codes.includes(err.status);
 
+/**
+ * A 400 or 422 says the expressive model is out of reach only in so many
+ * words: the model isn't found or available ("model_not_found", "A model with
+ * model ID … does not exist"), or a permission is missing. Any other 400 or 422
+ * is about the request (a chunk with no words gets "input_text_empty").
+ * Matched with underscores read as spaces.
+ */
+const MODEL_UNAVAILABLE =
+  /\bmodel\b.{0,80}?\b(?:does ?n[o']t exist|not found|not (?:available|allowed|supported|enabled)|unavailable|unsupported|no access|access denied)\b|\bpermission/i;
+
+/** The account or key can't use the expressive model, so the fast voice takes over for the session. */
+function expressiveUnavailable(err: ElevenError): boolean {
+  if (err.kind === "missing_permission") return true;
+  // Decided by kind too (§18): quota, bad keys and rate limits are not "unavailable".
+  if (err.kind !== "other") return false;
+  if (isElevenStatus(err, 403, 404)) return true;
+  const said = `${err.detailStatus ?? ""} ${err.detail}`.replace(/_/g, " ");
+  return isElevenStatus(err, 400, 422) && MODEL_UNAVAILABLE.test(said);
+}
+
 export function createSpeaker(deps: SpeakerDeps): Speaker {
   const eleven = deps.eleven ?? createElevenClient({ getKey: () => deps.getSettings().elevenLabsKey, fetch: deps.fetch });
   const synth = deps.speechSynthesis !== undefined
@@ -189,12 +322,14 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
     : typeof globalThis.speechSynthesis !== "undefined" ? globalThis.speechSynthesis : null;
   const makeUtterance = deps.createUtterance ?? ((text: string) => new SpeechSynthesisUtterance(text));
 
-  const splitter = new SentenceSplitter();
+  // The demo server refuses speech over 1,200 characters, so demo builds split below that.
+  const splitter = new SentenceSplitter(60, DEMO_BUILD ? DEMO_SPEECH_MAX_CHARS : Infinity);
   let generation = 0;
   let queue: Chunk[] = [];
   let pumpGen = -1;
   let previousPlain = "";
   let synthPending = 0;
+  const speechSlots = createSlots(MAX_SPEECH_IN_FLIGHT);
 
   let source: AudioBufferSourceNode | null = null;
   let endPlayback: (() => void) | null = null;
@@ -273,47 +408,50 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
     }
   }
 
-  async function expressive(text: string, previous: string, signal: AbortSignal): Promise<ArrayBuffer> {
+  /** `withPrevious` is false for the one retry without previous_text. */
+  async function expressive(text: string, previous: string, signal: AbortSignal, withPrevious = true): Promise<ArrayBuffer> {
     const voiceId = currentVoice();
-    const prev = sendPreviousText && previous ? previous : undefined;
+    const prev = withPrevious && sendPreviousText && previous ? previous : undefined;
+    let data: ArrayBuffer;
     try {
-      return await eleven.synthesizeExpressive(text, voiceId, prev, signal);
+      data = await eleven.synthesizeExpressive(text, voiceId, prev, signal);
     } catch (err) {
       if (isAbort(err) || signal.aborted) throw err;
-      if (err instanceof ElevenError) {
-        if (err.kind === "voice_unavailable") {
-          if (useLaura(voiceId)) return expressive(text, previous, signal);
-          throw err;
-        }
-        // The request carried previous_text and was rejected as malformed: retry once without it.
-        if (prev !== undefined && isElevenStatus(err, 400, 422) && err.kind === "other") {
-          sendPreviousText = false;
-          return expressive(text, previous, signal);
-        }
-        // The account can't use the expressive model: fast voice for the rest of the session.
-        // Decided by kind too (§18): quota, bad keys and rate limits are not "unavailable".
-        if (err.kind === "missing_permission" || (err.kind === "other" && isElevenStatus(err, 400, 403, 404, 422))) {
-          expressiveDisabled = true;
-          if (!expressiveNoticeShown) {
-            expressiveNoticeShown = true;
-            notify(EXPRESSIVE_FALLBACK_NOTICE);
-          }
-          return fast(text, signal);
-        }
-        // Server trouble: just this chunk goes to the fast voice.
-        if (err.status >= 500 && err.kind === "other") return fast(text, signal);
+      // Network errors (fetch rejects with a TypeError): this chunk only.
+      if (!(err instanceof ElevenError)) return fast(text, signal);
+      if (err.kind === "voice_unavailable") {
+        if (useLaura(voiceId)) return expressive(text, previous, signal, withPrevious);
         throw err;
       }
-      // Network errors (fetch rejects with a TypeError): this chunk only.
-      return fast(text, signal);
+      // The account can't use the expressive model: fast voice for the rest of the session.
+      if (expressiveUnavailable(err)) {
+        expressiveDisabled = true;
+        if (!expressiveNoticeShown) {
+          expressiveNoticeShown = true;
+          notify(EXPRESSIVE_FALLBACK_NOTICE);
+        }
+        return fast(text, signal);
+      }
+      if (err.kind === "other" && isElevenStatus(err, 400, 422)) {
+        // ElevenLabs refused this request, not the account. It carried previous_text: retry once without.
+        if (prev !== undefined) return expressive(text, previous, signal, false);
+        // Something about this chunk: just this chunk goes to the fast voice, and expressive stays on.
+        return fast(text, signal);
+      }
+      // Server trouble: just this chunk goes to the fast voice.
+      if (err.status >= 500 && err.kind === "other") return fast(text, signal);
+      throw err;
     }
+    // The retry without previous_text worked, so previous_text was the trouble: stop sending it.
+    if (!withPrevious) sendPreviousText = false;
+    return data;
   }
 
   async function synthesize(text: string, previous: string, gen: number, signal: AbortSignal): Promise<AudioBuffer | null> {
-    const s = deps.getSettings();
-    const data = s.expressiveVoice && !expressiveDisabled
-      ? await expressive(text, previous, signal)
-      : await fast(text, signal);
+    // The voice is decided when the request starts: expressive may have been switched off while it waited.
+    const data = await speechSlots(signal, () =>
+      deps.getSettings().expressiveVoice && !expressiveDisabled ? expressive(text, previous, signal) : fast(text, signal),
+    );
     if (gen !== generation) return null;
     const ctx = deps.audioContext();
     const buffer = await ctx.decodeAudioData(data);
@@ -402,7 +540,8 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
   }
 
   function enqueue(chunk: string): void {
-    if (!chunk) return;
+    // Nothing to say (a lone tag or emoji): ElevenLabs would refuse it, and no voice has words to read.
+    if (!hasSpokenText(chunk)) return;
     if (!hasVoiceKey(deps.getSettings())) {
       speakWithSynth(chunk);
       return;
@@ -410,7 +549,7 @@ export function createSpeaker(deps: SpeakerDeps): Speaker {
     const gen = generation;
     const controller = new AbortController();
     const previous = previousPlain;
-    previousPlain = stripAudioTags(chunk).slice(-PREVIOUS_TEXT_CHARS);
+    previousPlain = lastChars(stripAudioTags(chunk), PREVIOUS_TEXT_CHARS);
     const audio = synthesize(chunk, previous, gen, controller.signal);
     audio.catch(() => undefined); // handled in pump; avoid unhandled-rejection noise for dropped chunks
     queue.push({ gen, audio, controller });

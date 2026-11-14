@@ -3,6 +3,7 @@
 
 import Anthropic, { APIError, APIConnectionError, APIUserAbortError } from "@anthropic-ai/sdk";
 import { closenessScore, currentStreak, recordVisit, stageIndex } from "./bond";
+import { DEMO_BUILD, claudeTarget, demoModel } from "./demo";
 import { modeById, personalityById } from "./modes";
 import {
   HAIKU_MODEL,
@@ -194,6 +195,10 @@ export interface AssistantDeps {
   clientFactory?: ClientFactory;
   /** Epoch ms. Defaults to Date.now. */
   now?: () => number;
+  /** A demo build (§21): with no key or proxy, calls go to the host's server. Defaults to the build flag. */
+  demo?: boolean;
+  /** This page's origin, for the demo server's absolute URL. Defaults to location.origin. */
+  origin?: () => string;
 }
 
 // ---- Client -----------------------------------------------------------------
@@ -522,6 +527,13 @@ export function createAssistant(deps: AssistantDeps) {
   const setSettings = deps.updateSettings ?? defaultUpdateSettings;
   const factory = deps.clientFactory ?? defaultClientFactory;
   const now = deps.now ?? Date.now;
+  const demo = deps.demo ?? DEMO_BUILD;
+
+  /** A client for these settings: the visitor's key or proxy, else (demo builds) the host's demo server (§21). */
+  function clientFor(s: Settings): { client: ClientLike; viaDemo: boolean } {
+    const t = claudeTarget(s, demo, deps.origin);
+    return { client: factory(t.apiKey, t.baseURL), viaDemo: t.demo };
+  }
 
   const loaded = loadThreads();
   let threads = loaded.threads;
@@ -727,12 +739,13 @@ export function createAssistant(deps: AssistantDeps) {
     try {
       for (let round = 0; ; round++) {
         if (round >= MAX_TOOL_ROUNDS) throw new RunStop(MSG.tooManySteps, true);
-        const s = getSettings();
-        const client = factory(s.apiKey.trim(), s.baseURL.trim());
-        const params = buildRequest(thread, model, tools);
+        const { client, viaDemo } = clientFor(getSettings());
+        // The demo server tops out at Opus: ask for what will actually run, so the labels say so.
+        const sent = viaDemo ? demoModel(model) : model;
+        const params = buildRequest(thread, sent, tools);
         liveRound = "";
         blockFresh = false;
-        set({ model });
+        set({ model: sent });
 
         let message: ApiMessage;
         try {
@@ -757,7 +770,7 @@ export function createAssistant(deps: AssistantDeps) {
         // Append exactly as returned, record the answering model, persist.
         thread.history.push({ role: "assistant", content });
         appended = true;
-        const answeredBy = message.model || model;
+        const answeredBy = message.model || sent;
         thread.models[String(thread.history.length - 1)] = answeredBy;
         persist();
         const vis = visibleText(content);
@@ -908,7 +921,7 @@ export function createAssistant(deps: AssistantDeps) {
   async function fetchSuggestions(): Promise<string[]> {
     const settings = getSettings();
     const thread = currentThread();
-    if (!settings.suggestReplies || live.busy || suggestionsInFlight || !thread || !isConfigured(settings)) return [];
+    if (!settings.suggestReplies || live.busy || suggestionsInFlight || !thread || !isConfigured(settings, demo)) return [];
     const turns = foldDisplay(thread.history, thread.models);
     const reply = turns[turns.length - 1];
     if (!reply || reply.role !== "assistant") return [];
@@ -918,7 +931,7 @@ export function createAssistant(deps: AssistantDeps) {
     suggestionsInFlight = true;
     let result: string[] = [];
     try {
-      const client = factory(settings.apiKey.trim(), settings.baseURL.trim());
+      const { client } = clientFor(settings);
       const message = await client.messages.create({
         model: HAIKU_MODEL,
         max_tokens: 200,
@@ -954,7 +967,7 @@ export function createAssistant(deps: AssistantDeps) {
 
   async function fetchGreeting(): Promise<string | null> {
     const settings = getSettings();
-    if (!isConfigured(settings)) return null;
+    if (!isConfigured(settings, demo)) return null;
     const t = now();
     const previous = readJSON<unknown>("lastGreeting", null);
     if (typeof previous === "number" && t - previous < GREETING_INTERVAL_MS) return null;
@@ -968,7 +981,7 @@ export function createAssistant(deps: AssistantDeps) {
         streak: currentStreak(new Date(t)),
         lastAsked: lastAskedText(),
       });
-      const client = factory(settings.apiKey.trim(), settings.baseURL.trim());
+      const { client } = clientFor(settings);
       const message = await client.messages.create({
         model: HAIKU_MODEL,
         max_tokens: 400,

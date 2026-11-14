@@ -4,7 +4,7 @@
 // It handles same-origin GET requests only. Calls to the Claude API, a proxy or
 // ElevenLabs are POSTs or cross-origin requests, so they are never cached and
 // never answered from here. A same-origin GET that carries an API key header is
-// skipped as well.
+// skipped as well, and so is anything under /api/ (the demo server's proxies).
 
 // The build id. scripts/stamp-sw.mjs puts the real value in dist/sw.js after
 // every build (§18), so each build has its own cache and the previous one is
@@ -44,6 +44,9 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  // The demo server's proxies (§21) live under the site's /api/ (also when the
+  // app sits in a sub-folder) and are never cached or answered from here.
+  if (url.pathname.startsWith("/api/")) return;
   if (API_HEADERS.some((name) => request.headers.has(name))) return;
 
   // Pages: network first, the latest copy kept under the app's root for offline.

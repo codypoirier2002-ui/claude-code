@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
-import { LAURA_VOICE_ID } from "../src/core/eleven";
+import { LAURA_VOICE_ID, createElevenClient } from "../src/core/eleven";
 import {
   BargeDetector,
   EXPRESSIVE_FALLBACK_NOTICE,
@@ -13,6 +13,7 @@ import {
   RECORDER_TYPES,
   SentenceSplitter,
   createSpeaker,
+  hasSpokenText,
   listeningLevel,
   openMic,
   pickRecorderType,
@@ -113,6 +114,28 @@ const ok = (req: Req) => new Response(new TextEncoder().encode(textOf(req)));
 const fail = (status: number, detail: unknown) => Response.json({ detail }, { status });
 const isFast = (req: Req) => req.url.includes("/text-to-speech/");
 
+// Error bodies ElevenLabs sent for eleven_v4 on 2026-11-11 (request ids left out).
+/** A chunk with no words once tags and emojis are removed: "[giggles]", "[smiles warmly]" or "😊" on its own. */
+const TEXT_EMPTY = {
+  type: "validation_error",
+  code: "invalid_parameters",
+  message: "Input at position 0 has empty text. All inputs must include non-empty text after removing speaker tags and emojis.",
+  status: "input_text_empty",
+  param: "text",
+};
+/** A model id it doesn't know. */
+const MODEL_NOT_FOUND = { status: "model_not_found", message: "A model with model ID eleven_v0_probe does not exist ..." };
+/** A top-level previous_text over 100 characters (the echoed input left out). */
+const PREVIOUS_TOO_LONG = {
+  type: "string_too_long",
+  loc: ["body", "previous_text"],
+  msg: "String should have at most 100 characters",
+  ctx: { max_length: 100 },
+};
+/** Answers like ElevenLabs: an expressive chunk with nothing left once [tags] and emojis go is refused. */
+const elevenLike = (req: Req) =>
+  isFast(req) || /[\p{L}\p{N}]/u.test(textOf(req).replace(/\[[^\]]*\]/g, "")) ? ok(req) : fail(400, TEXT_EMPTY);
+
 function setup(opts: { settings?: Partial<SpeakerSettings>; auto?: (req: Req) => Response | Error | undefined } = {}) {
   const settings: SpeakerSettings = { elevenLabsKey: "sk_k", voiceId: "chosen", voiceSpeed: 1.1, expressiveVoice: true, ...opts.settings };
   const ctx = new FakeAudioContext();
@@ -150,10 +173,39 @@ describe("speakable", () => {
   it("omits closed code fences and removes markdown", () => {
     expect(speakable("Try this:\n```js\nconst a = 1;\n```\nDone.")).toBe("Try this: (code omitted) Done.");
     expect(speakable("**Bold** and __under__ and `code`.")).toBe("Bold and under and code.");
-    expect(speakable("- one\n* two\n+ three")).toBe("one two three");
+    expect(speakable("- one\n* two\n+ three")).toBe("one. two. three.");
     expect(speakable("See [the docs](https://x.dev/a) now.")).toBe("See the docs now.");
     expect(speakable("  lots \n\n of\tspace  ")).toBe("lots of space");
     expect(speakable("arr[i] stays")).toBe("arr[i] stays");
+  });
+
+  it("gives every list item a pause, so a list isn't read as one run-on line", () => {
+    // A briefing's to-dos, which used to come out as "Finish the essay draft Email Sam about…".
+    expect(speakable("Your top to-dos:\n- Finish the essay draft\n- Email Sam about Friday's plan\n- Pick up groceries")).toBe(
+      "Your top to-dos: Finish the essay draft. Email Sam about Friday's plan. Pick up groceries.",
+    );
+    // Items that end in punctuation keep it, emphasis and closing quotes included.
+    expect(speakable('- **Done!**\n- Ready?\n- Read "Dune."')).toBe('Done! Ready? Read "Dune."');
+    // A line leading into a list gets a colon, numbered lists keep their numbers, and blank lines don't matter.
+    expect(speakable("Here's what I found\n\n1. The essay is due Friday\n2) Sam replied")).toBe(
+      "Here's what I found: 1. The essay is due Friday. 2) Sam replied.",
+    );
+    // Prose without a list is left alone.
+    expect(speakable("Two lines\nof prose")).toBe("Two lines of prose");
+  });
+});
+
+describe("hasSpokenText", () => {
+  it("is false with no letter or digit outside square brackets (ElevenLabs refuses that: input_text_empty)", () => {
+    for (const t of ["", "  ", "[giggles]", "[giggles] [short pause]", "[smiles warmly]", "😊", "[giggles] 👍🏽", "🇨🇦", "…!"]) {
+      expect(hasSpokenText(t), JSON.stringify(t)).toBe(false);
+    }
+  });
+
+  it("is true with words or numbers, tags or not", () => {
+    for (const t of ["Hi.", "[giggles] Hi.", "You've got this! [giggles]", "6:29 PM", "25", "Ça va ?", "好的"]) {
+      expect(hasSpokenText(t), JSON.stringify(t)).toBe(true);
+    }
   });
 });
 
@@ -480,12 +532,127 @@ describe("speaker", () => {
     expect(speaker.speaking).toBe(false);
   });
 
-  it("sends previous_text (last 100 plain chars) and keeps tags for the expressive voice", async () => {
+  // ElevenLabs refuses requests past the plan's concurrency limit with 429 (5 on the demo's key),
+  // and a briefing alone is cut into six chunks or so.
+  const S4 = "A fourth sentence arrives here, and it is long enough as well.";
+  const S5 = "And a fifth one, so two chunks have to wait for their turn.";
+
+  it("keeps at most three speech requests in flight, starting the rest in order", async () => {
+    const { ctx, reqs, speaker, endCurrent } = setup();
+    speaker.feed(`${S1} ${S2} ${S3} ${S4} ${S5} `);
+    await flush();
+    expect(reqs.map(textOf)).toEqual([S1, S2, S3]);
+    expect(speaker.speaking).toBe(true);
+    reqs[1].resolve(ok(reqs[1]));
+    await flush();
+    expect(reqs.map(textOf)).toEqual([S1, S2, S3, S4]);
+    reqs[0].resolve(ok(reqs[0]));
+    await flush();
+    expect(reqs.map(textOf)).toEqual([S1, S2, S3, S4, S5]);
+    for (const r of reqs.slice(2)) r.resolve(ok(r));
+    await flush();
+    for (let i = 0; i < 5; i++) await endCurrent();
+    expect(ctx.played).toEqual([S1, S2, S3, S4, S5]);
+    expect(speaker.speaking).toBe(false);
+  });
+
+  it("a reply survives ElevenLabs' too-many-at-once 429: that chunk is sent again, and every chunk plays", async () => {
+    const ctx = new FakeAudioContext();
+    let refused = 0;
+    const { reqs, fetch } = fakeFetch((req) =>
+      textOf(req) === S2 && refused++ === 0
+        ? fail(429, { type: "rate_limit_error", code: "concurrent_limit_exceeded", status: "too_many_concurrent_requests", message: "Too many concurrent requests." })
+        : ok(req),
+    );
+    const errors: string[] = [];
+    const speaker = createSpeaker({
+      audioContext: () => ctx as unknown as AudioContext,
+      getSettings: () => ({ elevenLabsKey: "sk_k", voiceId: "chosen", voiceSpeed: 1.1, expressiveVoice: true }),
+      eleven: createElevenClient({ getKey: () => "sk_k", fetch, wait: async () => undefined }),
+      speechSynthesis: null,
+      onError: (m) => errors.push(m),
+    });
+    speaker.feed(`${S1} ${S2} ${S3} `);
+    await flush();
+    expect(reqs.map(textOf)).toEqual([S1, S2, S3, S2]);
+    for (let i = 0; i < 3; i++) {
+      ctx.current?.end();
+      await flush();
+    }
+    expect(ctx.played).toEqual([S1, S2, S3]);
+    expect(errors).toEqual([]);
+  });
+
+  it("stop() drops the chunks still waiting for a request slot", async () => {
+    const { reqs, speaker } = setup();
+    speaker.feed(`${S1} ${S2} ${S3} ${S4} ${S5} `);
+    await flush();
+    speaker.stop();
+    for (const r of reqs.slice()) r.resolve(ok(r)); // the three in flight finish after the stop
+    await flush();
+    expect(reqs).toHaveLength(3); // S4 and S5 never went out
+    speaker.say("A new reply starts at once.");
+    await flush();
+    expect(reqs.map(textOf).slice(3)).toEqual(["A new reply starts at once."]);
+  });
+
+  it("sends previous_text (last 100 plain chars) at the top level and keeps tags for the expressive voice", async () => {
     const { reqs, speaker } = setup({ auto: ok });
     speaker.feed(`[giggles] ${S1} ${S2} `);
     await flush();
     expect(reqs[0].body).toEqual({ inputs: [{ text: `[giggles] ${S1}`, voice_id: "chosen" }], model_id: "eleven_v4" });
-    expect(reqs[1].body.settings).toEqual({ previous_text: S1 });
+    // Top level, where ElevenLabs reads it: `settings` has no previous_text and ignores one sent there.
+    expect(reqs[1].body).toEqual({ inputs: [{ text: S2, voice_id: "chosen" }], model_id: "eleven_v4", previous_text: S1 });
+    // ElevenLabs refuses more than 100 characters (PREVIOUS_TOO_LONG), so a long chunk lends only its end.
+    const long = `${"This sentence goes on and on, ".repeat(4)}and only its last hundred characters go along.`;
+    speaker.feed(`${long} ${S3} `);
+    await flush();
+    expect(reqs.map(textOf)).toEqual([`[giggles] ${S1}`, S2, long, S3]);
+    expect(reqs[3].body.previous_text).toBe(long.slice(-100));
+  });
+
+  it("never starts previous_text with half of an emoji", async () => {
+    const { reqs, speaker } = setup({ auto: ok });
+    // 101 UTF-16 units: the last 100 would begin with the emoji's second half, a lone surrogate.
+    const first = `😊${"a".repeat(98)}.`;
+    expect(first.length).toBe(101);
+    speaker.announce(first);
+    speaker.announce("Then a second chunk to carry it.");
+    await flush();
+    expect(reqs[1].body.previous_text).toBe(first.slice(2));
+  });
+
+  it("never sends the tag left after her last sentence on its own (the 2026-11-11 demo reply)", async () => {
+    // Her answer in the contest take, reconstructed: the third chunk's text was never recovered.
+    // The panel hides listed tags, so a tag such as "[giggles]" after "this!" fits: the cut after
+    // "this!" leaves it alone for flush(), and ElevenLabs refused that chunk twice with a 400.
+    const { reqs, speaker, notices, errors } = setup({ auto: elevenLike });
+    speaker.feed(
+      "Your 25-minute focus session for your essay is running and ends at **6:29 PM**. " +
+        "I'll check in halfway, then a 5-minute break starts. You've got this! [giggles]",
+    );
+    speaker.flush();
+    await flush();
+    expect(reqs.map(textOf)).toEqual([
+      "Your 25-minute focus session for your essay is running and ends at 6:29 PM.",
+      "I'll check in halfway, then a 5-minute break starts. You've got this!",
+    ]);
+    expect(reqs.some(isFast)).toBe(false);
+    expect(notices).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  it("skips any chunk with nothing to say: a listed or unlisted tag, or an emoji, on its own", async () => {
+    const { reqs, speaker, ctx, endCurrent } = setup({ auto: elevenLike });
+    for (const text of ["[giggles]", "[smiles warmly]", "😊", "[sighs] 👍🏽"]) speaker.announce(text);
+    await flush();
+    expect(reqs).toEqual([]);
+    expect(speaker.speaking).toBe(false);
+    speaker.announce("[giggles] Your timer is done.");
+    await flush();
+    expect(reqs.map(textOf)).toEqual(["[giggles] Your timer is done."]);
+    await endCurrent();
+    expect(ctx.played).toEqual(["[giggles] Your timer is done."]);
   });
 
   it("level is min(1, RMS × 5) from one shared analyser while playing", async () => {
@@ -564,15 +731,17 @@ describe("speaker", () => {
   describe("fallbacks", () => {
     it("retries once without previous_text on 400/422 and stops sending it", async () => {
       const { reqs, speaker, notices, ctx, endCurrent } = setup({
-        auto: (req) => (req.body.settings ? fail(422, [{ msg: "previous_text invalid" }]) : ok(req)),
+        // Refuses every request that carries previous_text, with the body ElevenLabs sends for one too long.
+        auto: (req) => ("previous_text" in req.body ? fail(422, [PREVIOUS_TOO_LONG]) : ok(req)),
       });
       speaker.feed(`${S1} ${S2} ${S3} `);
       await flush();
       const expressive = reqs.filter((r) => !isFast(r));
       expect(expressive).toHaveLength(reqs.length);
       // S2 and S3 were both in flight with previous_text; each is retried once without it.
-      expect(reqs.filter((r) => r.body.settings)).toHaveLength(2);
+      expect(reqs.filter((r) => "previous_text" in r.body)).toHaveLength(2);
       expect(reqs).toHaveLength(5);
+      expect(reqs.some((r) => "settings" in r.body)).toBe(false);
       expect(notices).toEqual([]);
       await endCurrent();
       await endCurrent();
@@ -580,7 +749,7 @@ describe("speaker", () => {
       speaker.feed("One more sentence that is long enough to be its own chunk here. ");
       await flush();
       expect(reqs).toHaveLength(6);
-      expect(reqs[5].body.settings).toBeUndefined(); // stopped sending it for the session
+      expect(reqs[5].body.previous_text).toBeUndefined(); // stopped sending it for the session
     });
 
     it("switches to the fast voice for the session on 403, with a one-time notice", async () => {
@@ -601,6 +770,100 @@ describe("speaker", () => {
       await endCurrent();
       expect(ctx.played).toEqual([S1, S2, S3]);
       expect(notices).toHaveLength(1);
+    });
+
+    it("sends just that chunk with the fast voice on a 400 about the chunk itself, with no notice", async () => {
+      const { reqs, speaker, notices, errors, ctx, endCurrent } = setup({
+        auto: (req) => (!isFast(req) && textOf(req) === S2 ? fail(400, TEXT_EMPTY) : ok(req)),
+      });
+      speaker.feed(`${S1} ${S2} ${S3} `);
+      await flush();
+      // S2 carried previous_text, so it was tried once more without it before the fast voice took it.
+      expect(reqs.filter((r) => textOf(r) === S2).map((r) => [isFast(r), "previous_text" in r.body])).toEqual([
+        [false, true],
+        [false, false],
+        [true, false],
+      ]);
+      expect(isFast(reqs.find((r) => textOf(r) === S3)!)).toBe(false);
+      expect(notices).toEqual([]);
+      expect(errors).toEqual([]);
+      await endCurrent();
+      await endCurrent();
+      expect(ctx.played).toEqual([S1, S2, S3]);
+      // Expressive voice is still on, and so is previous_text: dropping it didn't help.
+      speaker.feed("One more sentence that is long enough to be its own chunk here. ");
+      await flush();
+      const last = reqs[reqs.length - 1];
+      expect(isFast(last)).toBe(false);
+      expect(last.body.previous_text).toBe(S3);
+    });
+
+    it("sends just that chunk with the fast voice on a 422 that names no model or permission", async () => {
+      const { reqs, speaker, notices } = setup({
+        auto: (req) =>
+          !isFast(req) && textOf(req) === S1
+            ? fail(422, [{ loc: ["body", "inputs", 0, "text"], msg: "String should have at most 2000 characters", type: "string_too_long" }])
+            : ok(req),
+      });
+      speaker.feed(`${S1} ${S2} `);
+      await flush();
+      expect(reqs.map((r) => [textOf(r), isFast(r)])).toEqual([
+        [S1, false],
+        [S2, false],
+        [S1, true],
+      ]);
+      expect(notices).toEqual([]);
+    });
+
+    it("switches to the fast voice for the session when a 400 says the model doesn't exist", async () => {
+      const { reqs, speaker, notices } = setup({
+        auto: (req) => (isFast(req) ? ok(req) : fail(400, MODEL_NOT_FOUND)),
+      });
+      speaker.feed(`${S1} ${S2} `);
+      await flush();
+      expect(notices).toEqual([EXPRESSIVE_FALLBACK_NOTICE]);
+      // No retry without previous_text for S2: the model is the trouble, not the request.
+      expect(reqs.filter((r) => !isFast(r)).map(textOf)).toEqual([S1, S2]);
+      speaker.feed(`${S3} `);
+      speaker.flush();
+      await flush();
+      expect(isFast(reqs[reqs.length - 1])).toBe(true);
+      expect(notices).toHaveLength(1);
+    });
+
+    it("switches to the fast voice for the session when the key lacks a permission", async () => {
+      const { reqs, speaker, notices } = setup({
+        auto: (req) =>
+          isFast(req)
+            ? ok(req)
+            : fail(401, {
+                status: "missing_permissions",
+                message: "The API key you used is missing the permission text_to_speech to execute this operation.",
+              }),
+      });
+      speaker.feed(`${S1} `);
+      speaker.flush();
+      await flush();
+      expect(notices).toEqual([EXPRESSIVE_FALLBACK_NOTICE]);
+      speaker.feed(`${S2} `);
+      speaker.flush();
+      await flush();
+      expect(reqs.map(isFast)).toEqual([false, true, true]);
+    });
+
+    it("switches for the session on a 400 that names a permission, and on a 404", async () => {
+      const cases: [number, unknown][] = [
+        [400, { message: "This API key does not have permission to use this feature." }],
+        [404, { status: "not_found", message: "Not found" }],
+      ];
+      for (const [status, detail] of cases) {
+        const { speaker, notices, reqs } = setup({ auto: (req) => (isFast(req) ? ok(req) : fail(status, detail)) });
+        speaker.feed(`${S1} `);
+        speaker.flush();
+        await flush();
+        expect(notices, String(status)).toEqual([EXPRESSIVE_FALLBACK_NOTICE]);
+        expect(reqs.map(isFast), String(status)).toEqual([false, true]);
+      }
     });
 
     it("decides by kind: a 401 out-of-credits error is not 'expressive unavailable'", async () => {
@@ -685,6 +948,8 @@ describe("speaker", () => {
       speechSynthesis: { speak: (u: SpeechSynthesisUtterance) => spoken.push(u as never), cancel: () => cancelled++ } as unknown as SpeechSynthesis,
       createUtterance: (text) => ({ text, rate: 1, onend: null, onerror: null }) as unknown as SpeechSynthesisUtterance,
     });
+    speaker.announce("[giggles] 😊");
+    expect(spoken).toEqual([]); // nothing to say
     speaker.say("[giggles] Hello there, **friend**.");
     expect(spoken.map((u) => [u.text, u.rate])).toEqual([["Hello there, friend.", 1.05]]);
     expect(speaker.speaking).toBe(true);
