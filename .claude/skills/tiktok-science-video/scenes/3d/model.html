@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><title>scene</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// Turntable shot of a 3D model (for example a NASA .glb): slow spin, camera dolly, sunlight, star field.
+// PARAMS: model (path to .glb), spin (deg/s, 18), startAngle (deg, 0), tilt (deg, 0), elevation (deg, 12),
+//         startDistance (6.5), endDistance (5), frameY (0.3), sunDir, exposure, label, labelY (1400)
+import { P, ZONE, prog, easeInOutCubic } from '/scenes/common.js';
+import { THREE, setup, stars, lights, loadModel, label } from '/scenes/three-common.js';
+const { renderer, scene, camera } = setup();
+stars(scene);
+lights(scene);
+const { object } = await loadModel(P.model);
+object.rotation.z = THREE.MathUtils.degToRad(P.tilt || 0);
+const holder = new THREE.Group();
+holder.add(object);
+scene.add(holder);
+const lab = label(P.label, P.labelY || ZONE.low[0] + 80);
+const el = THREE.MathUtils.degToRad(P.elevation ?? 12);
+window.renderFrame = (t) => {
+  holder.rotation.y = THREE.MathUtils.degToRad((P.startAngle || 0) + (P.spin ?? 18) * t);
+  const d = THREE.MathUtils.lerp(P.startDistance ?? 6.5, P.endDistance ?? 5, easeInOutCubic(Math.min(1, t / (P.duration || 5))));
+  camera.position.set(0, Math.sin(el) * d, Math.cos(el) * d);
+  camera.lookAt(0, 0, 0);
+  if (lab) lab.style.opacity = prog(t, 0.4, 0.5);
+  renderer.render(scene, camera);
+};
+window.renderFrame(0);
+window.sceneReady = true;
+</script></body></html>

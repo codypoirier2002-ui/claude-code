@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8"><title>scene</title></head><body><script type="module">
+// Size comparison: circles grow in side by side at true relative size (Great Red Spot vs Earth).
+// PARAMS: title, items [{label, size, color?, image?, sub?}], stagger (0.5), maxDiameter (440)
+import { P, W, ZONE, ACCENT, backdrop, canvas2d, text, prog, easeOutBack, loadImage, ready } from '/scenes/common.js';
+const ctx = canvas2d();
+const items = P.items || [{ label: 'Earth', size: 1 }, { label: 'Jupiter', size: 11 }];
+const imgs = items.map((it) => (it.image ? loadImage(it.image) : null));
+const maxD = P.maxDiameter || 440;
+const big = Math.max(...items.map((i) => i.size));
+const ds = items.map((it) => (maxD * it.size) / big);
+const gap = 40;
+const totalW = ds.reduce((a, b) => a + b, 0) + gap * (items.length - 1);
+const scale = Math.min(1, (W * 0.86) / totalW);
+const palette = ['#6ec3ff', ACCENT, '#ff7a59', '#9be564'];
+window.renderFrame = (t) => {
+  backdrop(ctx, t);
+  text(ctx, P.title, W / 2, ZONE.top[0] - 10, { size: 54, color: '#cfe3ff', alpha: prog(t, 0, 0.4) });
+  let x = (W - totalW * scale) / 2;
+  items.forEach((it, i) => {
+    const d = ds[i] * scale;
+    const k = prog(t, 0.2 + i * (P.stagger ?? 0.5), 0.8, easeOutBack);
+    const r = Math.max(0, (d / 2) * k);
+    const cx = x + d / 2;
+    const y = ZONE.top[1] - 10 - d / 2; // bottom-aligned on a shared baseline
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, y, r, 0, Math.PI * 2);
+    if (imgs[i]) {
+      ctx.clip();
+      ctx.drawImage(imgs[i], cx - r, y - r, r * 2, r * 2);
+    } else {
+      const g = ctx.createRadialGradient(cx - r * 0.35, y - r * 0.35, r * 0.1, cx, y, r);
+      g.addColorStop(0, '#ffffff');
+      g.addColorStop(0.25, it.color || palette[i % palette.length]);
+      g.addColorStop(1, '#0a0f1f');
+      ctx.fillStyle = g;
+      ctx.shadowColor = it.color || palette[i % palette.length];
+      ctx.shadowBlur = 40;
+      ctx.fill();
+    }
+    ctx.restore();
+    const a = prog(t, 0.5 + i * (P.stagger ?? 0.5), 0.4);
+    text(ctx, it.label, cx, ZONE.low[0] + 30 + (items.length > 2 ? (i % 2) * 70 : 0), { size: 50, alpha: a, maxWidth: Math.max(220, d + 120) });
+    if (it.sub) text(ctx, it.sub, cx, ZONE.low[0] + 95 + (items.length > 2 ? (i % 2) * 70 : 0), { size: 38, alpha: a, color: '#cfe3ff', weight: '600' });
+    x += d + gap * scale;
+  });
+};
+ready(imgs.filter(Boolean));
+</script></body></html>

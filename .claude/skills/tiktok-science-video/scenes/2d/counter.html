@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><title>scene</title></head><body><script type="module">
+// Big animated number: counts from "from" to "to", with a label above and a note below.
+// PARAMS: label, from (0), to, decimals (0), prefix, unit, sub, color (accent), countStart (0.25), countLen (1.6)
+import { P, W, ZONE, ACCENT, backdrop, canvas2d, text, prog, easeOutExpo, fmt, ready } from '/scenes/common.js';
+const ctx = canvas2d();
+const color = P.color || ACCENT;
+const cs = P.countStart ?? 0.25, cl = P.countLen ?? 1.6;
+const cy = (ZONE.top[0] + ZONE.top[1]) / 2 + 40;
+window.renderFrame = (t) => {
+  backdrop(ctx, t);
+  const k = prog(t, cs, cl, easeOutExpo);
+  const v = (P.from ?? 0) + ((P.to ?? 100) - (P.from ?? 0)) * k;
+  const done = prog(t, cs + cl - 0.1, 0.5);
+  // Ring burst as the count lands.
+  if (done > 0 && done < 1) {
+    ctx.save();
+    ctx.globalAlpha = 1 - done;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 10 * (1 - done) + 2;
+    ctx.beginPath();
+    ctx.arc(W / 2, cy, 180 + done * 260, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+  text(ctx, P.label, W / 2, ZONE.top[0] + 40, { size: 56, color: '#cfe3ff', alpha: prog(t, 0, 0.4), weight: '600' });
+  const s = 1 + 0.08 * Math.sin(Math.PI * done);
+  text(ctx, (P.prefix || '') + fmt(v, P.decimals || 0), W / 2, cy, { size: 190 * s, color, glow: color, maxWidth: W * 0.84 });
+  text(ctx, P.unit, W / 2, cy + 150, { size: 64, color: '#ffffff', alpha: prog(t, cs + 0.3, 0.5) });
+  text(ctx, P.sub, W / 2, ZONE.low[0] + 80, { size: 52, color: '#e8eefc', alpha: prog(t, cs + cl, 0.5), weight: '600' });
+};
+ready();
+</script></body></html>

@@ -1,0 +1,87 @@
+<!doctype html><html><head><meta charset="utf-8"><title>scene</title>
+<script type="importmap">{"imports":{"three":"/lib/three/build/three.module.js","three/addons/":"/lib/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+// A satellite circling a planet, with a glowing trail and day/night lighting. Optionally counts sunrises:
+// each time the satellite crosses from the night side into sunlight it flashes and the counter goes up.
+// PARAMS: texture | model | color (central body), satellite (.glb, optional; else a bright dot), satelliteSize (0.08),
+//         orbitRadius (1.25), inclination (deg, 51.6), period (seconds per orbit, 2.5), sunDir ([1,0,0.35]),
+//         counter {label: 'Sunrises', start: 0}, elevation (deg, 22), distance (11), frameY (0.3), atmosphere
+import { P, ZONE, prog } from '/scenes/common.js';
+import { THREE, setup, stars, lights, loadModel, loadTexture, atmosphere, label, glowTexture } from '/scenes/three-common.js';
+const { renderer, scene, camera } = setup();
+stars(scene);
+const sunDir = new THREE.Vector3(...(P.sunDir || [1, 0, 0.35])).normalize();
+lights(scene, sunDir.clone().multiplyScalar(10).toArray());
+const planet = new THREE.Group();
+scene.add(planet);
+if (P.model) planet.add((await loadModel(P.model)).object);
+else {
+  const mat = new THREE.MeshStandardMaterial({ color: P.texture ? 0xffffff : new THREE.Color(P.color || '#2d6cdf'), roughness: 0.9 });
+  if (P.texture) mat.map = await loadTexture(P.texture);
+  planet.add(new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), mat));
+}
+if (P.atmosphere !== false) scene.add(atmosphere(1, P.atmosphere || '#5fb8ff'));
+const R = P.orbitRadius ?? 1.25;
+const orbit = new THREE.Group();
+// Tilt the orbit plane by its inclination (about the x axis, relative to the planet's equator).
+orbit.rotation.x = THREE.MathUtils.degToRad(P.inclination ?? 51.6);
+scene.add(orbit);
+const ringPts = Array.from({ length: 257 }, (_, i) => { const a = (i / 256) * Math.PI * 2; return new THREE.Vector3(Math.cos(a) * R, 0, Math.sin(a) * R); });
+orbit.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPts), new THREE.LineBasicMaterial({ color: 0x9fb8e8, transparent: true, opacity: 0.45 })));
+let sat;
+if (P.satellite) sat = (await loadModel(P.satellite, P.satelliteSize ?? 0.08)).object;
+else sat = new THREE.Mesh(new THREE.SphereGeometry(P.satelliteSize ?? 0.05, 24, 16), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+orbit.add(sat);
+// Constant soft glow so the satellite reads at phone size.
+const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
+glow.scale.setScalar(0.35);
+orbit.add(glow);
+const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: new THREE.Color(P.flashColor || '#ffd166'), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+flash.scale.setScalar(0.5);
+orbit.add(flash);
+// Trail: the last stretch of the orbit behind the satellite, fading out.
+const TRAIL = 60;
+const trailGeo = new THREE.BufferGeometry();
+trailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TRAIL * 3), 3));
+const trailCol = new Float32Array(TRAIL * 3);
+for (let i = 0; i < TRAIL; i++) trailCol.set([1, 0.82, 0.4].map((c) => c * (1 - i / TRAIL)), i * 3);
+trailGeo.setAttribute('color', new THREE.BufferAttribute(trailCol, 3));
+orbit.add(new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending })));
+const period = P.period ?? 2.5;
+const angle = (t) => (t / period) * Math.PI * 2;
+const posAt = (a) => new THREE.Vector3(Math.cos(a) * R, 0, -Math.sin(a) * R);
+// Sunrise = the satellite moves from Earth's shadow into light: the sign of (world position . sunDir) goes from - to +.
+const lit = (t) => { const w = posAt(angle(t)).applyEuler(orbit.rotation); return w.dot(sunDir) > 0; };
+const sunriseTimes = [];
+for (let f = 1; f <= Math.ceil((P.duration || 5) * 120); f++) { const t = f / 120; if (lit(t) && !lit(t - 1 / 120)) sunriseTimes.push(t); }
+const c = P.counter;
+const head = c ? label(c.label || 'Sunrises', P.labelY || ZONE.low[0] + 10, { size: 46, color: '#cfe3ff' }) : null;
+const num = c ? label('0', (P.labelY || ZONE.low[0] + 10) + 110, { size: 130, color: P.accent || '#ffd166' }) : null;
+const el = THREE.MathUtils.degToRad(P.elevation ?? 22);
+const dist = P.distance ?? 11;
+camera.position.set(0, Math.sin(el) * dist, Math.cos(el) * dist);
+camera.lookAt(0, 0, 0);
+window.renderFrame = (t) => {
+  planet.rotation.y = t * THREE.MathUtils.degToRad(P.spin ?? 10);
+  const a = angle(t);
+  sat.position.copy(posAt(a));
+  sat.lookAt(0, 0, 0);
+  glow.position.copy(sat.position);
+  const tp = trailGeo.attributes.position;
+  for (let i = 0; i < TRAIL; i++) { const p = posAt(a - i * 0.025); tp.setXYZ(i, p.x, p.y, p.z); }
+  tp.needsUpdate = true;
+  const last = sunriseTimes.filter((s) => s <= t);
+  const since = last.length ? t - last[last.length - 1] : 9;
+  flash.position.copy(sat.position);
+  flash.material.opacity = Math.max(0, 1 - since / 0.5);
+  flash.scale.setScalar(0.4 + 1.2 * Math.min(1, since / 0.5));
+  if (c) {
+    head.style.opacity = prog(t, 0.2, 0.4);
+    num.style.opacity = prog(t, 0.2, 0.4);
+    num.textContent = String((c.start || 0) + last.length);
+  }
+  renderer.render(scene, camera);
+};
+window.renderFrame(0);
+window.sceneReady = true;
+</script></body></html>

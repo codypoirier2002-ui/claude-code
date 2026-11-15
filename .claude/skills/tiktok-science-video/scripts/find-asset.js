@@ -7,6 +7,8 @@
 //   node find-asset.js pixabay "<query>" [limit]                list Pixabay videos (needs PIXABAY_KEY; untested)
 //   node find-asset.js pixabay-get <video-url> <out-file>       download a URL returned by pixabay
 //   node find-asset.js music "<Title>" <out.mp3> [seconds]     download a Kevin MacLeod (incompetech.com) track, optionally trimmed
+//   node find-asset.js model "<query>" [limit]                 list NASA 3D models (.glb) on science.nasa.gov (planets, moons, spacecraft)
+//   node find-asset.js model-get <resource-url|slug> <out.glb>  download the .glb from a science.nasa.gov 3D resource page
 // NASA material is generally not copyrighted, but an item can contain third-party copyrighted material (usually noted in its
 // credit or description), NASA logos and insignia are protected, and identifiable people need care in commercial use.
 // Check each item's credit and description before using it; "search" appends " [check rights]" where they look like a concern.
@@ -112,12 +114,33 @@ async function main() {
       const v = h.videos.medium || h.videos.small;
       console.log(`${h.id} | ${h.tags.slice(0, 50)} | ${h.duration}s | ${v.width}x${v.height} | ${redact(v.url)}`);
     }
+  } else if (cmd === 'model') {
+    // NASA's 3D resources (science.nasa.gov/3d-resources) are NASA-made and free to use; credit "NASA" (or the page's credit line).
+    const [query, limit = '8'] = rest;
+    const hits = await json(
+      `https://science.nasa.gov/wp-json/wp/v2/search?search=${encodeURIComponent(`${query} 3d model`)}&subtype=resource&per_page=30`
+    );
+    const models = hits.filter((h) => /3d-model/.test(h.url)).slice(0, Number(limit));
+    if (!models.length) console.log('no 3D models found; try a shorter query (e.g. "mars", "voyager", "saturn")');
+    for (const h of models) console.log(`${h.url.replace(/^https:\/\/science\.nasa\.gov\/resource\/|\/$/g, '')} | ${String(h.title).replace(/&#8211;/g, '-').slice(0, 70)}`);
+  } else if (cmd === 'model-get') {
+    const [ref, out] = rest;
+    const page = /^https?:/.test(ref) ? ref : `https://science.nasa.gov/resource/${ref}/`;
+    if (!/^https:\/\/science\.nasa\.gov\//.test(page)) throw new Error('model-get only accepts science.nasa.gov resource pages');
+    const res = await fetch(page);
+    if (!res.ok) throw new Error(`${res.status} ${page}`);
+    const html = await res.text();
+    const glb = (html.match(/https:\/\/assets\.science\.nasa\.gov[^"' ]+\.glb/g) || [])[0];
+    if (!glb) throw new Error(`no .glb link on ${page}`);
+    await download(glb, out);
+    console.log(`saved ${out} <- ${glb}`);
+    console.log('credit: NASA (science.nasa.gov 3D resources)');
   } else if (cmd === 'pixabay-get') {
     const [url, out] = rest;
     await download(url, out);
     console.log(`saved ${out}`);
   } else {
-    console.error('usage: find-asset.js search|get|music|archive|archive-get|pixabay|pixabay-get ... (see header)');
+    console.error('usage: find-asset.js search|get|music|model|model-get|archive|archive-get|pixabay|pixabay-get ... (see header)');
     process.exit(2);
   }
 }
