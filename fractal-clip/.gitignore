@@ -1,0 +1,6 @@
+# build output and renders
+bulb
+frames/
+*.mp4
+*.ppm
+*.wav
