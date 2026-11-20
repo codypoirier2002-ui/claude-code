@@ -4,3 +4,4 @@ frames/
 *.mp4
 *.ppm
 *.wav
+__pycache__/
