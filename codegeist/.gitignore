@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+.bundle-check/
+*.log
+.env
+.env.*
+.vitest/

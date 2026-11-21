@@ -1,0 +1,38 @@
+{
+  "name": "groundwork",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Groundwork: ready checks and context packs for Jira work items, for people, Rovo agents and MCP clients. A Forge app built for Codegeist 2026.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.23.4 <23 || >=24.22.1 <25"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "bundle-check": "node scripts/bundle-check.mjs",
+    "check": "npm run lint && npm run typecheck && npm test && npm run bundle-check"
+  },
+  "dependencies": {
+    "@forge/api": "^8.5.0",
+    "@forge/bridge": "^7.3.0",
+    "@forge/react": "^12.5.0",
+    "@forge/resolver": "^2.0.2",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@forge/manifest": "^13.9.0",
+    "@types/node": "^24.19.2",
+    "@types/react": "^18.3.31",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vitest": "^5.1.0",
+    "yaml": "^2.9.1"
+  }
+}
