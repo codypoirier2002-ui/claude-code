@@ -186,6 +186,21 @@ function purpose(facts: IssueFacts, graph: GraphContext | null): Check {
       source: goals.length > 0 && !facts.parent ? 'graph' : 'jira',
     });
   }
+  if (graph?.unread.includes('goals')) {
+    // Without the goals, "not linked to a goal" would be a guess, so the wording changes. The status
+    // does not: a read that failed must never score better than a read that found nothing.
+    return check({
+      ...base,
+      status: 'warn',
+      detail: facts.isEpic
+        ? 'The goals could not be read this time, so the link to a goal was not checked.'
+        : 'Not linked to an epic or parent. The goals could not be read this time.',
+      fix: facts.isEpic
+        ? 'Check again. If the epic has no goal yet, link it to the goal it moves.'
+        : 'Link it to its epic so people know why it matters. A linked goal counts too, but the goals could not be read this time.',
+      source: facts.isEpic ? 'graph' : 'jira',
+    });
+  }
   return check({
     ...base,
     status: 'warn',
@@ -275,6 +290,10 @@ function workInFlight(facts: IssueFacts, graph: GraphContext | null): Check {
   const base = { id: 'work-in-flight' as const, label: 'No duplicate work', source: 'graph' as const };
   if (!graph?.available) {
     return check({ ...base, status: 'na', detail: 'Needs the Teamwork Graph, which returned no data.' });
+  }
+  if (graph.unread.includes('pullRequests')) {
+    // An empty list here means "not read", so it must not pass as "none linked".
+    return check({ ...base, status: 'na', detail: 'The Teamwork Graph did not return the pull requests this time.' });
   }
   const open = graph.pullRequests.filter((pr) => /^(open|draft)$/i.test(pr.status));
   if (open.length > 0 && facts.statusCategory === 'new') {

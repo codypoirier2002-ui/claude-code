@@ -3,7 +3,9 @@
  * returns everything the panel shows, to keep invocations (and cost) low.
  */
 import Resolver from '@forge/resolver';
+import { describeUnread } from './core/graph';
 import type { Check, PersonSuggestion, Verdict } from './core/types';
+import { needsUserConsent } from './platform/consent';
 import { createGraphClient } from './platform/graph';
 import { createJiraClient, JiraError } from './platform/jira';
 import { analyzeIssue, normalizeIssueKey, type Clients } from './service';
@@ -18,6 +20,8 @@ export interface PanelModel {
   graph: {
     available: boolean;
     note: string;
+    /** Names what the graph did not answer for. Empty when every source was read. */
+    gap: string;
     goals: number;
     pullRequests: number;
     pageOwners: number;
@@ -53,6 +57,7 @@ export async function buildPanelModel(
       graph: {
         available: graph.available,
         note: graph.note,
+        gap: describeUnread(graph.unread),
         goals: graph.goals.length,
         pullRequests: graph.pullRequests.length,
         pageOwners: graph.pagePeople.reduce((sum, page) => sum + page.owners.length, 0),
@@ -61,6 +66,8 @@ export async function buildPanelModel(
       pack,
     };
   } catch (error) {
+    // Forge sets up the person's access when it sees this error, but only if it leaves the resolver.
+    if (needsUserConsent(error)) throw error;
     if (error instanceof JiraError) return { error: error.message };
     console.error('Groundwork panel failed', error instanceof Error ? error.message : String(error));
     return { error: 'Groundwork could not load this work item. Refresh to try again.' };

@@ -8,20 +8,33 @@ import { toIssueFacts, type FieldIds, type JiraIssue } from './core/facts';
 import {
   confluencePageAri,
   describeGraph,
-  hasErrors,
+  errorSummary,
+  GRAPH_SOURCES,
+  isFailure,
   issueAri,
+  logSafe,
   parseGoals,
   parsePullRequests,
   parseTeams,
   parseUsers,
   projectAri,
   QUERY_FIELDS,
+  QUERY_SOURCES,
   type GraphQlResponse,
   type QueryName,
 } from './core/graph';
 import { rankPeople } from './core/people';
 import { evaluateReadiness } from './core/readiness';
-import type { GraphContext, GraphPagePeople, IssueFacts, PersonSuggestion, Readiness, Verdict } from './core/types';
+import type {
+  GraphContext,
+  GraphPagePeople,
+  GraphSource,
+  IssueFacts,
+  PersonSuggestion,
+  Readiness,
+  Verdict,
+} from './core/types';
+import { needsUserConsent } from './platform/consent';
 import type { GraphClient } from './platform/graph';
 import type { JiraClient } from './platform/jira';
 
@@ -63,18 +76,30 @@ export const EMPTY_GRAPH: GraphContext = {
   available: false,
   sourcesWithData: 0,
   note: 'not queried.',
+  unread: [],
   goals: [],
   pullRequests: [],
   pagePeople: [],
   teams: [],
 };
 
+/**
+ * Best effort: a read that fails becomes `undefined`. The consent error is the
+ * exception, because Forge has to see it to set up the person's access.
+ */
+function optional<T>(read: Promise<T>): Promise<T | undefined> {
+  return read.catch((error: unknown) => {
+    if (needsUserConsent(error)) throw error;
+    return undefined;
+  });
+}
+
 /** Loads the work item, its remote links and its latest comments. Links and comments are best effort. */
 export async function loadIssueFacts(jira: JiraClient, issueKey: string): Promise<IssueFacts> {
   const [issue, remoteLinks, comments] = await Promise.all([
     jira.getIssue(issueKey),
-    jira.getRemoteLinks(issueKey).catch(() => undefined),
-    jira.getComments(issueKey, MAX_COMMENTS).catch(() => undefined),
+    optional(jira.getRemoteLinks(issueKey)),
+    optional(jira.getComments(issueKey, MAX_COMMENTS)),
   ]);
   return toIssueFacts({ issue, remoteLinks, comments });
 }
@@ -83,6 +108,9 @@ interface Tracker {
   ok: number;
   failed: number;
   withData: number;
+  unread: Set<GraphSource>;
+  /** One entry per failed query, for the log. */
+  failures: string[];
 }
 
 async function runQuery(
@@ -91,18 +119,24 @@ async function runQuery(
   name: QueryName,
   variables: Record<string, unknown>,
 ): Promise<GraphQlResponse | undefined> {
+  let reason: string;
   try {
     const response = await graph.query(name, variables);
-    if (hasErrors(response) && !response.data?.[QUERY_FIELDS[name]]) {
-      tracker.failed += 1;
-      return undefined;
+    if (!isFailure(response, QUERY_FIELDS[name])) {
+      tracker.ok += 1;
+      return response;
     }
-    tracker.ok += 1;
-    return response;
-  } catch {
-    tracker.failed += 1;
-    return undefined;
+    reason = errorSummary(response);
+  } catch (error) {
+    // The consent error stops here too, on purpose. Graph reads run only after Jira has answered for
+    // the same person, so the prompt could not fix a refusal here, and rethrowing it would take the
+    // whole check down for the sake of an enrichment.
+    reason = logSafe(error instanceof Error ? error.message : String(error));
   }
+  tracker.failed += 1;
+  tracker.unread.add(QUERY_SOURCES[name]);
+  tracker.failures.push(`${name} (${reason})`);
+  return undefined;
 }
 
 /** Reads goals, pull requests, page owners and teams from the Teamwork Graph. Never throws. */
@@ -112,7 +146,7 @@ export async function loadGraphContext(
   cloudId: string | undefined,
 ): Promise<GraphContext> {
   if (!graph || !cloudId || !facts.id) return EMPTY_GRAPH;
-  const tracker: Tracker = { ok: 0, failed: 0, withData: 0 };
+  const tracker: Tracker = { ok: 0, failed: 0, withData: 0, unread: new Set(), failures: [] };
   const count = <T>(items: T[]): T[] => {
     if (items.length > 0) tracker.withData += 1;
     return items;
@@ -146,10 +180,18 @@ export async function loadGraphContext(
     ),
   ]);
 
+  const unread = GRAPH_SOURCES.filter((source) => tracker.unread.has(source));
+  if (tracker.failures.length > 0) {
+    // Query names and error text only. `logSafe` has removed any ARI or ID the server echoed.
+    const total = tracker.ok + tracker.failed;
+    console.error(`Groundwork: ${tracker.failed} of ${total} Teamwork Graph queries failed: ${tracker.failures.sort().join('; ')}`);
+  }
+
   return {
     available: tracker.ok > 0,
     sourcesWithData: tracker.withData,
-    note: describeGraph(tracker.ok, tracker.failed, tracker.withData),
+    note: describeGraph(tracker.ok, tracker.failed, tracker.withData, unread),
+    unread,
     goals,
     pullRequests,
     pagePeople: pagePeople.filter((p) => p.owners.length > 0 || p.contributors.length > 0),
@@ -219,7 +261,7 @@ export function scanJql(projectKey: string): string {
 /** Ranks a project's to-do work by readiness, using one search request ("lite" checks). */
 export async function scanProject(jira: JiraClient, projectKey: string, limit: number): Promise<ProjectScan> {
   const max = Math.min(Math.max(Math.trunc(limit) || DEFAULT_SCAN_LIMIT, 1), MAX_SCAN_LIMIT);
-  const fieldIds: FieldIds = await jira.getFieldIds().catch(() => ({}));
+  const fieldIds: FieldIds = (await optional(jira.getFieldIds())) ?? {};
   const fields = [...SCAN_FIELDS, fieldIds.storyPoints, fieldIds.acceptanceCriteria].filter(
     (field): field is string => typeof field === 'string',
   );

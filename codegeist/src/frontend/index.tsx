@@ -105,6 +105,11 @@ function ReadyCheck({ model, refreshing, onRefresh }: { model: PanelModel; refre
     countLabel(model.graph.pageOwners, 'page owner'),
     countLabel(model.graph.teams, 'team'),
   ].filter((part) => part.length > 0);
+  // With counts to show, add what could not be read; without them, the note already says it.
+  const graphLine =
+    graphCounts.length > 0
+      ? [`${graphCounts.join(', ')}.`, model.graph.gap].filter((part) => part.length > 0).join(' ')
+      : model.graph.note;
 
   return (
     <Stack space="space.200">
@@ -150,11 +155,7 @@ function ReadyCheck({ model, refreshing, onRefresh }: { model: PanelModel; refre
         </Stack>
       ) : null}
 
-      <Text size="small" color="color.text.subtlest">
-        {graphCounts.length > 0
-          ? `Teamwork Graph: ${graphCounts.join(', ')}.`
-          : `Teamwork Graph: ${model.graph.note}`}
-      </Text>
+      <Text size="small" color="color.text.subtlest">{`Teamwork Graph: ${graphLine}`}</Text>
 
       <Inline space="space.100" shouldWrap>
         {rovoAvailable ? (

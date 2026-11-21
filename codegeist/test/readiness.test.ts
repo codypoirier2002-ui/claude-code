@@ -128,6 +128,61 @@ describe('evaluateReadiness', () => {
     expect(byId(inProgress.checks, 'work-in-flight').status).toBe('pass');
   });
 
+  it('does not pass "No duplicate work" when the pull requests could not be read', () => {
+    // The graph answered for other sources, so it is available, but the pull request list is empty because it was not read.
+    const result = evaluateReadiness(facts(), graphContext({ unread: ['pullRequests'] }));
+    expect(byId(result.checks, 'work-in-flight')).toMatchObject({
+      status: 'na',
+      detail: 'The Teamwork Graph did not return the pull requests this time.',
+    });
+    expect(result.gaps).toEqual([]);
+  });
+
+  it('does not claim a goal is missing when the goals could not be read', () => {
+    // The missing epic is a fact from Jira, so it still warns, but without saying anything about goals.
+    const orphan = evaluateReadiness(facts({ parent: undefined }), graphContext({ unread: ['goals'] }));
+    const check = byId(orphan.checks, 'purpose');
+    expect(check).toMatchObject({
+      status: 'warn',
+      source: 'jira',
+      detail: 'Not linked to an epic or parent. The goals could not be read this time.',
+    });
+    expect(check.fix).toContain('Link it to its epic');
+    expect(check.fix).not.toContain('epic or goal');
+
+    // A parent still settles it without the graph.
+    const child = evaluateReadiness(facts(), graphContext({ unread: ['goals'] }));
+    expect(byId(child.checks, 'purpose')).toMatchObject({ status: 'pass', source: 'jira' });
+
+    // A goal is all an epic is checked for. It keeps the warning, and says the goal link was not checked.
+    const epic = evaluateReadiness(facts({ isEpic: true, issueType: 'Epic', parent: undefined }), graphContext({ unread: ['goals'] }));
+    expect(byId(epic.checks, 'purpose')).toMatchObject({
+      status: 'warn',
+      source: 'graph',
+      detail: 'The goals could not be read this time, so the link to a goal was not checked.',
+    });
+    expect(byId(epic.checks, 'purpose').fix).toContain('Check again');
+
+    // Goals that were read and are empty still warn, as before.
+    const read = evaluateReadiness(facts({ parent: undefined }), graphContext());
+    expect(byId(read.checks, 'purpose')).toMatchObject({ status: 'warn', detail: 'Not linked to an epic, parent or goal.' });
+  });
+
+  it('never scores a work item higher because a graph read failed', () => {
+    // The same item with goals and pull requests read and empty, then each of them unread, then all of them.
+    const story = facts({ parent: undefined, docs: [] });
+    const epic = facts({ isEpic: true, issueType: 'Epic', parent: undefined });
+    for (const item of [story, epic]) {
+      const read = evaluateReadiness(item, graphContext()).score;
+      for (const unread of [['goals'], ['pullRequests'], ['goals', 'pullRequests'], ['goals', 'pullRequests', 'pagePeople', 'teams']] as const) {
+        const label = `${item.issueType} without ${unread.join('+')}`;
+        expect(evaluateReadiness(item, graphContext({ unread: [...unread] })).score, label).toBeLessThanOrEqual(read);
+        const down = evaluateReadiness(item, graphContext({ available: false, unread: [...unread] })).score;
+        expect(down, `${label}, graph down`).toBeLessThanOrEqual(read);
+      }
+    }
+  });
+
   it('warns about an unanswered question in the latest comment', () => {
     const result = evaluateReadiness(
       facts({ comments: [{ author: { name: 'Ben Ode' }, created: '2026-11-02', text: 'Which timezone do we export in?' }] }),

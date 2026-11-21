@@ -84,6 +84,7 @@ export function graphContext(overrides: Partial<GraphContext> = {}): GraphContex
     available: true,
     sourcesWithData: 0,
     note: '0 of 5 sources returned context.',
+    unread: [],
     goals: [],
     pullRequests: [],
     pagePeople: [],

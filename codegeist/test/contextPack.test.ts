@@ -14,6 +14,26 @@ function pack(input: IssueFacts, graph: GraphContext | null, maxChars?: number):
 }
 
 describe('buildContextPack', () => {
+  it('says what could not be read where a reader would otherwise conclude nothing is linked', () => {
+    const graph = graphContext({ unread: ['goals', 'pullRequests', 'pagePeople', 'teams'] });
+    const orphan = pack(facts({ parent: undefined, reporter: undefined }), graph);
+    expect(orphan).toContain('## Why it matters\n\n- No epic or parent is linked.\n- Could not read goals and teams this time; checking again may help.');
+    expect(orphan).not.toContain('No epic, goal or team is linked.');
+    expect(orphan).toContain('## Code\n\nCould not read pull requests this time; checking again may help.');
+    expect(orphan).toContain('No one is connected to this work item yet.\n\nCould not read page owners this time; checking again may help.');
+
+    // With an epic, the epic line stays and the unread sources are added to it.
+    const child = pack(facts(), graphContext({ unread: ['teams'] }));
+    expect(child).toContain('- Part of Epic KAN-1 "Compliance reporting" (In Progress)\n- Could not read teams this time; checking again may help.');
+    expect(child).not.toContain('## Code');
+  });
+
+  it('keeps its plain wording when every source was read', () => {
+    const result = pack(facts({ parent: undefined }), graphContext());
+    expect(result).toContain('## Why it matters\n\nNo epic, goal or team is linked.');
+    expect(result).not.toContain('Could not read');
+  });
+
   it('includes every section a newcomer needs', () => {
     const graph = graphContext({
       note: '3 of 5 sources returned context.',
