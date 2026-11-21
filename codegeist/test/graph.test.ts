@@ -7,8 +7,10 @@ import {
   GRAPH_SOURCES,
   hasErrors,
   isFailure,
+  isRateLimited,
   issueAri,
   isTransient,
+  logSafe,
   MAX_FIRST,
   nodesOf,
   parseGoals,
@@ -139,12 +141,30 @@ describe('failures', () => {
     expect(isTransient({ data: {} })).toBe(false);
   });
 
+  it('tells a rate limit from the other transient failures, because it needs a slower retry', () => {
+    expect(isRateLimited({ errors: [{ message: 'RATE_LIMIT_EXCEEDED' }] })).toBe(true);
+    expect(isRateLimited({ errors: [{ message: 'Teamwork Graph returned HTTP 429' }] })).toBe(true);
+    expect(isRateLimited({ errors: [{ message: 'Upstream failed', extensions: { statusCode: 429 } }] })).toBe(true);
+    expect(isRateLimited(refused)).toBe(false);
+    expect(isRateLimited({ errors: [{ message: 'Teamwork Graph returned HTTP 503' }] })).toBe(false);
+    expect(isRateLimited({ data: {} })).toBe(false);
+  });
+
   it('summarizes the first error on one short line', () => {
     expect(errorSummary(refused)).toBe('ValidationError: User is not permitted to query this organization');
     expect(errorSummary({ errors: [{ message: 'line one\nline two' }] })).toBe('error: line one line two');
     expect(errorSummary({ errors: [{ message: 'x'.repeat(500) }] }).length).toBeLessThanOrEqual(160);
     expect(errorSummary({ errors: [{}] })).toBe('error: no message');
     expect(errorSummary({ data: {} })).toBe('no data');
+  });
+
+  it('removes ARIs and IDs the server echoes, so a log line cannot name a site, a person or a work item', () => {
+    const cloud = '11111111-2222-3333-4444-555555555555';
+    const echoed = `Entity ari:cloud:jira:${cloud}:issue/10042 could not be resolved for ari:cloud:identity::user/712020:5fb4febc-facf-d600-76a1-c699aaaaaaaa.`;
+    expect(logSafe(echoed)).toBe('Entity ari:[removed] could not be resolved for ari:[removed]');
+    expect(logSafe(`site ${cloud} is not ready`)).toBe('site [id] is not ready');
+    expect(errorSummary({ errors: [{ message: echoed }] })).not.toContain(cloud);
+    expect(errorSummary({ errors: [{ message: echoed }] })).not.toContain('10042');
   });
 });
 
@@ -158,18 +178,19 @@ describe('describeGraph', () => {
 
   it('names what could not be read, so an empty result is not mistaken for "nothing linked"', () => {
     expect(describeUnread([])).toBe('');
-    expect(describeUnread(['pullRequests'])).toBe('Could not read pull requests this time; check again in a moment.');
+    // "May help", because the same line is shown for a failure that will not pass.
+    expect(describeUnread(['pullRequests'])).toBe('Could not read pull requests this time; checking again may help.');
     // Always in the same order, whatever order the failures arrived in.
     expect(describeUnread(['teams', 'pagePeople', 'goals'])).toBe(
-      'Could not read goals, page owners and teams this time; check again in a moment.',
+      'Could not read goals, page owners and teams this time; checking again may help.',
     );
     expect(describeGraph(4, 1, 2, ['pullRequests'])).toBe(
-      '2 of 5 sources returned context. Could not read pull requests this time; check again in a moment.',
+      '2 of 5 sources returned context. Could not read pull requests this time; checking again may help.',
     );
-    const nothingFound = describeGraph(3, 2, 0, ['goals', 'teams']);
-    expect(nothingFound).toBe(
-      'nothing linked in the sources that answered. Could not read goals and teams this time; check again in a moment.',
+    // Empty answers from the other sources still have two possible causes, so the note keeps saying so.
+    expect(describeGraph(3, 2, 0, ['goals', 'teams'])).toBe(
+      'nothing found in the sources that answered (nothing linked yet, or the graph scopes were not granted). ' +
+        'Could not read goals and teams this time; checking again may help.',
     );
-    expect(nothingFound).not.toContain('scopes');
   });
 });

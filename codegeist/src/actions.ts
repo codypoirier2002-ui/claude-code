@@ -140,6 +140,7 @@ export interface ContextPackResult {
   score: number;
   verdictLabel: string;
   contextPack: string;
+  teamworkGraph: string;
 }
 
 export interface ReadyIssuesResult extends ProjectScan {
@@ -177,6 +178,7 @@ export async function getContextPack(
       score: analysis.readiness.score,
       verdictLabel: analysis.readiness.verdictLabel,
       contextPack: analysis.pack,
+      teamworkGraph: analysis.graph.note,
     };
   } catch (error) {
     return { error: toMessage(error) };

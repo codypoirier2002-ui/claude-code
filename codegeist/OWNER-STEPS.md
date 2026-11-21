@@ -111,8 +111,8 @@ the Teamwork Graph and never writes.
 ## 7. Verify on your site (you, 15 minutes)
 
 Tick each of these, in this order. If one fails, paste the message to Claude; never paste your
-token. Running `forge logs` in the PowerShell window shows the app's error lines, and those are safe
-to paste.
+token. Running `forge logs` in the PowerShell window shows the app's error lines. They hold no token
+and are fine to paste.
 
 - [ ] Open any work item. On the right, under the fields, expand **Ready check**. You should see a
       score, a verdict and the checklist. If an **Allow access** button appears first, select it and
@@ -129,7 +129,7 @@ to paste.
       question in Rovo Chat sets up the access, and the tool then works.
 - [ ] Check the panel footer. If it says "Could not read … this time", select **Refresh**. In
       November 2026 a developer reported a demo site refusing about 70% of identical Teamwork Graph
-      reads. Groundwork sends each read again up to 8 times, which hides most of that. If the
+      reads. Groundwork sends a refused read again up to 8 times, which hides most of that. If the
       message stays, `forge logs` has one line naming the queries that failed and why: paste that
       line to Claude.
 - [ ] If the footer says "no linked goals, pull requests, page owners or teams", open
@@ -192,7 +192,7 @@ Read it all once more, then select **Submit** yourself before December 22, 12:00
 
 ## What Claude verified locally
 
-- `npm run check` passes: ESLint, TypeScript (6.0, and also the Forge CLI's bundled 5.9), 140 unit
+- `npm run check` passes: ESLint, TypeScript (6.0, and also the Forge CLI's bundled 5.9), 153 unit
   tests, and an esbuild bundle of both entry points.
 - On 2026-11-21, the five Teamwork Graph queries were checked line by line against Atlassian's
   reference: the query names and arguments, every selected field, the page cap of 25, the seven graph

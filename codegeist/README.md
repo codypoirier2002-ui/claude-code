@@ -138,10 +138,16 @@ The owner of a demo site is its org admin.
 - A failed query still answers HTTP 200, so Groundwork reads the GraphQL errors instead of the
   status. Failures that can pass a moment later (rate limits, gateway errors, and the "User is not
   permitted to query this organization" refusal some sites give a share of identical reads) are sent
-  again, up to 8 tries inside 6 seconds (`src/platform/retry.ts`).
-- A source that still does not answer is never shown as empty. The footer says "Could not read pull
-  requests this time", the check that needs it shows as "not checked", and `forge logs` gets one line
-  with the failed query names and the error text.
+  again inside a 6-second budget (`src/platform/retry.ts`):
+  - up to 8 tries, once any query of the same load has answered;
+  - 3 tries while none has, because the failure may then be lasting;
+  - 3 slower tries for every query after a rate limit, 1 and then 2 seconds apart.
+- A source that still does not answer is never shown as empty:
+  - The footer and the context pack say "Could not read pull requests this time".
+  - "No duplicate work" shows as "not checked". "Purpose is clear" keeps its warning for a missing
+    epic, without claiming that a goal is missing.
+  - `forge logs` gets one line with the failed query names and the error text, with ARIs and IDs
+    removed.
 - Results are filtered by the user's own permissions.
 - The API is in Preview. Atlassian announces breaking changes at least a month ahead in the
   [Teamwork Graph changelog](https://developer.atlassian.com/platform/teamwork-graph/changelog/).
@@ -155,7 +161,8 @@ The owner of a demo site is its org admin.
   containers.
 - Each check is one function run at 256 MB that makes up to 3 Jira calls and 9 Teamwork Graph
   queries. A graph query is sent again only when it fails in a way that can pass a moment later,
-  which adds 6 seconds at most. The duration has not been measured on a live site yet. Even at a
+  and no retry starts that would not fit inside 6 seconds. The duration has not been measured on a
+  live site yet. Even at a
   pessimistic 10 seconds, that is 2.5 GB-seconds a check, and Forge's free allowance of 200,000
   GB-seconds a month covers about 80,000 checks. Expected cost is **$0**. Rovo's own AI usage is
   billed to the site's Rovo allowance, not to the app developer.

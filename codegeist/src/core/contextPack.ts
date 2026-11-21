@@ -3,6 +3,7 @@
  * agent or an MCP-connected coding agent the context needed to start a work
  * item. It is deterministic, so the same inputs always produce the same pack.
  */
+import { describeUnread } from './graph';
 import { oneLine, plural, truncate } from './text';
 import type { Check, GraphContext, IssueFacts, PersonSuggestion, Readiness } from './types';
 
@@ -69,6 +70,12 @@ function purposeSection(facts: IssueFacts, graph: GraphContext | null): string {
   for (const team of (graph?.teams ?? []).slice(0, 2)) {
     lines.push(`Owning team: ${team.url ? `[${team.name}](${team.url})` : team.name}`);
   }
+  // A goal or team that could not be read is not a goal or team that is missing.
+  const unread = describeUnread((graph?.unread ?? []).filter((source) => source === 'goals' || source === 'teams'));
+  if (unread) {
+    if (lines.length === 0) lines.push('No epic or parent is linked.');
+    lines.push(unread);
+  }
   return `## Why it matters\n\n${bullet(lines, 'No epic, goal or team is linked.')}`;
 }
 
@@ -98,6 +105,8 @@ function docsSection(facts: IssueFacts): string {
 }
 
 function codeSection(graph: GraphContext | null): string | undefined {
+  // Leaving the section out would read as "no pull requests".
+  if (graph?.unread.includes('pullRequests')) return `## Code\n\n${describeUnread(['pullRequests'])}`;
   const prs = graph?.pullRequests ?? [];
   if (prs.length === 0) return undefined;
   const lines = prs.slice(0, 5).map((pr) => `${pr.url ? `[${oneLine(pr.title)}](${pr.url})` : oneLine(pr.title)} · ${pr.status}`);
@@ -112,9 +121,12 @@ function discussionSection(facts: IssueFacts): string | undefined {
   return `## Recent discussion (newest first)\n\n${bullet(lines, 'No comments.')}`;
 }
 
-function peopleSection(people: PersonSuggestion[]): string {
+function peopleSection(people: PersonSuggestion[], graph: GraphContext | null): string {
   const lines = people.map((p, i) => `${i + 1}. ${p.name}: ${p.reasons.join('; ')}`);
-  return `## People to ask\n\n${lines.length > 0 ? lines.join('\n') : 'No one is connected to this work item yet.'}`;
+  const body = lines.length > 0 ? lines.join('\n') : 'No one is connected to this work item yet.';
+  // The owners of linked pages often rank first, so say when they are missing from the list.
+  const unread = describeUnread((graph?.unread ?? []).filter((source) => source === 'pagePeople'));
+  return `## People to ask\n\n${body}${unread ? `\n\n${unread}` : ''}`;
 }
 
 function footer(graph: GraphContext | null, generatedAt: string): string {
@@ -142,7 +154,7 @@ export function buildContextPack(
       docsSection(facts),
       codeSection(graph),
       discussionSection(facts),
-      peopleSection(people),
+      peopleSection(people, graph),
       footer(graph, generatedAt),
     ]
       .filter((section): section is string => section !== undefined)

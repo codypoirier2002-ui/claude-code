@@ -167,10 +167,21 @@ function errorText(error: GraphQlError): string {
   return `${label}: ${typeof error.message === 'string' ? error.message : 'no message'}`;
 }
 
-/** The first error on one line, for logs. It never includes the query variables. */
+/**
+ * Makes error text safe to log: one short line with ARIs and UUIDs removed, so
+ * it cannot name a site, a person or a work item even when the server echoes one.
+ */
+export function logSafe(text: string): string {
+  const withoutIds = text
+    .replace(/ari:[^\s"'`,;)\]}]+/gi, 'ari:[removed]')
+    .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '[id]');
+  return truncate(oneLine(withoutIds), 160);
+}
+
+/** The first error, made safe to log. It never includes the query variables. */
 export function errorSummary(response: GraphQlResponse): string {
   const first = response.errors?.[0];
-  return first ? truncate(oneLine(errorText(first)), 160) : 'no data';
+  return first ? logSafe(errorText(first)) : 'no data';
 }
 
 /**
@@ -190,11 +201,20 @@ export function isTransient(response: GraphQlResponse): boolean {
   );
 }
 
+const RATE_LIMIT_TEXT = /rate.?limit|throttl|too many requests|\bHTTP 429\b/i;
+
+/** True when the graph says the caller is sending too much. Retries then have to slow down, not speed up. */
+export function isRateLimited(response: GraphQlResponse): boolean {
+  return (response.errors ?? []).some(
+    (error) => RATE_LIMIT_TEXT.test(errorText(error)) || error.extensions?.statusCode === 429,
+  );
+}
+
 /** One sentence naming the sources the graph did not answer for, or an empty string. */
 export function describeUnread(unread: GraphSource[]): string {
   const names = GRAPH_SOURCES.filter((source) => unread.includes(source)).map((source) => SOURCE_LABELS[source]);
   if (names.length === 0) return '';
-  return `Could not read ${humanList(names)} this time; check again in a moment.`;
+  return `Could not read ${humanList(names)} this time; checking again may help.`;
 }
 
 /** A short, user-facing line describing what the graph returned. */
@@ -203,7 +223,10 @@ export function describeGraph(ok: number, failed: number, withData: number, unre
   if (ok === 0) return 'unavailable on this site (requests failed).';
   const gap = describeUnread(unread);
   if (gap) {
-    const found = withData === 0 ? 'nothing linked in the sources that answered.' : `${withData} of ${ok + failed} sources returned context.`;
+    const found =
+      withData === 0
+        ? 'nothing found in the sources that answered (nothing linked yet, or the graph scopes were not granted).'
+        : `${withData} of ${ok + failed} sources returned context.`;
     return `${found} ${gap}`;
   }
   if (withData === 0) {

@@ -51,7 +51,7 @@ describe('buildPanelModel', () => {
     });
     const model = (await buildPanelModel({ cloudId: CLOUD, extension: { issue: { key: 'KAN-12' } } }, clients)) as PanelModel;
     expect(model.graph.teams).toBe(1);
-    expect(model.graph.gap).toBe('Could not read pull requests this time; check again in a moment.');
+    expect(model.graph.gap).toBe('Could not read pull requests this time; checking again may help.');
     expect(model.checks.find((c) => c.id === 'work-in-flight')?.status).toBe('na');
   });
 

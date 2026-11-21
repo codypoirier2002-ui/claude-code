@@ -91,7 +91,8 @@ describe('check-issue-readiness', () => {
     expect(result.notChecked).toEqual(['No duplicate work']);
     expect(result.passed).not.toContain('No duplicate work');
     expect(result.teamworkGraph).toBe(
-      'nothing linked in the sources that answered. Could not read pull requests this time; check again in a moment.',
+      'nothing found in the sources that answered (nothing linked yet, or the graph scopes were not granted). ' +
+        'Could not read pull requests this time; checking again may help.',
     );
   });
 
@@ -119,6 +120,17 @@ describe('get-context-pack', () => {
     expect(result.issueKey).toBe('KAN-12');
     expect(result.contextPack).toContain('## People to ask');
     expect(result.score).toBeGreaterThan(0);
+    expect(result.teamworkGraph).toBe('not queried.');
+  });
+
+  it('carries the graph note, so an agent can say what the pack could not include', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const result = (await getContextPack({ issueKey: 'KAN-12', context: { cloudId: CLOUD } }, undefined, () => ({
+      jira: fakeJira({ issues: { 'KAN-12': jiraIssue() }, remoteLinks: { 'KAN-12': [] } }),
+      graph: fakeGraph({ workItemPullRequests: { errors: [{ message: 'RATE_LIMIT_EXCEEDED' }] } }),
+    }))) as ContextPackResult;
+    expect(result.teamworkGraph).toContain('Could not read pull requests this time');
+    expect(result.contextPack).toContain('## Code\n\nCould not read pull requests this time; checking again may help.');
   });
 });
 

@@ -12,6 +12,7 @@ import {
   GRAPH_SOURCES,
   isFailure,
   issueAri,
+  logSafe,
   parseGoals,
   parsePullRequests,
   parseTeams,
@@ -24,7 +25,6 @@ import {
 } from './core/graph';
 import { rankPeople } from './core/people';
 import { evaluateReadiness } from './core/readiness';
-import { oneLine, truncate } from './core/text';
 import type {
   GraphContext,
   GraphPagePeople,
@@ -128,7 +128,10 @@ async function runQuery(
     }
     reason = errorSummary(response);
   } catch (error) {
-    reason = truncate(oneLine(error instanceof Error ? error.message : String(error)), 160);
+    // The consent error stops here too, on purpose. Graph reads run only after Jira has answered for
+    // the same person, so the prompt could not fix a refusal here, and rethrowing it would take the
+    // whole check down for the sake of an enrichment.
+    reason = logSafe(error instanceof Error ? error.message : String(error));
   }
   tracker.failed += 1;
   tracker.unread.add(QUERY_SOURCES[name]);
@@ -179,7 +182,7 @@ export async function loadGraphContext(
 
   const unread = GRAPH_SOURCES.filter((source) => tracker.unread.has(source));
   if (tracker.failures.length > 0) {
-    // Query names and error text only: no ARIs, no work item content.
+    // Query names and error text only. `logSafe` has removed any ARI or ID the server echoed.
     const total = tracker.ok + tracker.failed;
     console.error(`Groundwork: ${tracker.failed} of ${total} Teamwork Graph queries failed: ${tracker.failures.sort().join('; ')}`);
   }

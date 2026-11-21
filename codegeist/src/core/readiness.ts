@@ -187,14 +187,18 @@ function purpose(facts: IssueFacts, graph: GraphContext | null): Check {
     });
   }
   if (graph?.unread.includes('goals')) {
-    // Without the goals, "not linked to a goal" would be a guess.
+    // Without the goals, "not linked to a goal" would be a guess, so the wording changes. The status
+    // does not: a read that failed must never score better than a read that found nothing.
     return check({
       ...base,
-      status: 'na',
+      status: 'warn',
       detail: facts.isEpic
-        ? 'The Teamwork Graph did not return the goals this time.'
-        : 'Not linked to an epic or parent, and the Teamwork Graph did not return the goals this time.',
-      source: 'graph',
+        ? 'The goals could not be read this time, so the link to a goal was not checked.'
+        : 'Not linked to an epic or parent. The goals could not be read this time.',
+      fix: facts.isEpic
+        ? 'Check again. If the epic has no goal yet, link it to the goal it moves.'
+        : 'Link it to its epic so people know why it matters. A linked goal counts too, but the goals could not be read this time.',
+      source: facts.isEpic ? 'graph' : 'jira',
     });
   }
   return check({

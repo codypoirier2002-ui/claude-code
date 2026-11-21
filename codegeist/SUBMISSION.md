@@ -97,8 +97,8 @@ It works in three places, all backed by the same three read-only actions:
   says what the graph returned, and checks that need it show as "not checked".
 - **HTTP 200 does not mean it worked.** The graph answers 200 with a GraphQL error for rate limits,
   and some sites refuse a share of identical reads. Reading that as "no pull requests linked" would
-  make the check pass something it never looked at. Groundwork retries what can be retried, then
-  marks the check "not checked" and names the source it could not read.
+  make the check pass something it never looked at. Groundwork retries what can be retried, backs
+  off when it is rate limited, then names the source it could not read and makes no claim about it.
 - **Explaining "ready" without being preachy.** Different work types need different checks. Bugs need
   reproduction steps, not user stories. Sub-tasks get a lighter touch, and epics need success
   criteria and a goal. Every warning had to come with a concrete fix.

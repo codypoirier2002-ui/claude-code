@@ -24,7 +24,7 @@ Artifacts:
 - `resources/agent/groundwork-agent.txt`: the Rovo agent prompt.
 - `skills/ready-check/SKILL.md`: the bundled `rovo:skill`.
 - `agent-skills/groundwork-pickup/SKILL.md`: an open-source skill for outside coding agents.
-- `test/`: 140 Vitest tests. `scripts/bundle-check.mjs` is the esbuild bundle and export check.
+- `test/`: 153 Vitest tests. `scripts/bundle-check.mjs` is the esbuild bundle and export check.
 - Documents: `PLAN.md` (the one-page plan), `README.md` (install and setup), `SUBMISSION.md` (the
   Devpost text, judge instructions and video script), `OWNER-STEPS.md` (the owner's runbook),
   `PRIVACY.md`, `LICENSE` (MIT).
@@ -46,7 +46,7 @@ Verify:
 ```
 $ npm run check
 Test Files  13 passed (13)
-     Tests  140 passed (140)
+     Tests  153 passed (153)
 all 4 manifest handlers are exported.
 ```
 
@@ -56,7 +56,7 @@ enter tokens. Every `forge` command takes 30 seconds to 2.5 minutes to start on 
 ## 3. What was tested
 
 Test summary:
-- Unit: 140 tests in 13 files, all passing. They include Forge's own `@forge/manifest` 13.9.0 full
+- Unit: 153 tests in 13 files, all passing. They include Forge's own `@forge/manifest` 13.9.0 full
   validation of `manifest.yml`.
 - Type-check: `tsc` 6.0.3, and also the Forge CLI's bundled TypeScript 5.9.2 (what deploy uses).
 - Lint: ESLint ran on 32 files with 0 issues. The esbuild bundle builds: backend 207 KiB, frontend
@@ -64,20 +64,21 @@ Test summary:
 
 Test locations:
 - `test/detect.test.ts` (15): acceptance criteria, reproduction steps, placeholders, open questions
-- `test/readiness.test.ts` (16): every check, weights, verdicts, lite mode, graph-based checks, and
-  "not checked" when a graph source did not answer
+- `test/readiness.test.ts` (17): every check, weights, verdicts, lite mode, graph-based checks, and
+  that a graph read that failed never raises a score
 - `test/manifest.test.ts` (13): the Forge validator, module wiring and limits, scopes, `SKILL.md`
   format, and the panel-to-agent key match
-- `test/service.test.ts` (18): fake Jira and graph clients, ARIs, failure handling, unread sources,
-  the log line, the consent error, project scan, JQL
-- `test/graph.test.ts` (15): query shapes and operation names, parsers, malformed data, which
-  failures are transient, the wording for unread sources
-- `test/actions.test.ts` (13): key and cloud ID resolution, result shapes, error messages, the
+- `test/service.test.ts` (19): fake Jira and graph clients, ARIs, failure handling, unread sources,
+  the log line and what it leaves out, the consent error, project scan, JQL
+- `test/graph.test.ts` (17): query shapes and operation names, parsers, malformed data, which
+  failures are transient or rate limits, log-safe error text, the wording for unread sources
+- `test/retry.test.ts` (17): retries, the try and time limits, the rate-limit back-off, what is
+  never retried, the schedule
+- `test/actions.test.ts` (14): key and cloud ID resolution, result shapes, error messages, the
   consent error
-- `test/retry.test.ts` (11): retries, the try and time limits, what is never retried, the schedule
 - `test/adf.test.ts` (11): Markdown and plain-text rendering, mentions, URLs
 - `test/facts.test.ts` (11): Jira JSON normalization, link direction, docs, custom fields
-- `test/contextPack.test.ts` (7): sections, character budget, determinism
+- `test/contextPack.test.ts` (9): sections, unread sources, character budget, determinism
 - `test/resolvers.test.ts` (5): the panel model, the gap line, the consent error
 - `test/people.test.ts` (3) and `test/consent.test.ts` (2): ranking, and recognizing Forge's error
 
@@ -138,7 +139,7 @@ restoring.
 - One core behind three surfaces: the panel, the Rovo agent with its skill, and MCP tools with an
   open-source skill.
 - Teamwork Graph enrichment that degrades gracefully when it returns nothing, retries transient
-  failures, and reports a source it could not read as "not checked", never as empty.
+  failures, and never reports a source it could not read as empty.
 - Every handler lets Forge's consent error through, so a person's first use can set up access.
 - The plan, README, Devpost draft, video script, owner steps and privacy statement.
 
@@ -178,11 +179,15 @@ restoring.
   on a `forge site provision` demo site answering HTTP 200 with "User is not permitted to query this
   organization", while the rest passed in the same second
   ([report](https://community.developer.atlassian.com/t/teamwork-graph-curated-fields-intermittently-return-user-is-not-permitted-to-query-this-organization/103690),
-  unanswered so far). `src/platform/retry.ts` tries up to 8 times inside 6 seconds. To tune it,
-  change `DEFAULT_RETRY`.
+  unanswered so far). `src/platform/retry.ts` tries up to 8 times inside 6 seconds once any query
+  of the same load has answered, and 3 times while none has, so a graph that never answers costs
+  about a second. To tune it, change `DEFAULT_RETRY`.
 - **A failed graph read is HTTP 200.** Rate limits and a bad operation name come back the same way
   ([write-up](https://community.developer.atlassian.com/t/reading-the-teamwork-graph-api-from-a-forge-rovo-agent-the-failures-that-return-http-200-or-an-empty-list/103629)).
   Groundwork reads the GraphQL errors, and a test checks the `[company]_[operation]` names.
+- **Rate limits start near 128 calls in 20 seconds** for one caller in the same write-up. A load
+  sends 3 to 9 queries, so retries are the main way to reach that. After a rate limit, every query
+  of the load gets 3 tries at most, 1 and then 2 seconds apart.
 - **Page owners can be null.** A page owned or edited by an app account returns a null user node
   with a non-null error
   ([report](https://community.developer.atlassian.com/t/teamwork-graph-confluencepageowners-always-returns-a-null-user-node-non-null-violation-contributors-partially-null-atlassianteamsbyspace-works/103766)).

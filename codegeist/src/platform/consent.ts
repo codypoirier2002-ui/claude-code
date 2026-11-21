@@ -4,8 +4,12 @@
  * `api.asUser()` throws it when the current person's access to the app is not
  * set up yet. Forge then sets it up, silently or with its "Allow access" prompt,
  * but only when the error leaves the function. A handler that catches it and
- * answers with its own message leaves that person locked out, so every catch on
- * the way out has to let it through.
+ * answers with its own message leaves that person locked out, so every catch
+ * between a Jira read and the handler's return has to let it through.
+ *
+ * Teamwork Graph reads are the one exception (`runQuery` in `service.ts`). They
+ * run after Jira has answered for the same person, so a refusal there is not
+ * one the prompt could fix, and it becomes an unread source instead.
  */
 const NEEDS_AUTHENTICATION = 'NEEDS_AUTHENTICATION_ERR';
 
