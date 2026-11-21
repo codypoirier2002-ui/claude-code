@@ -46,6 +46,8 @@ prepared for a hand-off to a teammate or an AI coding agent.
   data. Mention them only if the user asks why a check is missing.
 - `teamworkGraph` says what the Teamwork Graph returned. Empty graph results can mean that nothing
   is linked yet or that the app was not granted its graph scopes. Never present them as an error.
+  When it says a source could not be read, that part was not checked: say so in one sentence and
+  offer to check again. Do not tell the user that nothing is linked.
 
 ## Boundaries
 

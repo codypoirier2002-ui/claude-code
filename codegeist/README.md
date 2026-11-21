@@ -114,7 +114,9 @@ The owner of a demo site is its org admin.
 
 ## Use it
 
-1. **Panel.** Open any Jira work item. Under the fields on the right, expand **Ready check**.
+1. **Panel.** Open any Jira work item. Under the fields on the right, expand **Ready check**. On a
+   person's first use, Forge sets up their access to the app. That normally needs no click; if an
+   **Allow access** button appears instead of a score, select it and accept.
 2. **Rovo.** Open Rovo Chat, pick the **Groundwork** agent, and use a conversation starter.
 3. **Rovo Studio.** Create an agent, then go to **Tools**, **Add tools**, **Connected apps**,
    **Groundwork**, and add the three tools.
@@ -122,7 +124,8 @@ The owner of a demo site is its org admin.
    **Connected apps**, **Groundwork**, **Tools**, and turn the tools on. Then add
    `https://mcp.atlassian.com/forge/<appId>` as a remote MCP server in the client. `<appId>` is the
    UUID at the end of `app.id` in `manifest.yml`. Copy `agent-skills/groundwork-pickup` into the
-   client's skills folder.
+   client's skills folder. If a tool call answers "User consent required", ask the Groundwork agent
+   one question in Rovo Chat as the same person, then call the tool again (see Troubleshooting).
 
 ## Teamwork Graph notes
 
@@ -132,7 +135,18 @@ The owner of a demo site is its org admin.
   `src/core/graph.ts`.
 - A scope that was not granted returns **empty** results, not an error. The panel then says so in
   its footer, and the checks that need the graph show as "not checked" instead of failing.
+- A failed query still answers HTTP 200, so Groundwork reads the GraphQL errors instead of the
+  status. Failures that can pass a moment later (rate limits, gateway errors, and the "User is not
+  permitted to query this organization" refusal some sites give a share of identical reads) are sent
+  again, up to 8 tries inside 6 seconds (`src/platform/retry.ts`).
+- A source that still does not answer is never shown as empty. The footer says "Could not read pull
+  requests this time", the check that needs it shows as "not checked", and `forge logs` gets one line
+  with the failed query names and the error text.
 - Results are filtered by the user's own permissions.
+- The API is in Preview. Atlassian announces breaking changes at least a month ahead in the
+  [Teamwork Graph changelog](https://developer.atlassian.com/platform/teamwork-graph/changelog/).
+  The query names, arguments, fields, scopes and ARI formats here matched the reference on
+  2026-11-21.
 
 ## Cost and data
 
@@ -140,10 +154,11 @@ The owner of a demo site is its org admin.
 - There is no storage, no outside network access, no Forge LLM API (which has no free tier) and no
   containers.
 - Each check is one function run at 256 MB that makes up to 3 Jira calls and 9 Teamwork Graph
-  calls. Its duration has not been measured on a live site yet. Even at a pessimistic 5 seconds, that
-  is 1.25 GB-seconds a check, and Forge's free allowance of 200,000 GB-seconds a month covers about
-  160,000 checks. Expected cost is **$0**. Rovo's own AI usage is billed to the site's Rovo allowance,
-  not to the app developer.
+  queries. A graph query is sent again only when it fails in a way that can pass a moment later,
+  which adds 6 seconds at most. The duration has not been measured on a live site yet. Even at a
+  pessimistic 10 seconds, that is 2.5 GB-seconds a check, and Forge's free allowance of 200,000
+  GB-seconds a month covers about 80,000 checks. Expected cost is **$0**. Rovo's own AI usage is
+  billed to the site's Rovo allowance, not to the app developer.
 - `PRIVACY.md` has the full privacy statement.
 
 ## Troubleshooting
@@ -152,7 +167,10 @@ The owner of a demo site is its org admin.
 | --- | --- |
 | `forge` is not recognized, or says the Node version is unsupported | Run the `$env:Path` line above in the window first. |
 | A `forge` command seems to hang | Every command takes from 30 seconds to a few minutes to start on a slow connection. Wait before you cancel it. |
+| The panel shows **Allow access** instead of a score | Forge is asking that person to let the app read Jira for them. Select it and accept; the check then loads. |
+| An outside MCP client gets `MCP_UNAUTHENTICATED: User consent required`, and accepting the link does not help | A Forge bug that Atlassian confirmed on 2026-11-19 for apps with both Jira and Confluence scopes ([thread](https://community.developer.atlassian.com/t/forge-rovo-asuser-tools-always-return-mcp-unauthenticated-user-consent-required-consent-does-not-persist/104088)). Their workaround: as the same person, ask the Groundwork agent one question in Rovo Chat, which sets up the access, then call the tool again. |
 | The panel says the work item was not found | The signed-in user cannot view it, or the app is not installed on that site. |
+| The footer says "Could not read … this time" | The Teamwork Graph did not answer for that source, even after retries. Select **Refresh**. If it keeps happening, run `forge logs`: one line names the failed queries and the error. |
 | The footer says "no linked goals, pull requests, page owners or teams" | Either nothing is linked yet, or the graph scopes were not granted. In admin.atlassian.com, check **Connected apps**, **Groundwork**, **Permissions**. |
 | Groundwork does not appear in Rovo Studio tools | Re-run `forge deploy` and `forge install --upgrade`, then reload Rovo. |
 | `forge tunnel` fails | Its helper download was skipped at install time. Deploy instead, or reinstall the CLI with `npm install -g @forge/cli --allow-scripts=cloudflared`. |

@@ -110,17 +110,29 @@ the Teamwork Graph and never writes.
 
 ## 7. Verify on your site (you, 15 minutes)
 
-Tick each of these. If one fails, paste the message to Claude; never paste your token.
+Tick each of these, in this order. If one fails, paste the message to Claude; never paste your
+token. Running `forge logs` in the PowerShell window shows the app's error lines, and those are safe
+to paste.
 
 - [ ] Open any work item. On the right, under the fields, expand **Ready check**. You should see a
-      score, a verdict and the checklist.
+      score, a verdict and the checklist. If an **Allow access** button appears first, select it and
+      accept: Forge is asking you to let the app read Jira for you.
 - [ ] Edit that work item's description. The panel should re-check by itself within a few seconds.
 - [ ] Select **View context pack**. A Markdown brief should open.
 - [ ] Open Rovo Chat, pick the **Groundwork** agent, and ask "Is this work item ready to start?" on a
       work item. Then ask "Which work items in this project are ready to start?"
 - [ ] In Rovo, choose **Create agent**, then **Tools**, **Add tools**, **Connected apps**, and
       **Groundwork**. The three tools should be listed. Add them, publish the agent, and try it.
-- [ ] Check the panel footer. If it says "no linked goals, pull requests, page owners or teams", open
+- [ ] Optional, outside MCP clients: do this only after the Rovo Chat step above, as the same
+      person. If a tool call answers "User consent required" and accepting the link changes nothing,
+      that is a Forge bug Atlassian confirmed on November 19, 2026. Asking the Groundwork agent one
+      question in Rovo Chat sets up the access, and the tool then works.
+- [ ] Check the panel footer. If it says "Could not read … this time", select **Refresh**. In
+      November 2026 a developer reported a demo site refusing about 70% of identical Teamwork Graph
+      reads. Groundwork sends each read again up to 8 times, which hides most of that. If the
+      message stays, `forge logs` has one line naming the queries that failed and why: paste that
+      line to Claude.
+- [ ] If the footer says "no linked goals, pull requests, page owners or teams", open
       admin.atlassian.com, go to **Apps**, **Sites**, your site, **Connected apps**, **Groundwork**,
       **Permissions**, and make sure the graph scopes are on. Then link a Confluence page to a work
       item and re-check.
@@ -180,8 +192,11 @@ Read it all once more, then select **Submit** yourself before December 22, 12:00
 
 ## What Claude verified locally
 
-- `npm run check` passes: ESLint, TypeScript (6.0, and also the Forge CLI's bundled 5.9), 108 unit
+- `npm run check` passes: ESLint, TypeScript (6.0, and also the Forge CLI's bundled 5.9), 140 unit
   tests, and an esbuild bundle of both entry points.
+- On 2026-11-21, the five Teamwork Graph queries were checked line by line against Atlassian's
+  reference: the query names and arguments, every selected field, the page cap of 25, the seven graph
+  scopes and the three ARI formats all match. `HANDOFF.md` section 5 lists the pages.
 - `manifest.yml` passes the Forge CLI's own full manifest validator (`@forge/manifest` 13.9.0),
   which runs offline as part of the tests. Its schema covers `rovo:agent` (including `skills`),
   `rovo:skill`, `rovo:mcp`, `action` and the UI Kit `jira:issueContext`. It does not read the
@@ -194,7 +209,10 @@ Read it all once more, then select **Submit** yourself before December 22, 12:00
 - `forge lint`, `forge register`, `forge deploy` and `forge install`, because each needs your login.
   `forge lint` adds Forge's code rules on top of the manifest validator that already passed.
 - That the panel, the agent, the skill and the MCP tools render and run on a real site.
-- That the five Teamwork Graph queries match the live schema and return data on the demo site.
+- That the five Teamwork Graph queries return data on the demo site. They match the published
+  reference, but nothing has run them against a live schema yet.
+- That a first visit sets up access and then shows the panel. The code now lets Forge's access
+  error through, which is what Atlassian says an app must do, but only a live site can show it.
 - The distribution form, the installation link and the judges' install flow.
 - What the seeded demo data looks like.
 - That Rovo agents, Rovo Studio, `rovo:mcp` tools and the Teamwork Graph all work on the free demo

@@ -76,7 +76,9 @@ It works in three places, all backed by the same three read-only actions:
 - **Teamwork Graph API** curated queries: `jiraWorkItemGoals`,
   `jiraWorkItemLinkedExternalPullRequests`, `confluencePageOwners`, `confluencePageContributors` and
   `atlassianTeamsBySpace`. Each runs on its own with a minimal field selection. A failure or a missing
-  scope degrades one enrichment, never the whole check.
+  scope degrades one enrichment, never the whole check. Failures that can pass a moment later are
+  sent again inside a 6-second budget, and a source that still does not answer is reported as
+  "could not read", never as empty.
 - **Deterministic core.** The checks, scoring, people ranking and context pack are pure functions with
   no language model inside. The same work item always gets the same answer, and every point of the
   score can be explained. Rovo supplies the conversation; Groundwork supplies the facts.
@@ -93,6 +95,10 @@ It works in three places, all backed by the same three read-only actions:
 - **An empty graph result is ambiguous.** When a Teamwork Graph scope is not granted, queries succeed
   with empty data instead of failing. Groundwork never treats "no graph data" as a failure. The panel
   says what the graph returned, and checks that need it show as "not checked".
+- **HTTP 200 does not mean it worked.** The graph answers 200 with a GraphQL error for rate limits,
+  and some sites refuse a share of identical reads. Reading that as "no pull requests linked" would
+  make the check pass something it never looked at. Groundwork retries what can be retried, then
+  marks the check "not checked" and names the source it could not read.
 - **Explaining "ready" without being preachy.** Different work types need different checks. Bugs need
   reproduction steps, not user stories. Sub-tasks get a lighter touch, and epics need success
   criteria and a goal. Every warning had to come with a concrete fix.
@@ -153,8 +159,9 @@ acceptance criteria into tests.
 (goals linked to the work item, teams linked to the project), "who knows?" (owners and contributors
 of linked Confluence pages), and "is someone already on it?" (pull requests linked to the work item).
 It uses five curated queries, each run as the user with per-object read scopes. Graph data feeds two
-checks (Purpose is clear, No duplicate work), the people ranking and the context pack, and the app
-degrades gracefully when a scope is not granted.
+checks (Purpose is clear, No duplicate work), the people ranking and the context pack. The app
+degrades gracefully when a scope is not granted, retries the transient failures of a Preview API,
+and never reports a source it could not read as empty.
 
 ---
 
@@ -163,7 +170,8 @@ degrades gracefully when a scope is not granted.
 1. Open the installation link: `<link>`. Install on a site where you are an **organization admin**,
    because the Teamwork Graph scopes need one. Choose **Jira**.
 2. Open any work item. In the right-hand column, under the fields, expand **Ready check**. You will
-   see a score, a verdict, the checklist with fixes and the people to ask.
+   see a score, a verdict, the checklist with fixes and the people to ask. If an **Allow access**
+   button appears first, select it and accept.
 3. Select **View context pack** to see the Markdown brief that agents receive.
 4. Edit the work item's description, for example by adding an "Acceptance criteria" heading with two
    bullet points. The panel re-checks within a few seconds.
@@ -176,10 +184,13 @@ degrades gracefully when a scope is not granted.
    `<work item key>`".
 7. Optional, for outside MCP clients: in admin.atlassian.com, go to **Apps**, **Sites**, your site,
    **Connected apps**, **Groundwork**, **Tools**, and turn the tools on. Then connect a client to
-   `https://mcp.atlassian.com/forge/<appId>`.
+   `https://mcp.atlassian.com/forge/<appId>`. Do step 5 first, as the same person: if a tool call
+   answers "User consent required", one question to the Groundwork agent in Rovo Chat sets up the
+   access (a Forge issue Atlassian confirmed in November 2026).
 
 Groundwork is read-only and stores nothing. If the panel footer says the graph returned nothing,
-either nothing is linked yet or the graph scopes were not granted. Every Jira-based check still works.
+either nothing is linked yet or the graph scopes were not granted. If it says a source could not be
+read this time, select **Refresh**. Every Jira-based check still works either way.
 
 ---
 
