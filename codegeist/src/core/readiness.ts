@@ -186,6 +186,17 @@ function purpose(facts: IssueFacts, graph: GraphContext | null): Check {
       source: goals.length > 0 && !facts.parent ? 'graph' : 'jira',
     });
   }
+  if (graph?.unread.includes('goals')) {
+    // Without the goals, "not linked to a goal" would be a guess.
+    return check({
+      ...base,
+      status: 'na',
+      detail: facts.isEpic
+        ? 'The Teamwork Graph did not return the goals this time.'
+        : 'Not linked to an epic or parent, and the Teamwork Graph did not return the goals this time.',
+      source: 'graph',
+    });
+  }
   return check({
     ...base,
     status: 'warn',
@@ -275,6 +286,10 @@ function workInFlight(facts: IssueFacts, graph: GraphContext | null): Check {
   const base = { id: 'work-in-flight' as const, label: 'No duplicate work', source: 'graph' as const };
   if (!graph?.available) {
     return check({ ...base, status: 'na', detail: 'Needs the Teamwork Graph, which returned no data.' });
+  }
+  if (graph.unread.includes('pullRequests')) {
+    // An empty list here means "not read", so it must not pass as "none linked".
+    return check({ ...base, status: 'na', detail: 'The Teamwork Graph did not return the pull requests this time.' });
   }
   const open = graph.pullRequests.filter((pr) => /^(open|draft)$/i.test(pr.status));
   if (open.length > 0 && facts.statusCategory === 'new') {

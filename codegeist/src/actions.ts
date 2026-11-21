@@ -1,10 +1,12 @@
 /**
  * Rovo action handlers. The same three actions back the Groundwork agent, the
  * `ready-check` skill and the `rovo:mcp` tools, so every surface gives the same
- * answer. Handlers never throw: problems come back as `{ error }`, which an
- * agent can relay in plain language.
+ * answer. Problems come back as `{ error }`, which an agent can relay in plain
+ * language. The one error a handler lets through is the consent error, because
+ * Forge has to see it to set up the person's access.
  */
 import { plural } from './core/text';
+import { needsUserConsent } from './platform/consent';
 import { createGraphClient } from './platform/graph';
 import { createJiraClient, JiraError } from './platform/jira';
 import {
@@ -83,7 +85,9 @@ export function resolveCloudId(payload: ActionPayload, context?: InvocationConte
   return payload.context?.cloudId ?? context?.cloudId ?? fromInstall;
 }
 
+/** Turns a failure into a message for the agent. Rethrows the consent error. */
 function toMessage(error: unknown): string {
+  if (needsUserConsent(error)) throw error;
   if (error instanceof JiraError) return error.message;
   console.error('Groundwork action failed', error instanceof Error ? error.message : String(error));
   return 'Groundwork could not read this work item right now. Try again, and check that the app is installed on this site.';

@@ -116,6 +116,9 @@ export interface GraphTeam {
   url?: string;
 }
 
+/** The kinds of context Groundwork reads from the Teamwork Graph. */
+export type GraphSource = 'goals' | 'pullRequests' | 'teams' | 'pagePeople';
+
 /** Context from the Teamwork Graph. Every list may be empty. */
 export interface GraphContext {
   /** True when at least one graph query ran without errors. */
@@ -124,6 +127,11 @@ export interface GraphContext {
   sourcesWithData: number;
   /** One-line, user-facing explanation of the graph status. */
   note: string;
+  /**
+   * Sources the graph did not answer for. Their lists below are empty because
+   * they could not be read, which says nothing about what is linked.
+   */
+  unread: GraphSource[];
   goals: GraphGoal[];
   pullRequests: GraphPullRequest[];
   pagePeople: GraphPagePeople[];

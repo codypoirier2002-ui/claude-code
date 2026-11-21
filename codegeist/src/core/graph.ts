@@ -4,10 +4,13 @@
  * Groundwork only uses curated queries, which need no registration step. Each
  * query is sent on its own and selects as few fields as possible, so a schema
  * change or a withheld scope breaks one enrichment instead of the whole panel.
- * Field names follow the object-type reference at
- * https://developer.atlassian.com/platform/teamwork-graph/api-reference/object-types/
+ * Query names and arguments follow the curated-query catalog, and field names
+ * the object-type reference (both checked on 2026-11-21):
+ * https://developer.atlassian.com/platform/teamwork-graph/curated-queries/
+ * https://developer.atlassian.com/platform/teamwork-graph/api-reference/object-types/overview/
  */
-import type { GraphGoal, GraphPullRequest, GraphTeam, PersonRef } from './types';
+import { humanList, oneLine, truncate } from './text';
+import type { GraphGoal, GraphPullRequest, GraphSource, GraphTeam, PersonRef } from './types';
 
 /** Curated queries cap `first` at 25. */
 export const MAX_FIRST = 25;
@@ -57,8 +60,28 @@ export const QUERY_FIELDS: Record<QueryName, string> = {
   spaceTeams: 'atlassianTeamsBySpace',
 };
 
+/** The context each query contributes to. Page owners and contributors count as one source. */
+export const QUERY_SOURCES: Record<QueryName, GraphSource> = {
+  workItemGoals: 'goals',
+  workItemPullRequests: 'pullRequests',
+  pageOwners: 'pagePeople',
+  pageContributors: 'pagePeople',
+  spaceTeams: 'teams',
+};
+
+/** Every source, in the order Groundwork names them. */
+export const GRAPH_SOURCES: readonly GraphSource[] = ['goals', 'pullRequests', 'pagePeople', 'teams'];
+
+const SOURCE_LABELS: Record<GraphSource, string> = {
+  goals: 'goals',
+  pullRequests: 'pull requests',
+  pagePeople: 'page owners',
+  teams: 'teams',
+};
+
 export interface GraphQlError {
   message?: string;
+  extensions?: { classification?: unknown; statusCode?: unknown } | null;
 }
 
 export interface GraphQlResponse {
@@ -129,10 +152,60 @@ export function hasErrors(response: GraphQlResponse): boolean {
   return Array.isArray(response.errors) && response.errors.length > 0;
 }
 
+/**
+ * True when a query came back with errors and nothing under its field. The
+ * graph answers HTTP 200 either way, so the status code cannot tell. Errors
+ * beside usable data (one node that could not be resolved) are not a failure.
+ */
+export function isFailure(response: GraphQlResponse, field: string): boolean {
+  return hasErrors(response) && !response.data?.[field];
+}
+
+function errorText(error: GraphQlError): string {
+  const classification = error.extensions?.classification;
+  const label = typeof classification === 'string' && classification.length > 0 ? classification : 'error';
+  return `${label}: ${typeof error.message === 'string' ? error.message : 'no message'}`;
+}
+
+/** The first error on one line, for logs. It never includes the query variables. */
+export function errorSummary(response: GraphQlResponse): string {
+  const first = response.errors?.[0];
+  return first ? truncate(oneLine(errorText(first)), 160) : 'no data';
+}
+
+/**
+ * Failures that can pass unchanged a moment later: rate limits, gateway errors
+ * and timeouts, and the refusal some sites give a share of identical reads.
+ */
+const TRANSIENT_TEXT =
+  /not permitted to query this organization|rate.?limit|throttl|too many requests|tim(?:ed?)?[ -]?out|\bHTTP (?:429|502|503|504)\b/i;
+const TRANSIENT_STATUS = new Set([429, 502, 503, 504]);
+
+/** True when a failed query is worth sending again as it is. */
+export function isTransient(response: GraphQlResponse): boolean {
+  return (response.errors ?? []).some(
+    (error) =>
+      TRANSIENT_TEXT.test(errorText(error)) ||
+      (typeof error.extensions?.statusCode === 'number' && TRANSIENT_STATUS.has(error.extensions.statusCode)),
+  );
+}
+
+/** One sentence naming the sources the graph did not answer for, or an empty string. */
+export function describeUnread(unread: GraphSource[]): string {
+  const names = GRAPH_SOURCES.filter((source) => unread.includes(source)).map((source) => SOURCE_LABELS[source]);
+  if (names.length === 0) return '';
+  return `Could not read ${humanList(names)} this time; check again in a moment.`;
+}
+
 /** A short, user-facing line describing what the graph returned. */
-export function describeGraph(ok: number, failed: number, withData: number): string {
+export function describeGraph(ok: number, failed: number, withData: number, unread: GraphSource[] = []): string {
   if (ok === 0 && failed === 0) return 'not queried.';
   if (ok === 0) return 'unavailable on this site (requests failed).';
+  const gap = describeUnread(unread);
+  if (gap) {
+    const found = withData === 0 ? 'nothing linked in the sources that answered.' : `${withData} of ${ok + failed} sources returned context.`;
+    return `${found} ${gap}`;
+  }
   if (withData === 0) {
     return 'no linked goals, pull requests, page owners or teams found. Either nothing is linked yet or the app was not granted its graph scopes.';
   }

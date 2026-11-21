@@ -41,16 +41,30 @@ export interface FakeGraph extends GraphClient {
   calls: { name: QueryName; variables: Record<string, unknown> }[];
 }
 
-/** Each query name maps to a response, an Error (thrown) or nothing (empty data). */
-export function fakeGraph(responses: Partial<Record<QueryName, GraphQlResponse | Error>>): FakeGraph {
+type Reply = GraphQlResponse | Error;
+
+/**
+ * Each query name maps to a response, an Error (thrown) or nothing (empty data).
+ * A list answers one call after another, and its last entry answers every call after that.
+ */
+export function fakeGraph(responses: Partial<Record<QueryName, Reply | Reply[]>>): FakeGraph {
   const calls: FakeGraph['calls'] = [];
+  const served = new Map<QueryName, number>();
   return {
     calls,
     async query(name, variables) {
       calls.push({ name, variables });
-      const response = responses[name];
-      if (response instanceof Error) throw response;
-      return response ?? { data: {} };
+      const scripted = responses[name];
+      let reply: Reply | undefined;
+      if (Array.isArray(scripted)) {
+        const index = served.get(name) ?? 0;
+        served.set(name, index + 1);
+        reply = scripted[Math.min(index, scripted.length - 1)];
+      } else {
+        reply = scripted;
+      }
+      if (reply instanceof Error) throw reply;
+      return reply ?? { data: {} };
     },
   };
 }

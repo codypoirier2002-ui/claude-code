@@ -128,6 +128,31 @@ describe('evaluateReadiness', () => {
     expect(byId(inProgress.checks, 'work-in-flight').status).toBe('pass');
   });
 
+  it('does not pass "No duplicate work" when the pull requests could not be read', () => {
+    // The graph answered for other sources, so it is available, but the pull request list is empty because it was not read.
+    const result = evaluateReadiness(facts(), graphContext({ unread: ['pullRequests'] }));
+    expect(byId(result.checks, 'work-in-flight')).toMatchObject({
+      status: 'na',
+      detail: 'The Teamwork Graph did not return the pull requests this time.',
+    });
+    expect(result.gaps).toEqual([]);
+  });
+
+  it('does not ask for a goal link when the goals could not be read', () => {
+    const orphan = evaluateReadiness(facts({ parent: undefined }), graphContext({ unread: ['goals'] }));
+    expect(byId(orphan.checks, 'purpose')).toMatchObject({ status: 'na', source: 'graph' });
+    expect(byId(orphan.checks, 'purpose').fix).toBeUndefined();
+    expect(orphan.gaps).not.toContain('Purpose is clear');
+
+    // A parent still settles it without the graph.
+    const child = evaluateReadiness(facts(), graphContext({ unread: ['goals'] }));
+    expect(byId(child.checks, 'purpose')).toMatchObject({ status: 'pass', source: 'jira' });
+
+    // Goals that were read and are empty still warn, as before.
+    const read = evaluateReadiness(facts({ parent: undefined }), graphContext());
+    expect(byId(read.checks, 'purpose')).toMatchObject({ status: 'warn', detail: 'Not linked to an epic, parent or goal.' });
+  });
+
   it('warns about an unanswered question in the latest comment', () => {
     const result = evaluateReadiness(
       facts({ comments: [{ author: { name: 'Ben Ode' }, created: '2026-11-02', text: 'Which timezone do we export in?' }] }),

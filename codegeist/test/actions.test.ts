@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { NeedsAuthenticationError } from '@forge/api';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   checkIssueReadiness,
   getContextPack,
@@ -14,8 +15,13 @@ import {
 import { fakeGraph, fakeJira, type FakeJiraData } from './fakes';
 import { CONFLUENCE_LINK, jiraIssue } from './fixtures';
 
+const CLOUD = '11111111-2222-3333-4444-555555555555';
 const clientsFor = (data: FakeJiraData) => () => ({ jira: fakeJira(data), graph: fakeGraph({}) });
 const isError = (value: unknown): value is ActionError => typeof (value as ActionError).error === 'string';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('resolving keys from input and page context', () => {
   it('prefers the explicit input, then the page context, then the page URL', () => {
@@ -76,7 +82,21 @@ describe('check-issue-readiness', () => {
     expect(result).toEqual({ error: 'work item KAN-404 was not found, or you do not have permission to view it.' });
   });
 
+  it('says which graph sources did not answer, so an agent does not report them as empty', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const result = (await checkIssueReadiness({ issueKey: 'KAN-12', context: { cloudId: CLOUD } }, undefined, () => ({
+      jira: fakeJira({ issues: { 'KAN-12': jiraIssue() }, remoteLinks: { 'KAN-12': [] } }),
+      graph: fakeGraph({ workItemPullRequests: { errors: [{ message: 'Teamwork Graph returned HTTP 503' }] } }),
+    }))) as ReadinessResult;
+    expect(result.notChecked).toEqual(['No duplicate work']);
+    expect(result.passed).not.toContain('No duplicate work');
+    expect(result.teamworkGraph).toBe(
+      'nothing linked in the sources that answered. Could not read pull requests this time; check again in a moment.',
+    );
+  });
+
   it('hides unexpected errors behind a friendly message', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const broken = () => {
       throw new Error('internal detail');
     };
@@ -122,5 +142,18 @@ describe('list-ready-issues', () => {
     expect(await listReadyIssues({}, undefined, clientsFor({}))).toEqual({
       error: expect.stringContaining('Tell me which project'),
     });
+  });
+});
+
+describe('consent', () => {
+  it("lets the consent error out of every action, so Forge can set up the person's access", async () => {
+    const consent = new NeedsAuthenticationError('Authentication Required', 'atlassian-token-service-key');
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const refuse = () => Promise.reject(consent);
+    const clients = () => ({ jira: { ...fakeJira({}), getIssue: refuse, searchIssues: refuse }, graph: fakeGraph({}) });
+    await expect(checkIssueReadiness({ issueKey: 'KAN-1' }, undefined, clients)).rejects.toBe(consent);
+    await expect(getContextPack({ issueKey: 'KAN-1' }, undefined, clients)).rejects.toBe(consent);
+    await expect(listReadyIssues({ projectKey: 'KAN' }, undefined, clients)).rejects.toBe(consent);
+    expect(error).not.toHaveBeenCalled();
   });
 });

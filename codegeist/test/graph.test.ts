@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   confluencePageAri,
   describeGraph,
+  describeUnread,
+  errorSummary,
+  GRAPH_SOURCES,
   hasErrors,
+  isFailure,
   issueAri,
+  isTransient,
   MAX_FIRST,
   nodesOf,
   parseGoals,
@@ -13,6 +18,7 @@ import {
   projectAri,
   QUERIES,
   QUERY_FIELDS,
+  QUERY_SOURCES,
 } from '../src/core/graph';
 
 const connection = (field: string, nodes: unknown[]) => ({ data: { [field]: { edges: nodes.map((node) => ({ node })) } } });
@@ -33,6 +39,21 @@ describe('queries', () => {
       const first = Number(query.match(/first: (\d+)/)?.[1]);
       expect(first, name).toBeGreaterThan(0);
       expect(first, name).toBeLessThanOrEqual(MAX_FIRST);
+    }
+  });
+
+  it('names each operation the way the graph requires', () => {
+    // "[company]_[operation]": at least 3 and 4 characters, 100 at most. The graph answers HTTP 200 with an error otherwise.
+    for (const [name, query] of Object.entries(QUERIES)) {
+      const operation = query.match(/^query (\w+)\(/)?.[1] ?? '';
+      expect(operation, name).toMatch(/^[a-z]{3,}_\w{4,}$/);
+      expect(operation.length, name).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it('assigns every query to one of the sources', () => {
+    for (const name of Object.keys(QUERIES)) {
+      expect(GRAPH_SOURCES, name).toContain(QUERY_SOURCES[name as keyof typeof QUERIES]);
     }
   });
 });
@@ -83,11 +104,72 @@ describe('parsers', () => {
   });
 });
 
+describe('failures', () => {
+  const field = QUERY_FIELDS.workItemGoals;
+  const refused = {
+    data: null,
+    errors: [{ message: 'User is not permitted to query this organization', extensions: { classification: 'ValidationError' } }],
+  };
+
+  it('counts errors without data for the field as a failure, whatever the HTTP status was', () => {
+    expect(isFailure(refused, field)).toBe(true);
+    expect(isFailure({ errors: [{ message: 'x' }], data: { [field]: null } }, field)).toBe(true);
+    expect(isFailure({ errors: [{ message: 'x' }], data: { [field]: { edges: [] } } }, field)).toBe(false);
+    expect(isFailure({ data: {} }, field)).toBe(false);
+  });
+
+  it('treats refusals that pass a moment later as transient', () => {
+    expect(isTransient(refused)).toBe(true);
+    expect(isTransient({ errors: [{ message: 'RATE_LIMIT_EXCEEDED' }] })).toBe(true);
+    expect(isTransient({ errors: [{ message: 'Too many requests' }] })).toBe(true);
+    expect(isTransient({ errors: [{ message: 'Upstream request timed out' }] })).toBe(true);
+    expect(isTransient({ errors: [{ message: 'Gateway Timeout' }] })).toBe(true);
+    expect(isTransient({ errors: [{ message: 'Teamwork Graph returned HTTP 503' }] })).toBe(true);
+    expect(isTransient({ errors: [{ message: 'Upstream failed', extensions: { statusCode: 429 } }] })).toBe(true);
+    expect(isTransient({ errors: [{ message: 'first' }, { message: 'request throttled' }] })).toBe(true);
+  });
+
+  it('treats schema, naming and permission problems as permanent', () => {
+    expect(isTransient({ errors: [{ message: "Field 'nope' in type 'AtlassianGoal' is undefined", extensions: { classification: 'ValidationError' } }] })).toBe(false);
+    expect(isTransient({ errors: [{ message: 'You must set an operation name of the shape `[company]_[operation]`', extensions: { classification: 'DataFetchingException' } }] })).toBe(false);
+    expect(isTransient({ errors: [{ message: 'Teamwork Graph returned HTTP 403' }] })).toBe(false);
+    expect(isTransient({ errors: [{ message: 'Bad request', extensions: { statusCode: 400 } }] })).toBe(false);
+    expect(isTransient({ errors: [{ message: "The field at path '/confluencePageOwners/edges[0]/node' was declared as a non null type" }] })).toBe(false);
+    expect(isTransient({ errors: [{}] })).toBe(false);
+    expect(isTransient({ data: {} })).toBe(false);
+  });
+
+  it('summarizes the first error on one short line', () => {
+    expect(errorSummary(refused)).toBe('ValidationError: User is not permitted to query this organization');
+    expect(errorSummary({ errors: [{ message: 'line one\nline two' }] })).toBe('error: line one line two');
+    expect(errorSummary({ errors: [{ message: 'x'.repeat(500) }] }).length).toBeLessThanOrEqual(160);
+    expect(errorSummary({ errors: [{}] })).toBe('error: no message');
+    expect(errorSummary({ data: {} })).toBe('no data');
+  });
+});
+
 describe('describeGraph', () => {
   it('explains each outcome in plain language', () => {
     expect(describeGraph(0, 0, 0)).toBe('not queried.');
     expect(describeGraph(0, 4, 0)).toBe('unavailable on this site (requests failed).');
     expect(describeGraph(5, 0, 0)).toContain('not granted its graph scopes');
     expect(describeGraph(4, 1, 2)).toBe('2 of 5 sources returned context.');
+  });
+
+  it('names what could not be read, so an empty result is not mistaken for "nothing linked"', () => {
+    expect(describeUnread([])).toBe('');
+    expect(describeUnread(['pullRequests'])).toBe('Could not read pull requests this time; check again in a moment.');
+    // Always in the same order, whatever order the failures arrived in.
+    expect(describeUnread(['teams', 'pagePeople', 'goals'])).toBe(
+      'Could not read goals, page owners and teams this time; check again in a moment.',
+    );
+    expect(describeGraph(4, 1, 2, ['pullRequests'])).toBe(
+      '2 of 5 sources returned context. Could not read pull requests this time; check again in a moment.',
+    );
+    const nothingFound = describeGraph(3, 2, 0, ['goals', 'teams']);
+    expect(nothingFound).toBe(
+      'nothing linked in the sources that answered. Could not read goals and teams this time; check again in a moment.',
+    );
+    expect(nothingFound).not.toContain('scopes');
   });
 });
