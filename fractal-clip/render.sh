@@ -20,9 +20,21 @@ N=$(python3 -c "print(round($FPS*$SECS))")
 
 python3 score.py "$FRAMES/score.wav"
 
+ENC=(-c:v libx264 -preset slow -tune grain -pix_fmt yuv420p -profile:v high
+  -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv
+  -c:a aac -b:a 256k -movflags +faststart -shortest)
+
+# master at render resolution
 ffmpeg -y -framerate "$FPS" -i "$FRAMES/f%04d.ppm" -i "$FRAMES/score.wav" \
-  -c:v libx264 -preset slow -crf 14 -tune grain -pix_fmt yuv420p -profile:v high \
-  -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv \
   -vf "scale=out_color_matrix=bt709:out_range=tv:flags=accurate_rnd+full_chroma_int" \
-  -c:a aac -b:a 256k -movflags +faststart -shortest "$OUT"
+  -crf 14 "${ENC[@]}" "$OUT"
 echo "wrote $OUT"
+
+# lighter 1080p copy for phones and quick sharing, downscaled from the full-res frames
+if [ "$H" -gt 1080 ]; then
+  SMALL=${OUT%.mp4}_1080p.mp4
+  ffmpeg -y -framerate "$FPS" -i "$FRAMES/f%04d.ppm" -i "$FRAMES/score.wav" \
+    -vf "scale=-2:1080:flags=lanczos+accurate_rnd+full_chroma_int:out_color_matrix=bt709:out_range=tv" \
+    -crf 16 "${ENC[@]}" "$SMALL"
+  echo "wrote $SMALL"
+fi
